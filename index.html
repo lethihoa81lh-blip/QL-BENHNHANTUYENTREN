@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Quản Lý Nuôi Viện</title>
+<title>Quản Lý Bệnh nhân tuyến trên</title>
 
 <style>
 
@@ -82,7 +82,7 @@ body{
 
 .stats{
     display:grid;
-    grid-template-columns:1fr 1fr 1fr 1fr;
+    grid-template-columns:1fr 1fr 1fr 1fr 1fr;
     gap:10px;
     margin-bottom:12px;
 }
@@ -97,12 +97,13 @@ body{
 
 .stat-box h2{
     color:#1976d2;
-    font-size:28px;
+    font-size:22px;
 }
 
 .stat-box p{
     color:#666;
     margin-top:5px;
+    font-size:14px;
 }
 
 /* TABLE */
@@ -274,8 +275,6 @@ tr:hover{
 
 <body>
 
-<!-- HEADER -->
-
 <div class="header">
 
 <h1>🏥 Quản Lý Nuôi Viện</h1>
@@ -288,8 +287,6 @@ placeholder="🔍 Tìm bệnh nhân..."
 onkeyup="searchPatient()">
 
 </div>
-
-<!-- ACTION -->
 
 <div class="top-action">
 
@@ -328,31 +325,28 @@ onclick="openHandoverBook()">
 <div class="stats">
 
 <div class="stat-box">
-
 <h2 id="totalPatient">0</h2>
 <p>Tổng BN</p>
-
 </div>
 
 <div class="stat-box">
-
 <h2 id="totalDieuTri">0</h2>
 <p>Điều trị</p>
-
 </div>
 
 <div class="stat-box">
-
 <h2 id="totalXuatVien">0</h2>
 <p>Xuất viện</p>
-
 </div>
 
 <div class="stat-box">
-
 <h2 id="totalYear">0</h2>
 <p>Theo năm</p>
+</div>
 
+<div class="stat-box">
+<h2 id="topHospital">-</h2>
+<p>BV nhiều BN</p>
 </div>
 
 </div>
@@ -383,9 +377,7 @@ onclick="openHandoverBook()">
 
 </thead>
 
-<tbody id="tableBody">
-
-</tbody>
+<tbody id="tableBody"></tbody>
 
 </table>
 
@@ -558,29 +550,19 @@ table.innerHTML += `
 <tr>
 
 <td>${index+1}</td>
-
 <td>${p.name}</td>
-
 <td>${p.birth}</td>
-
 <td>${p.gender}</td>
-
 <td>${p.bhyt}</td>
-
 <td>${formatDate(p.nhaptram)}</td>
-
 <td>${formatDate(p.cv)}</td>
-
 <td>${formatDate(p.xv)}</td>
-
 <td>${p.hospital}</td>
 
 <td>
-
 <span class="status ${statusClass}">
 ${p.status}
 </span>
-
 </td>
 
 <td>
@@ -588,25 +570,19 @@ ${p.status}
 <button
 class="action-btn view-btn"
 onclick="viewPatient(${index})">
-
 Chi tiết
-
 </button>
 
 <button
 class="action-btn edit-btn"
 onclick="editPatient(${index})">
-
 Sửa
-
 </button>
 
 <button
 class="action-btn delete-btn"
 onclick="deletePatient(${index})">
-
 Xóa
-
 </button>
 
 </td>
@@ -642,6 +618,43 @@ p=>p.status=="Xuất viện"
 
 document.getElementById("totalYear")
 .innerText = patients.length;
+
+updateHospitalStats();
+
+}
+
+/* THỐNG KÊ BỆNH VIỆN */
+
+function updateHospitalStats(){
+
+let hospitalCount = {};
+
+patients.forEach(p=>{
+
+if(!hospitalCount[p.hospital]){
+hospitalCount[p.hospital] = 0;
+}
+
+hospitalCount[p.hospital]++;
+
+});
+
+let topHospital = "-";
+let max = 0;
+
+for(let hospital in hospitalCount){
+
+if(hospitalCount[hospital] > max){
+
+max = hospitalCount[hospital];
+topHospital = hospital;
+
+}
+
+}
+
+document.getElementById("topHospital")
+.innerText = topHospital;
 
 }
 
@@ -823,7 +836,7 @@ ${p.handover.map(item=>`
 
 <br><br>
 
-📝 ${item.content.replace(/\\n/g,"<br>")}
+📝 ${item.content.replace(/\n/g,"<br>")}
 
 </div>
 
@@ -1000,7 +1013,7 @@ html += `
 
 <br><br>
 
-📝 ${h.content.replace(/\\n/g,"<br>")}
+📝 ${h.content.replace(/\n/g,"<br>")}
 
 </div>
 
