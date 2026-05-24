@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Quản Lý Nuôi Viện</title>
+<title>Quản Lý Bệnh Nhân</title>
 
 <style>
 
@@ -12,12 +12,12 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial, sans-serif;
+    font-family:Arial,sans-serif;
 }
 
 body{
-    background:#f2f5f9;
-    padding:15px;
+    background:#f1f4f9;
+    padding:12px;
 }
 
 /* HEADER */
@@ -25,163 +25,145 @@ body{
 .header{
     background:#1976d2;
     color:white;
-    padding:18px;
-    border-radius:18px;
-    margin-bottom:15px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    padding:16px;
+    border-radius:16px;
+    margin-bottom:12px;
 }
 
 .header h1{
     font-size:24px;
-    margin-bottom:8px;
+    margin-bottom:10px;
 }
 
 .search-box{
     width:100%;
-    padding:14px;
+    padding:12px;
     border:none;
-    border-radius:12px;
-    font-size:16px;
-    margin-top:10px;
+    border-radius:10px;
+    font-size:15px;
 }
 
-/* TOP BUTTONS */
+/* BUTTON */
 
-.top-buttons{
+.top-action{
     display:flex;
     gap:10px;
-    margin-bottom:15px;
+    margin-bottom:12px;
 }
 
-.top-buttons button{
+.top-action button{
     flex:1;
-    padding:14px;
     border:none;
-    border-radius:14px;
+    padding:13px;
+    border-radius:12px;
+    color:white;
     font-size:15px;
     font-weight:bold;
-    color:white;
 }
 
 .btn-add{
     background:#2e7d32;
 }
 
-.btn-handover{
+.btn-input{
     background:#ef6c00;
 }
 
-/* STATS */
+/* TABLE */
 
-.stats{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-    margin-bottom:15px;
-}
-
-.stat-card{
+.table-box{
     background:white;
-    padding:16px;
-    border-radius:18px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.08);
-}
-
-.stat-card h2{
-    font-size:28px;
-    color:#1976d2;
-}
-
-.stat-card p{
-    color:#666;
-    margin-top:6px;
-}
-
-/* PATIENT CARD */
-
-.patient-card{
-    background:white;
-    padding:16px;
-    border-radius:20px;
-    margin-bottom:14px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.08);
-    cursor:pointer;
-    transition:0.2s;
-}
-
-.patient-card:hover{
-    transform:scale(1.01);
-}
-
-.patient-name{
-    font-size:20px;
-    font-weight:bold;
-    margin-bottom:10px;
-    color:#222;
-}
-
-.patient-info{
-    margin-bottom:7px;
-    color:#555;
-    font-size:15px;
-}
-
-/* DETAIL MODAL */
-
-.modal{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.5);
-    display:none;
-    justify-content:center;
-    align-items:flex-end;
-}
-
-.modal-content{
-    background:white;
-    width:100%;
-    max-height:92%;
+    border-radius:16px;
     overflow:auto;
-    border-radius:25px 25px 0 0;
-    padding:22px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
 
-.section-title{
-    font-size:19px;
-    font-weight:bold;
-    margin-top:18px;
-    margin-bottom:12px;
-    color:#1976d2;
-}
-
-.detail-item{
-    margin-bottom:10px;
-    font-size:16px;
-    color:#333;
-}
-
-.timeline{
-    border-left:4px solid #1976d2;
-    padding-left:14px;
-    margin-top:10px;
-}
-
-.timeline-item{
-    margin-bottom:18px;
-}
-
-.close-btn{
+table{
     width:100%;
-    padding:14px;
-    border:none;
-    border-radius:14px;
-    background:#d32f2f;
+    border-collapse:collapse;
+    min-width:850px;
+}
+
+thead{
+    background:#1976d2;
     color:white;
-    font-size:16px;
-    margin-top:20px;
+}
+
+th{
+    padding:14px 10px;
+    text-align:left;
+    font-size:14px;
+}
+
+td{
+    padding:12px 10px;
+    border-bottom:1px solid #ddd;
+    font-size:14px;
+}
+
+tr:hover{
+    background:#f5f8ff;
+}
+
+/* STATUS */
+
+.status{
+    padding:5px 10px;
+    border-radius:8px;
+    color:white;
+    font-size:13px;
+    display:inline-block;
+}
+
+.dieutri{
+    background:#2e7d32;
+}
+
+.chuyenvien{
+    background:#ef6c00;
+}
+
+.xuatvien{
+    background:#d32f2f;
+}
+
+/* ACTION BUTTON */
+
+.action-btn{
+    border:none;
+    padding:7px 10px;
+    border-radius:8px;
+    color:white;
+    margin-right:5px;
+    cursor:pointer;
+    font-size:13px;
+}
+
+.edit-btn{
+    background:#1976d2;
+}
+
+.delete-btn{
+    background:#d32f2f;
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+    body{
+        padding:8px;
+    }
+
+    .header h1{
+        font-size:20px;
+    }
+
+    th, td{
+        font-size:13px;
+        padding:10px 8px;
+    }
+
 }
 
 </style>
@@ -192,177 +174,149 @@ body{
 <!-- HEADER -->
 
 <div class="header">
-    <h1>🏥 Quản Lý Nuôi Viện</h1>
+
+    <h1>🏥 Quản Lý Bệnh Nhân</h1>
 
     <input 
     type="text"
     class="search-box"
     placeholder="🔍 Tìm bệnh nhân...">
+
 </div>
 
-<!-- BUTTONS -->
+<!-- ACTION -->
 
-<div class="top-buttons">
+<div class="top-action">
+
     <button class="btn-add">
-        ➕ Thêm BN
+        ➕ Thêm Bệnh Nhân
     </button>
 
-    <button class="btn-handover">
-        📋 Giao Ca
+    <button class="btn-input">
+        📋 Nhập Liệu
     </button>
-</div>
-
-<!-- STATS -->
-
-<div class="stats">
-
-    <div class="stat-card">
-        <h2>12</h2>
-        <p>Đang điều trị</p>
-    </div>
-
-    <div class="stat-card">
-        <h2>5</h2>
-        <p>Chuyển viện</p>
-    </div>
 
 </div>
 
-<!-- PATIENT LIST -->
+<!-- TABLE -->
 
-<div class="patient-card" onclick="openDetail()">
+<div class="table-box">
 
-    <div class="patient-name">
-        👤 Nguyễn Văn A
-    </div>
+<table>
 
-    <div class="patient-info">
-        🏥 BV Đồng Xoài
-    </div>
+<thead>
+<tr>
 
-    <div class="patient-info">
-        📌 Đang điều trị
-    </div>
+    <th>STT</th>
+    <th>Họ Tên</th>
+    <th>Năm Sinh</th>
+    <th>Giới Tính</th>
+    <th>BHYT</th>
+    <th>Ngày CV</th>
+    <th>Bệnh Viện</th>
+    <th>Trạng Thái</th>
+    <th>Thao Tác</th>
 
-    <div class="patient-info">
-        📅 Nhập trạm: 12/05/2026
-    </div>
+</tr>
+</thead>
 
-</div>
+<tbody>
 
-<div class="patient-card">
+<tr>
 
-    <div class="patient-name">
-        👤 Trần Văn B
-    </div>
+    <td>1</td>
+    <td>Nguyễn Văn A</td>
+    <td>1955</td>
+    <td>Nam</td>
+    <td>123456789</td>
+    <td>12/05/2026</td>
+    <td>BV Đồng Xoài</td>
 
-    <div class="patient-info">
-        🏥 BV Bình Dương
-    </div>
+    <td>
+        <span class="status dieutri">
+            Điều trị
+        </span>
+    </td>
 
-    <div class="patient-info">
-        📌 Theo dõi
-    </div>
+    <td>
 
-    <div class="patient-info">
-        📅 Nhập trạm: 08/05/2026
-    </div>
-
-</div>
-
-<!-- DETAIL MODAL -->
-
-<div class="modal" id="detailModal">
-
-    <div class="modal-content">
-
-        <div class="section-title">
-            👤 Thông tin hành chính
-        </div>
-
-        <div class="detail-item">
-            Họ tên: Nguyễn Văn A
-        </div>
-
-        <div class="detail-item">
-            BHYT: 123456789
-        </div>
-
-        <div class="detail-item">
-            Năm sinh: 1955
-        </div>
-
-        <div class="detail-item">
-            Giới tính: Nam
-        </div>
-
-        <div class="section-title">
-            🏠 Thông tin trung tâm
-        </div>
-
-        <div class="detail-item">
-            Ngày nhập trạm: 12/05/2026
-        </div>
-
-        <div class="detail-item">
-            Người nuôi viện: Nguyễn Văn C
-        </div>
-
-        <div class="section-title">
-            🏥 Điều trị hiện tại
-        </div>
-
-        <div class="detail-item">
-            Bệnh viện: BV Đồng Xoài
-        </div>
-
-        <div class="detail-item">
-            Chẩn đoán: Tăng huyết áp
-        </div>
-
-        <div class="detail-item">
-            Tình trạng: Ổn định
-        </div>
-
-        <div class="section-title">
-            🔄 Lịch sử chuyển viện
-        </div>
-
-        <div class="timeline">
-
-            <div class="timeline-item">
-                📅 02/05/2026 → BV Đồng Xoài
-            </div>
-
-            <div class="timeline-item">
-                📅 10/05/2026 → BV Bình Dương
-            </div>
-
-            <div class="timeline-item">
-                📅 15/05/2026 → BV Chợ Rẫy
-            </div>
-
-        </div>
-
-        <button class="close-btn" onclick="closeDetail()">
-            Đóng
+        <button class="action-btn edit-btn">
+            Sửa
         </button>
 
-    </div>
+        <button class="action-btn delete-btn">
+            Xóa
+        </button>
+
+    </td>
+
+</tr>
+
+<tr>
+
+    <td>2</td>
+    <td>Trần Thị B</td>
+    <td>1962</td>
+    <td>Nữ</td>
+    <td>987654321</td>
+    <td>09/05/2026</td>
+    <td>BV Bình Dương</td>
+
+    <td>
+        <span class="status chuyenvien">
+            Chuyển viện
+        </span>
+    </td>
+
+    <td>
+
+        <button class="action-btn edit-btn">
+            Sửa
+        </button>
+
+        <button class="action-btn delete-btn">
+            Xóa
+        </button>
+
+    </td>
+
+</tr>
+
+<tr>
+
+    <td>3</td>
+    <td>Lê Văn C</td>
+    <td>1948</td>
+    <td>Nam</td>
+    <td>555222111</td>
+    <td>02/05/2026</td>
+    <td>BV Chợ Rẫy</td>
+
+    <td>
+        <span class="status xuatvien">
+            Xuất viện
+        </span>
+    </td>
+
+    <td>
+
+        <button class="action-btn edit-btn">
+            Sửa
+        </button>
+
+        <button class="action-btn delete-btn">
+            Xóa
+        </button>
+
+    </td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 </div>
-
-<script>
-
-function openDetail(){
-    document.getElementById("detailModal").style.display = "flex";
-}
-
-function closeDetail(){
-    document.getElementById("detailModal").style.display = "none";
-}
-
-</script>
 
 </body>
 </html>
