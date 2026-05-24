@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Quản Lý Bệnh Nhân tuyến trên</title>
+<title>Quản Lý Bệnh Nhân Tuyến Trên</title>
 
 <style>
 
@@ -43,7 +43,7 @@ font-size:15px;
 
 .top-action{
 display:flex;
-gap:10px;
+gap:8px;
 margin-bottom:12px;
 flex-wrap:wrap;
 }
@@ -51,9 +51,9 @@ flex-wrap:wrap;
 .top-action button,
 .top-action select{
 border:none;
-padding:12px;
-border-radius:12px;
-font-size:14px;
+padding:10px;
+border-radius:10px;
+font-size:13px;
 }
 
 .top-action button{
@@ -76,7 +76,7 @@ background:white;
 
 .stats{
 display:grid;
-grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;
+grid-template-columns:1fr 1fr 1fr;
 gap:10px;
 margin-bottom:12px;
 }
@@ -84,20 +84,20 @@ margin-bottom:12px;
 .stat-box{
 background:white;
 border-radius:14px;
-padding:14px;
+padding:12px;
 text-align:center;
 box-shadow:0 3px 8px rgba(0,0,0,0.08);
 }
 
 .stat-box h2{
 color:#1976d2;
-font-size:22px;
+font-size:20px;
 }
 
 .stat-box p{
 color:#666;
 margin-top:5px;
-font-size:14px;
+font-size:13px;
 }
 
 .table-box{
@@ -110,7 +110,8 @@ box-shadow:0 4px 10px rgba(0,0,0,0.08);
 table{
 width:100%;
 border-collapse:collapse;
-min-width:1500px;
+min-width:1050px;
+table-layout:fixed;
 }
 
 thead{
@@ -119,10 +120,20 @@ color:white;
 }
 
 th,td{
-padding:12px;
+padding:8px 6px;
 border-bottom:1px solid #ddd;
+text-align:center;
+font-size:13px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+td:nth-child(2){
+white-space:normal;
+line-height:1.3;
+font-weight:bold;
 text-align:left;
-font-size:14px;
 }
 
 tr:hover{
@@ -131,9 +142,9 @@ background:#f5f8ff;
 
 .status{
 color:white;
-padding:5px 10px;
+padding:4px 6px;
 border-radius:8px;
-font-size:13px;
+font-size:12px;
 }
 
 .dieutri{
@@ -150,12 +161,12 @@ background:#d32f2f;
 
 .action-btn{
 border:none;
-padding:7px 10px;
-border-radius:8px;
+padding:5px 7px;
+border-radius:7px;
 color:white;
 cursor:pointer;
-margin-right:5px;
-margin-bottom:5px;
+margin:2px;
+font-size:12px;
 }
 
 .view-btn{
@@ -251,7 +262,7 @@ margin-bottom:8px;
 @media(max-width:768px){
 
 .stats{
-grid-template-columns:1fr;
+grid-template-columns:1fr 1fr;
 }
 
 }
@@ -344,7 +355,7 @@ onclick="openHandoverBook()">
 
 <div class="stat-box">
 <h2 id="hospitalCount">0</h2>
-<p>Số bệnh viện</p>
+<p>Số BV</p>
 </div>
 
 </div>
@@ -357,18 +368,18 @@ onclick="openHandoverBook()">
 
 <tr>
 
-<th>STT</th>
-<th>Họ Tên</th>
-<th>Năm Sinh</th>
-<th>GT</th>
-<th>BHYT</th>
-<th>Ngày Nhập Trạm</th>
-<th>Ngày CV</th>
-<th>Ngày XV</th>
-<th>Đợt ĐT</th>
-<th>Bệnh Viện</th>
-<th>Trạng Thái</th>
-<th>Thao Tác</th>
+<th style="width:45px">STT</th>
+<th style="width:150px">Họ Tên</th>
+<th style="width:70px">NS</th>
+<th style="width:55px">GT</th>
+<th style="width:120px">BHYT</th>
+<th style="width:95px">Nhập Trạm</th>
+<th style="width:95px">CV</th>
+<th style="width:95px">XV</th>
+<th style="width:70px">Đợt</th>
+<th style="width:140px">BV</th>
+<th style="width:100px">TT</th>
+<th style="width:170px">Thao Tác</th>
 
 </tr>
 
@@ -814,361 +825,6 @@ ref(db,"patients/"+id)
 );
 
 }
-
-}
-
-window.viewPatient = function(id){
-
-let p =
-patients.find(x=>x.id===id);
-
-if(!p) return;
-
-if(!p.handover){
-p.handover=[];
-}
-
-document.getElementById("detailContent")
-.innerHTML = `
-
-<h2>👤 Chi Tiết Bệnh Nhân</h2>
-
-<div class="detail-item">
-<b>Họ tên:</b> ${p.name}
-</div>
-
-<div class="detail-item">
-<b>Năm sinh:</b> ${p.birth}
-</div>
-
-<div class="detail-item">
-<b>Giới tính:</b> ${p.gender}
-</div>
-
-<div class="detail-item">
-<b>BHYT:</b> ${p.bhyt}
-</div>
-
-<div class="detail-item">
-<b>Ngày nhập trạm:</b>
-${formatDate(p.nhaptram)}
-</div>
-
-<div class="detail-item">
-<b>Ngày chuyển viện:</b>
-${formatDate(p.cv)}
-</div>
-
-<div class="detail-item">
-<b>Ngày xuất viện:</b>
-${formatDate(p.xv)}
-</div>
-
-<div class="detail-item">
-<b>Bệnh viện:</b>
-${p.hospital}
-</div>
-
-<div class="detail-item">
-<b>Đợt điều trị:</b>
-${p.dotdieutri || 1}
-</div>
-
-<h2 style="margin-top:20px;">
-📋 Giao Ca
-</h2>
-
-<div class="handover-box">
-
-${p.handover.map(item=>`
-
-<div class="handover-item">
-
-📅 ${formatDate(item.date)}
-
-<br><br>
-
-📝 ${item.content.replace(/\n/g,"<br>")}
-
-</div>
-
-`).join("")}
-
-</div>
-
-<textarea
-id="handoverText"
-class="input-box"
-placeholder="Nhập nội dung giao ca..."
-style="height:120px;"></textarea>
-
-<button
-class="save-btn"
-onclick="saveHandover('${p.id}')">
-
-💾 Lưu Giao Ca
-
-</button>
-
-<button
-class="close-btn"
-onclick="closeDetailModal()">
-
-Đóng
-
-</button>
-
-`;
-
-document.getElementById("detailModal")
-.style.display="flex";
-
-}
-
-window.saveHandover = async function(id){
-
-let btn = event.target;
-
-btn.disabled = true;
-btn.innerText = "Đang lưu...";
-
-let p =
-patients.find(x=>x.id===id);
-
-let text =
-document.getElementById("handoverText")
-.value;
-
-if(text.trim()==""){
-
-alert("Chưa nhập giao ca");
-
-btn.disabled = false;
-btn.innerText = "💾 Lưu Giao Ca";
-
-return;
-
-}
-
-if(!p.handover){
-p.handover=[];
-}
-
-p.handover.push({
-
-date:new Date()
-.toISOString()
-.slice(0,10),
-
-content:text
-
-});
-
-await update(
-ref(db,"patients/"+id),
-{
-handover:p.handover
-}
-);
-
-document.getElementById(
-"handoverText"
-).value="";
-
-btn.innerText = "✔ Đã lưu";
-
-setTimeout(()=>{
-
-btn.disabled = false;
-btn.innerText = "💾 Lưu Giao Ca";
-
-},1500);
-
-}
-
-window.searchPatient = function(){
-
-let input =
-document.getElementById("searchInput")
-.value.toLowerCase();
-
-let rows =
-document.querySelectorAll("#tableBody tr");
-
-rows.forEach(row=>{
-
-let text =
-row.innerText.toLowerCase();
-
-row.style.display =
-text.includes(input)
-? ""
-: "none";
-
-});
-
-}
-
-window.filterByYear = function(){
-
-let year =
-document.getElementById("yearFilter")
-.value;
-
-let rows =
-document.querySelectorAll("#tableBody tr");
-
-let count = 0;
-
-rows.forEach(row=>{
-
-let text = row.innerText;
-
-if(year==""){
-
-row.style.display="";
-count++;
-
-}else{
-
-if(text.includes(year)){
-
-row.style.display="";
-count++;
-
-}else{
-
-row.style.display="none";
-
-}
-
-}
-
-});
-
-document.getElementById("totalYear")
-.innerText = count;
-
-}
-
-window.filterHospital = function(){
-
-let hospital =
-document.getElementById("hospitalFilter")
-.value;
-
-let rows =
-document.querySelectorAll("#tableBody tr");
-
-rows.forEach(row=>{
-
-let text = row.innerText;
-
-if(hospital==""){
-
-row.style.display="";
-
-}else{
-
-if(text.includes(hospital)){
-
-row.style.display="";
-
-}else{
-
-row.style.display="none";
-
-}
-
-}
-
-});
-
-}
-
-window.openAddModal = function(){
-
-document.getElementById("addModal")
-.style.display="flex";
-
-}
-
-window.closeAddModal = function(){
-
-document.getElementById("addModal")
-.style.display="none";
-
-clearForm();
-
-}
-
-window.closeDetailModal = function(){
-
-document.getElementById("detailModal")
-.style.display="none";
-
-}
-
-function clearForm(){
-
-document.getElementById("name").value="";
-document.getElementById("birth").value="";
-document.getElementById("bhyt").value="";
-document.getElementById("nhaptram").value="";
-document.getElementById("cv").value="";
-document.getElementById("xv").value="";
-document.getElementById("hospital").value="";
-
-}
-
-window.openHandoverBook = function(){
-
-let html = "";
-
-patients.forEach(p=>{
-
-if(!p.handover) return;
-
-p.handover.forEach(h=>{
-
-html += `
-
-<div class="handover-item">
-
-<b>👤 ${p.name}</b>
-
-<br><br>
-
-📅 ${formatDate(h.date)}
-
-<br><br>
-
-📝 ${h.content.replace(/\n/g,"<br>")}
-
-</div>
-
-`;
-
-});
-
-});
-
-document.getElementById(
-"handoverBookContent"
-).innerHTML =
-html || "Chưa có giao ca";
-
-document.getElementById(
-"handoverModal"
-).style.display="flex";
-
-}
-
-window.closeHandoverBook = function(){
-
-document.getElementById(
-"handoverModal"
-).style.display="none";
 
 }
 
