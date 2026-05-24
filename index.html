@@ -82,7 +82,7 @@ body{
 
 .stats{
     display:grid;
-    grid-template-columns:1fr 1fr 1fr;
+    grid-template-columns:1fr 1fr 1fr 1fr;
     gap:10px;
     margin-bottom:12px;
 }
@@ -348,6 +348,13 @@ onclick="openHandoverBook()">
 
 </div>
 
+<div class="stat-box">
+
+<h2 id="totalYear">0</h2>
+<p>Theo năm</p>
+
+</div>
+
 </div>
 
 <!-- TABLE -->
@@ -365,7 +372,7 @@ onclick="openHandoverBook()">
 <th>Năm Sinh</th>
 <th>GT</th>
 <th>BHYT</th>
-<th>Nhập Trạm</th>
+<th>Ngày Nhập Trạm Xá</th>
 <th>Ngày CV</th>
 <th>Ngày XV</th>
 <th>Bệnh Viện</th>
@@ -403,7 +410,7 @@ onclick="openHandoverBook()">
 
 <input type="text" id="bhyt" class="input-box" placeholder="Mã BHYT">
 
-<label>Ngày nhập trạm</label>
+<label>Ngày nhập trạm xá</label>
 <input type="date" id="nhaptram" class="input-box">
 
 <label>Ngày chuyển viện</label>
@@ -423,22 +430,18 @@ onclick="openHandoverBook()">
 </select>
 
 <button class="save-btn" onclick="savePatient()">
-
 Lưu
-
 </button>
 
 <button class="close-btn" onclick="closeAddModal()">
-
 Đóng
-
 </button>
 
 </div>
 
 </div>
 
-<!-- DETAIL MODAL -->
+<!-- DETAIL -->
 
 <div class="modal" id="detailModal">
 
@@ -456,11 +459,10 @@ Lưu
 
 <h2>📋 Sổ Giao Ca</h2>
 
-<div id="handoverBookContent">
+<div id="handoverBookContent"></div>
 
-</div>
-
-<button class="close-btn"
+<button
+class="close-btn"
 onclick="closeHandoverBook()">
 
 Đóng
@@ -495,7 +497,7 @@ content:"Ăn uống ổn định"
 
 {
 date:"2026-05-21",
-content:"Có ho nhẹ"
+content:"Có ho nhẹ\nTheo dõi thêm"
 }
 
 ]
@@ -638,6 +640,9 @@ patients.filter(
 p=>p.status=="Xuất viện"
 ).length;
 
+document.getElementById("totalYear")
+.innerText = patients.length;
+
 }
 
 /* MODAL */
@@ -725,21 +730,13 @@ let p = patients[index];
 editIndex = index;
 
 document.getElementById("name").value=p.name;
-
 document.getElementById("birth").value=p.birth;
-
 document.getElementById("gender").value=p.gender;
-
 document.getElementById("bhyt").value=p.bhyt;
-
 document.getElementById("nhaptram").value=p.nhaptram;
-
 document.getElementById("cv").value=p.cv;
-
 document.getElementById("xv").value=p.xv;
-
 document.getElementById("hospital").value=p.hospital;
-
 document.getElementById("status").value=p.status;
 
 openAddModal();
@@ -788,7 +785,7 @@ document.getElementById("detailContent")
 </div>
 
 <div class="detail-item">
-<b>Ngày nhập trạm:</b>
+<b>Ngày nhập trạm xá:</b>
 ${formatDate(p.nhaptram)}
 </div>
 
@@ -823,9 +820,10 @@ ${p.handover.map(item=>`
 <div class="handover-item">
 
 📅 ${formatDate(item.date)}
+
 <br><br>
 
-📝 ${item.content}
+📝 ${item.content.replace(/\\n/g,"<br>")}
 
 </div>
 
@@ -833,11 +831,17 @@ ${p.handover.map(item=>`
 
 </div>
 
+<textarea
+id="handoverText"
+class="input-box"
+placeholder="Nhập nội dung giao ca..."
+style="height:120px;"></textarea>
+
 <button
 class="save-btn"
-onclick="addHandover(${index})">
+onclick="saveHandover(${index})">
 
-➕ Thêm Giao Ca
+💾 Lưu Giao Ca
 
 </button>
 
@@ -863,14 +867,21 @@ document.getElementById("detailModal")
 
 }
 
-/* ADD HANDOVER */
+/* SAVE HANDOVER */
 
-function addHandover(index){
+function saveHandover(index){
 
 let text =
-prompt("Nhập nội dung giao ca");
+document.getElementById("handoverText")
+.value;
 
-if(text){
+if(text.trim()==""){
+
+alert("Chưa nhập giao ca");
+
+return;
+
+}
 
 patients[index].handover.push({
 
@@ -883,8 +894,6 @@ content:text
 });
 
 viewPatient(index);
-
-}
 
 }
 
@@ -922,21 +931,36 @@ document.getElementById("yearFilter")
 let rows =
 document.querySelectorAll("#tableBody tr");
 
+let count = 0;
+
 rows.forEach(row=>{
+
+let text = row.innerText;
 
 if(year==""){
 
 row.style.display="";
+count++;
 
 }else{
 
-row.style.display =
-row.innerText.includes(year)
-? "" : "none";
+if(text.includes(year)){
+
+row.style.display="";
+count++;
+
+}else{
+
+row.style.display="none";
+
+}
 
 }
 
 });
+
+document.getElementById("totalYear")
+.innerText = count;
 
 }
 
@@ -976,7 +1000,7 @@ html += `
 
 <br><br>
 
-📝 ${h.content}
+📝 ${h.content.replace(/\\n/g,"<br>")}
 
 </div>
 
