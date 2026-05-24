@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Quản Lý Nuôi Viện</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f2f5f9;
+    padding:15px;
+}
+
+/* HEADER */
+
+.header{
+    background:#1976d2;
+    color:white;
+    padding:18px;
+    border-radius:18px;
+    margin-bottom:15px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.header h1{
+    font-size:24px;
+    margin-bottom:8px;
+}
+
+.search-box{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    font-size:16px;
+    margin-top:10px;
+}
+
+/* TOP BUTTONS */
+
+.top-buttons{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.top-buttons button{
+    flex:1;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    font-size:15px;
+    font-weight:bold;
+    color:white;
+}
+
+.btn-add{
+    background:#2e7d32;
+}
+
+.btn-handover{
+    background:#ef6c00;
+}
+
+/* STATS */
+
+.stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:15px;
+}
+
+.stat-card{
+    background:white;
+    padding:16px;
+    border-radius:18px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.08);
+}
+
+.stat-card h2{
+    font-size:28px;
+    color:#1976d2;
+}
+
+.stat-card p{
+    color:#666;
+    margin-top:6px;
+}
+
+/* PATIENT CARD */
+
+.patient-card{
+    background:white;
+    padding:16px;
+    border-radius:20px;
+    margin-bottom:14px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.patient-card:hover{
+    transform:scale(1.01);
+}
+
+.patient-name{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:10px;
+    color:#222;
+}
+
+.patient-info{
+    margin-bottom:7px;
+    color:#555;
+    font-size:15px;
+}
+
+/* DETAIL MODAL */
+
+.modal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    justify-content:center;
+    align-items:flex-end;
+}
+
+.modal-content{
+    background:white;
+    width:100%;
+    max-height:92%;
+    overflow:auto;
+    border-radius:25px 25px 0 0;
+    padding:22px;
+}
+
+.section-title{
+    font-size:19px;
+    font-weight:bold;
+    margin-top:18px;
+    margin-bottom:12px;
+    color:#1976d2;
+}
+
+.detail-item{
+    margin-bottom:10px;
+    font-size:16px;
+    color:#333;
+}
+
+.timeline{
+    border-left:4px solid #1976d2;
+    padding-left:14px;
+    margin-top:10px;
+}
+
+.timeline-item{
+    margin-bottom:18px;
+}
+
+.close-btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#d32f2f;
+    color:white;
+    font-size:16px;
+    margin-top:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<div class="header">
+    <h1>🏥 Quản Lý Nuôi Viện</h1>
+
+    <input 
+    type="text"
+    class="search-box"
+    placeholder="🔍 Tìm bệnh nhân...">
+</div>
+
+<!-- BUTTONS -->
+
+<div class="top-buttons">
+    <button class="btn-add">
+        ➕ Thêm BN
+    </button>
+
+    <button class="btn-handover">
+        📋 Giao Ca
+    </button>
+</div>
+
+<!-- STATS -->
+
+<div class="stats">
+
+    <div class="stat-card">
+        <h2>12</h2>
+        <p>Đang điều trị</p>
+    </div>
+
+    <div class="stat-card">
+        <h2>5</h2>
+        <p>Chuyển viện</p>
+    </div>
+
+</div>
+
+<!-- PATIENT LIST -->
+
+<div class="patient-card" onclick="openDetail()">
+
+    <div class="patient-name">
+        👤 Nguyễn Văn A
+    </div>
+
+    <div class="patient-info">
+        🏥 BV Đồng Xoài
+    </div>
+
+    <div class="patient-info">
+        📌 Đang điều trị
+    </div>
+
+    <div class="patient-info">
+        📅 Nhập trạm: 12/05/2026
+    </div>
+
+</div>
+
+<div class="patient-card">
+
+    <div class="patient-name">
+        👤 Trần Văn B
+    </div>
+
+    <div class="patient-info">
+        🏥 BV Bình Dương
+    </div>
+
+    <div class="patient-info">
+        📌 Theo dõi
+    </div>
+
+    <div class="patient-info">
+        📅 Nhập trạm: 08/05/2026
+    </div>
+
+</div>
+
+<!-- DETAIL MODAL -->
+
+<div class="modal" id="detailModal">
+
+    <div class="modal-content">
+
+        <div class="section-title">
+            👤 Thông tin hành chính
+        </div>
+
+        <div class="detail-item">
+            Họ tên: Nguyễn Văn A
+        </div>
+
+        <div class="detail-item">
+            BHYT: 123456789
+        </div>
+
+        <div class="detail-item">
+            Năm sinh: 1955
+        </div>
+
+        <div class="detail-item">
+            Giới tính: Nam
+        </div>
+
+        <div class="section-title">
+            🏠 Thông tin trung tâm
+        </div>
+
+        <div class="detail-item">
+            Ngày nhập trạm: 12/05/2026
+        </div>
+
+        <div class="detail-item">
+            Người nuôi viện: Nguyễn Văn C
+        </div>
+
+        <div class="section-title">
+            🏥 Điều trị hiện tại
+        </div>
+
+        <div class="detail-item">
+            Bệnh viện: BV Đồng Xoài
+        </div>
+
+        <div class="detail-item">
+            Chẩn đoán: Tăng huyết áp
+        </div>
+
+        <div class="detail-item">
+            Tình trạng: Ổn định
+        </div>
+
+        <div class="section-title">
+            🔄 Lịch sử chuyển viện
+        </div>
+
+        <div class="timeline">
+
+            <div class="timeline-item">
+                📅 02/05/2026 → BV Đồng Xoài
+            </div>
+
+            <div class="timeline-item">
+                📅 10/05/2026 → BV Bình Dương
+            </div>
+
+            <div class="timeline-item">
+                📅 15/05/2026 → BV Chợ Rẫy
+            </div>
+
+        </div>
+
+        <button class="close-btn" onclick="closeDetail()">
+            Đóng
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+function openDetail(){
+    document.getElementById("detailModal").style.display = "flex";
+}
+
+function closeDetail(){
+    document.getElementById("detailModal").style.display = "none";
+}
+
+</script>
+
+</body>
+</html>
