@@ -298,20 +298,19 @@ onclick="openHandoverBook()">
 
 📋 Sổ Giao Ca
 
-</button>
 <div class="stats">
 
-<div class="stat-box">
+<div class="stat-box" onclick="filterStatus('all')">
 <h2 id="totalPatient">0</h2>
 <p>Tổng BN</p>
 </div>
 
-<div class="stat-box">
+<div class="stat-box" onclick="filterStatus('dieutri')">
 <h2 id="totalDieuTri">0</h2>
 <p>Đang điều trị</p>
 </div>
 
-<div class="stat-box">
+<div class="stat-box" onclick="filterStatus('xuatvien')">
 <h2 id="totalXuatVien">0</h2>
 <p>Xuất viện</p>
 </div>
@@ -1059,7 +1058,42 @@ row.style.display =
 });
 
 }
+window.filterStatus = function(type){
 
+let rows =
+document.querySelectorAll("#tableBody tr");
+
+rows.forEach(row=>{
+
+let cells = row.querySelectorAll("td");
+
+let xv = cells[8]?.innerText.trim();
+
+if(type == "all"){
+
+row.style.display = "";
+
+}
+else if(type == "dieutri"){
+
+row.style.display =
+(xv == "-" || xv == "")
+? ""
+: "none";
+
+}
+else if(type == "xuatvien"){
+
+row.style.display =
+(xv != "-" && xv != "")
+? ""
+: "none";
+
+}
+
+});
+
+}
 window.openHandoverBook = function(){
 
 let html = "";
