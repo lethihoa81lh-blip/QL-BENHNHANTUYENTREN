@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quản Lý Nuôi Viện</title>
+<title>Quản Lý Bệnh Nhân Tuyến Trên</title>
 
 <style>
 
@@ -37,7 +37,7 @@ width:100%;
 padding:12px;
 border:none;
 border-radius:10px;
-font-size:15px;
+font-size:16px;
 }
 
 .top-action{
@@ -52,7 +52,7 @@ flex-wrap:wrap;
 border:none;
 padding:10px;
 border-radius:10px;
-font-size:13px;
+font-size:14px;
 }
 
 .top-action button{
@@ -102,14 +102,15 @@ font-size:13px;
 .table-box{
 background:white;
 border-radius:16px;
-overflow:auto;
+overflow-x:auto;
+-webkit-overflow-scrolling:touch;
 box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-min-width:1050px;
+min-width:1100px;
 table-layout:fixed;
 }
 
@@ -156,12 +157,13 @@ background:#d32f2f;
 
 .action-btn{
 border:none;
-padding:5px 7px;
+padding:6px 8px;
 border-radius:7px;
 color:white;
 cursor:pointer;
 margin:2px;
 font-size:12px;
+touch-action:manipulation;
 }
 
 .view-btn{
@@ -187,6 +189,7 @@ background:rgba(0,0,0,0.5);
 justify-content:center;
 align-items:center;
 z-index:999;
+padding:10px;
 }
 
 .modal-content{
@@ -197,6 +200,7 @@ max-height:90%;
 overflow:auto;
 border-radius:18px;
 padding:20px;
+touch-action:auto;
 }
 
 .input-box{
@@ -205,6 +209,7 @@ padding:12px;
 border:1px solid #ccc;
 border-radius:10px;
 margin-bottom:12px;
+font-size:16px;
 }
 
 .save-btn{
@@ -217,6 +222,7 @@ color:white;
 font-size:15px;
 font-weight:bold;
 cursor:pointer;
+margin-top:5px;
 }
 
 .close-btn{
@@ -256,14 +262,14 @@ margin-bottom:8px;
 
 <div class="header">
 
-<h1>🏥 Quản Lý Nuôi Viện</h1>
+<h1>🏥 Quản Lý Bệnh Nhân Tuyến Trên</h1>
 
 <input
 type="text"
 id="searchInput"
 class="search-box"
 placeholder="🔍 Tìm bệnh nhân..."
-onkeyup="searchPatient()">
+onkeyup="applyFilters()">
 
 </div>
 
@@ -272,7 +278,7 @@ onkeyup="searchPatient()">
 <select
 id="yearFilter"
 class="year-filter"
-onchange="filterByYear()">
+onchange="applyFilters()">
 
 <option value="">Tất cả năm</option>
 <option value="2024">2024</option>
@@ -284,7 +290,7 @@ onchange="filterByYear()">
 <select
 id="hospitalFilter"
 class="year-filter"
-onchange="filterHospital()">
+onchange="applyFilters()">
 
 <option value="">Tất cả BV</option>
 
@@ -391,6 +397,13 @@ onclick="openHandoverBook()">
 
 <input type="text" id="hospital" class="input-box" placeholder="Bệnh viện">
 
+<input
+type="number"
+id="dotdieutri"
+class="input-box"
+placeholder="Đợt điều trị"
+value="1">
+
 <select id="status" class="input-box">
 
 <option>Điều trị</option>
@@ -399,8 +412,13 @@ onclick="openHandoverBook()">
 
 </select>
 
-<button class="save-btn" onclick="savePatient()">
+<button
+id="saveBtn"
+class="save-btn"
+onclick="savePatient()">
+
 💾 Lưu
+
 </button>
 
 <button class="close-btn" onclick="closeAddModal()">
@@ -453,22 +471,18 @@ from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
 
-apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
-authDomain: "ql-benhnhantuyentren.firebaseapp.com",
-projectId: "ql-benhnhantuyentren",
-storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
-messagingSenderId: "127051253047",
-appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
-measurementId: "G-0JPKGYLJK0"
+apiKey: "YOUR_API_KEY",
+authDomain: "YOUR_AUTH_DOMAIN",
+projectId: "YOUR_PROJECT_ID",
+storageBucket: "YOUR_STORAGE_BUCKET",
+messagingSenderId: "YOUR_MESSAGING_ID",
+appId: "YOUR_APP_ID"
 
 };
 
 const app = initializeApp(firebaseConfig);
 
-const db = getDatabase(
-app,
-"https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app"
-);
+const db = getDatabase(app);
 
 let patients = [];
 let editId = null;
@@ -507,6 +521,8 @@ id:child.key,
 });
 
 });
+
+patients.reverse();
 
 renderTable();
 
@@ -674,11 +690,23 @@ document.getElementById("cv").value="";
 document.getElementById("xv").value="";
 document.getElementById("hospital").value="";
 
+document.getElementById("gender").value="Nam";
+document.getElementById("status").value="Điều trị";
+document.getElementById("dotdieutri").value=1;
+
 editId = null;
 
 }
 
 window.savePatient = async function(){
+
+let btn =
+document.getElementById("saveBtn");
+
+btn.disabled=true;
+btn.innerText="Đang lưu...";
+
+try{
 
 let patient = {
 
@@ -709,18 +737,32 @@ document.getElementById("hospital").value,
 status:
 document.getElementById("status").value,
 
-dotdieutri:1,
+dotdieutri:Number(
+document.getElementById("dotdieutri").value || 1
+),
 
 handover:[],
 
 history:[]
+
 };
+
+if(patient.name.trim()==""){
+
+alert("Chưa nhập họ tên");
+
+btn.disabled=false;
+btn.innerText="💾 Lưu";
+
+return;
+
+}
 
 if(editId==null){
 
 patient.history.push({
 
-dot:1,
+dot:patient.dotdieutri,
 hospital:patient.hospital,
 dateIn:patient.cv || "",
 dateOut:patient.xv || "",
@@ -746,25 +788,6 @@ oldPatient.handover || [];
 patient.history =
 oldPatient.history || [];
 
-patient.dotdieutri =
-oldPatient.dotdieutri || 1;
-
-if(oldPatient.hospital != patient.hospital){
-
-patient.dotdieutri++;
-
-patient.history.push({
-
-dot:patient.dotdieutri,
-hospital:patient.hospital,
-dateIn:patient.cv || "",
-dateOut:patient.xv || "",
-status:patient.status
-
-});
-
-}
-
 await update(
 ref(db,"patients/"+editId),
 patient
@@ -773,6 +796,17 @@ patient
 }
 
 closeAddModal();
+
+}catch(err){
+
+alert("Lỗi lưu dữ liệu");
+
+console.log(err);
+
+}
+
+btn.disabled=false;
+btn.innerText="💾 Lưu";
 
 }
 
@@ -795,17 +829,33 @@ document.getElementById("xv").value=p.xv || "";
 document.getElementById("hospital").value=p.hospital || "";
 document.getElementById("status").value=p.status || "";
 
+document.getElementById("dotdieutri").value =
+p.dotdieutri || 1;
+
 openAddModal();
 
 }
 
 window.deletePatient = async function(id){
 
-if(confirm("Xóa bệnh nhân?")){
+let password =
+prompt("Nhập mật khẩu Admin để xoá");
+
+if(password !== "admin123"){
+
+alert("Bạn không có quyền xoá");
+
+return;
+
+}
+
+if(confirm("Xác nhận xoá bệnh nhân?")){
 
 await remove(
 ref(db,"patients/"+id)
 );
+
+alert("Đã xoá");
 
 }
 
@@ -853,6 +903,15 @@ ${p.dotdieutri || 1}
 <h2 style="margin-top:20px;">
 📚 Lịch sử điều trị
 </h2>
+
+<button
+class="save-btn"
+style="margin-bottom:10px;background:#ef6c00"
+onclick="newTreatment('${p.id}')">
+
+➕ Tạo Đợt Điều Trị Mới
+
+</button>
 
 <div class="handover-box">
 
@@ -940,9 +999,6 @@ document.getElementById("detailModal")
 window.closeDetailModal = function(){
 
 document.getElementById("detailModal")
-.style.display="flex";
-
-document.getElementById("detailModal")
 .style.display="none";
 
 }
@@ -1006,10 +1062,18 @@ btn.innerText="💾 Lưu Giao Ca";
 
 }
 
-window.searchPatient = function(){
+window.applyFilters = function(){
 
-let input =
+let search =
 document.getElementById("searchInput")
+.value.toLowerCase();
+
+let year =
+document.getElementById("yearFilter")
+.value;
+
+let hospital =
+document.getElementById("hospitalFilter")
 .value.toLowerCase();
 
 let rows =
@@ -1020,66 +1084,19 @@ rows.forEach(row=>{
 let text =
 row.innerText.toLowerCase();
 
-row.style.display =
-text.includes(input)
-? ""
-: "none";
+let matchSearch =
+text.includes(search);
 
-});
+let matchYear =
+year=="" || text.includes(year);
 
-}
-
-window.filterByYear = function(){
-
-let year =
-document.getElementById("yearFilter")
-.value;
-
-let rows =
-document.querySelectorAll("#tableBody tr");
-
-rows.forEach(row=>{
-
-if(year==""){
-
-row.style.display="";
-
-}else{
+let matchHospital =
+hospital=="" || text.includes(hospital);
 
 row.style.display =
-row.innerText.includes(year)
+(matchSearch && matchYear && matchHospital)
 ? ""
 : "none";
-
-}
-
-});
-
-}
-
-window.filterHospital = function(){
-
-let hospital =
-document.getElementById("hospitalFilter")
-.value;
-
-let rows =
-document.querySelectorAll("#tableBody tr");
-
-rows.forEach(row=>{
-
-if(hospital==""){
-
-row.style.display="";
-
-}else{
-
-row.style.display =
-row.innerText.includes(hospital)
-? ""
-: "none";
-
-}
 
 });
 
@@ -1131,6 +1148,47 @@ window.closeHandoverBook = function(){
 document.getElementById(
 "handoverModal"
 ).style.display="none";
+
+}
+
+window.newTreatment = async function(id){
+
+let p =
+patients.find(x=>x.id===id);
+
+if(!p) return;
+
+let newDot =
+(p.dotdieutri || 1) + 1;
+
+let history =
+p.history || [];
+
+history.push({
+
+dot:newDot,
+hospital:"",
+dateIn:"",
+dateOut:"",
+status:"Điều trị"
+
+});
+
+await update(
+ref(db,"patients/"+id),
+{
+dotdieutri:newDot,
+status:"Điều trị",
+xv:"",
+cv:"",
+hospital:"",
+history:history
+}
+);
+
+alert("Đã tạo đợt điều trị mới");
+
+closeDetailModal();
 
 }
 
