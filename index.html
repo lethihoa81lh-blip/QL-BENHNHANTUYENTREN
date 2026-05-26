@@ -299,9 +299,6 @@ onclick="openHandoverBook()">
 📋 Sổ Giao Ca
 
 </button>
-
-</div>
-
 <div class="stats">
 
 <div class="stat-box">
@@ -310,12 +307,21 @@ onclick="openHandoverBook()">
 </div>
 
 <div class="stat-box">
+<h2 id="totalDieuTri">0</h2>
+<p>Đang điều trị</p>
+</div>
+
+<div class="stat-box">
+<h2 id="totalXuatVien">0</h2>
+<p>Xuất viện</p>
+</div>
+
+<div class="stat-box">
 <h2 id="hospitalCount">0</h2>
 <p>Số bệnh viện</p>
 </div>
 
 </div>
-
 <div class="table-box">
 
 <table>
@@ -565,6 +571,18 @@ function updateStats(){
 
 document.getElementById("totalPatient")
 .innerText = patients.length;
+
+document.getElementById("totalDieuTri")
+.innerText =
+patients.filter(
+p => !p.xv || p.xv == ""
+).length;
+
+document.getElementById("totalXuatVien")
+.innerText =
+patients.filter(
+p => p.xv && p.xv != ""
+).length;
 
 let hospitals =
 [...new Set(
