@@ -121,12 +121,20 @@ color:white;
 
 th,td{
 padding:8px 6px;
-border:1px solid #cfd8dc;
+border:1px solid #90a4ae;
 text-align:center;
 font-size:13px;
 white-space:nowrap;
 overflow:hidden;
 text-overflow:ellipsis;
+}
+
+tbody tr:nth-child(even){
+background:#f9fbfd;
+}
+
+tbody tr:hover{
+background:#e3f2fd;
 }
 
 td:nth-child(2){
@@ -397,13 +405,6 @@ onclick="openHandoverBook()">
 
 <input type="text" id="hospital" class="input-box" placeholder="Bệnh viện">
 
-<input
-type="number"
-id="dotdieutri"
-class="input-box"
-placeholder="Đợt điều trị"
-value="1">
-
 <select id="status" class="input-box">
 
 <option>Điều trị</option>
@@ -471,18 +472,22 @@ from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
 
-apiKey: "YOUR_API_KEY",
-authDomain: "YOUR_AUTH_DOMAIN",
-projectId: "YOUR_PROJECT_ID",
-storageBucket: "YOUR_STORAGE_BUCKET",
-messagingSenderId: "YOUR_MESSAGING_ID",
-appId: "YOUR_APP_ID"
+apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+projectId: "ql-benhnhantuyentren",
+storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+messagingSenderId: "127051253047",
+appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+measurementId: "G-0JPKGYLJK0"
 
 };
 
 const app = initializeApp(firebaseConfig);
 
-const db = getDatabase(app);
+const db = getDatabase(
+app,
+"https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app"
+);
 
 let patients = [];
 let editId = null;
@@ -692,7 +697,6 @@ document.getElementById("hospital").value="";
 
 document.getElementById("gender").value="Nam";
 document.getElementById("status").value="Điều trị";
-document.getElementById("dotdieutri").value=1;
 
 editId = null;
 
@@ -737,9 +741,7 @@ document.getElementById("hospital").value,
 status:
 document.getElementById("status").value,
 
-dotdieutri:Number(
-document.getElementById("dotdieutri").value || 1
-),
+dotdieutri:1,
 
 handover:[],
 
@@ -762,7 +764,7 @@ if(editId==null){
 
 patient.history.push({
 
-dot:patient.dotdieutri,
+dot:1,
 hospital:patient.hospital,
 dateIn:patient.cv || "",
 dateOut:patient.xv || "",
@@ -787,6 +789,45 @@ oldPatient.handover || [];
 
 patient.history =
 oldPatient.history || [];
+
+patient.dotdieutri =
+oldPatient.dotdieutri || 1;
+
+let currentDot =
+patient.dotdieutri;
+
+let existingDot =
+patient.history.find(
+h=>h.dot == currentDot
+);
+
+if(existingDot){
+
+existingDot.hospital =
+patient.hospital;
+
+existingDot.dateIn =
+patient.cv;
+
+existingDot.dateOut =
+patient.xv;
+
+existingDot.status =
+patient.status;
+
+}else{
+
+patient.history.push({
+
+dot:currentDot,
+hospital:patient.hospital,
+dateIn:patient.cv || "",
+dateOut:patient.xv || "",
+status:patient.status
+
+});
+
+}
 
 await update(
 ref(db,"patients/"+editId),
@@ -828,9 +869,6 @@ document.getElementById("cv").value=p.cv || "";
 document.getElementById("xv").value=p.xv || "";
 document.getElementById("hospital").value=p.hospital || "";
 document.getElementById("status").value=p.status || "";
-
-document.getElementById("dotdieutri").value =
-p.dotdieutri || 1;
 
 openAddModal();
 
