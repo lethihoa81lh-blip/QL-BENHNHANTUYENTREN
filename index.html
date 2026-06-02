@@ -3,606 +3,407 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Bệnh Nhân Tuyến Trên & Giao Ca Điện Tử (Phân Quyền)</title>
+    <title>QLBN Tuyến Trên - Bản Di Động</title>
+    <!-- Sử dụng Tailwind CSS CDN để thiết kế giao diện di động cực đẹp và gọn gàng -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af',
+                        secondary: '#0d9488',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --primary-color: #1e40af;
-            --primary-hover: #1e3a8a;
-            --secondary-color: #0d9488;
-            --danger-color: #ef4444;
-            --success-color: #22c55e;
-            --warning-color: #f59e0b;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 20px;
-            font-size: 14px;
-        }
-
-        header {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        /* Khối phân quyền góc trên */
-        .role-badge-container {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 15px;
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .role-badge-container label {
-            color: white;
-            font-weight: 600;
-        }
-
-        .role-select {
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: none;
-            font-weight: 600;
-            color: var(--primary-color);
-            cursor: pointer;
-            outline: none;
-        }
-
-        /* Thống kê nhanh */
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            padding: 15px 20px;
-            border-radius: 10px;
-            border-left: 5px solid var(--primary-color);
-            box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
-        }
-
-        .stat-card.treating { border-left-color: var(--warning-color); }
-        .stat-card.discharged { border-left-color: var(--success-color); }
-        .stat-card.hospitals { border-left-color: var(--secondary-color); }
-
-        .stat-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #64748b;
-            font-weight: 600;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 5px;
-            color: #0f172a;
-        }
-
-        /* Thanh công cụ và bộ lọc */
-        .toolbar {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        select, input, textarea {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            outline: none;
-            font-size: 14px;
-            background-color: #fff;
-        }
-
-        select:focus, input:focus, textarea:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.2);
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            font-size: 14px;
-        }
-
-        .btn-primary { background-color: var(--primary-color); color: white; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-secondary { background-color: var(--secondary-color); color: white; }
-        .btn-secondary:hover { opacity: 0.9; }
-        .btn-danger { background-color: var(--danger-color); color: white; }
-        .btn-warning { background-color: var(--warning-color); color: white; }
-
-        /* Bảng dữ liệu */
-        .table-responsive {
-            background: var(--card-bg);
-            border-radius: 10px;
-            overflow-x: auto;
-            box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            min-width: 1100px;
-        }
-
-        th {
-            background-color: #f1f5f9;
-            color: #475569;
-            font-weight: 600;
-            padding: 12px 10px;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        td {
-            padding: 12px 10px;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-        }
-
-        tr:hover {
-            background-color: #f8fafc;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .status-treating { background-color: #fef3c7; color: #d97706; }
-        .status-discharged { background-color: #dcfce7; color: #15803d; }
-
-        .btn-action {
-            padding: 4px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-        }
-
-        /* Modal (Cửa sổ Pop-up) */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+        /* Tối ưu cuộn trên điện thoại */
+        .no-scrollbar::-webkit-scrollbar {
             display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
         }
-
-        .modal-box {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 700px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1);
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-box.large {
-            max-width: 900px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        .modal-header h2 {
-            font-size: 18px;
-            color: #0f172a;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #64748b;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-
-        label {
-            font-weight: 500;
-            color: #475569;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 15px;
-        }
-
-        /* Sổ giao ca UI */
-        .log-item {
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            background: #f8fafc;
-        }
-
-        .log-meta {
-            display: flex;
-            justify-content: space-between;
-            color: #64748b;
-            font-size: 12px;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .log-content {
-            white-space: pre-wrap;
-            line-height: 1.5;
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col pb-12">
 
-    <!-- Tiêu đề chính & Khối phân quyền -->
-    <header>
-        <div>
-            <h1>HỆ THỐNG QUẢN LÝ BỆNH NHÂN CHUYỂN TUYẾN & SỔ GIAO CA</h1>
-            <p>Trung tâm Bảo trợ Xã hội - Phiên bản Phân quyền bảo vệ dữ liệu nâng cao</p>
-        </div>
-        
-        <!-- Khối đổi vai trò người dùng -->
-        <div class="role-badge-container">
-            <label for="current-role-select">Vai trò hiện tại:</label>
-            <select id="current-role-select" class="role-select" onchange="handleRoleChange(this.value)">
-                <option value="staff">Nhân Viên Trực Ca</option>
-                <option value="admin">Quản Trị Viên (Admin)</option>
-            </select>
+    <!-- HEADER: Tối ưu hiển thị gọn trên cả điện thoại và máy tính -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center md:max-w-4xl">
+            <div>
+                <h1 class="font-bold text-base md:text-xl tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-house-medical text-teal-300"></i>
+                    QLBN CHUYỂN TUYẾN
+                </h1>
+                <p class="text-[10px] md:text-xs opacity-85">Trung tâm Bảo trợ Xã hội</p>
+            </div>
+            
+            <!-- Vai trò người dùng dạng gọn -->
+            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg border border-white/20">
+                <i class="fa-solid fa-user-shield text-xs text-teal-300"></i>
+                <select id="role-select" class="bg-transparent text-white text-xs font-semibold outline-none cursor-pointer" onchange="switchRole(this.value)">
+                    <option value="staff" class="text-slate-800 font-medium">N.Viên</option>
+                    <option value="admin" class="text-slate-800 font-medium">Admin</option>
+                </select>
+            </div>
         </div>
     </header>
 
-    <!-- Thống kê nhanh -->
-    <div class="stats-container">
-        <div class="stat-card">
-            <div class="stat-title">Tổng số Bệnh nhân</div>
-            <div id="stat-total-patients" class="stat-value">0</div>
-        </div>
-        <div class="stat-card treating">
-            <div class="stat-title">Đang điều trị tuyến trên</div>
-            <div id="stat-treating" class="stat-value">0</div>
-        </div>
-        <div class="stat-card discharged">
-            <div class="stat-title">Đã xuất viện về trung tâm</div>
-            <div id="stat-discharged" class="stat-value">0</div>
-        </div>
-        <div class="stat-card hospitals">
-            <div class="stat-title">Số Bệnh viện liên kết</div>
-            <div id="stat-hospitals" class="stat-value">0</div>
-        </div>
-    </div>
+    <!-- NỘI DUNG CHÍNH (Giới hạn chiều rộng giống giao diện App di động) -->
+    <main class="max-w-md mx-auto w-full px-4 pt-4 flex-grow md:max-w-4xl">
 
-    <!-- Thanh công cụ & Bộ lọc -->
-    <div class="toolbar">
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Tìm tên bệnh nhân, số BHYT, chẩn đoán..." style="width: 100%;">
-        </div>
-        
-        <div class="filter-group">
-            <select id="filter-year">
-                <option value="">Tất cả các năm</option>
-            </select>
-            
-            <select id="filter-hospital">
-                <option value="">Tất cả bệnh viện</option>
-            </select>
-            
-            <select id="filter-status">
-                <option value="">Tất cả trạng thái</option>
-                <option value="treating">Đang điều trị</option>
-                <option value="discharged">Xuất viện</option>
-            </select>
-        </div>
-
-        <div style="margin-left: auto; display: flex; gap: 10px;">
-            <button class="btn btn-primary" onclick="openModal('modal-patient')">➕ Thêm BN Mới</button>
-            <button class="btn btn-secondary" onclick="openModal('modal-session')">📋 Thêm Đợt Điều Trị</button>
-            <button class="btn btn-warning" onclick="openHandoverModal()">📕 Sổ Giao Ca Đột Xuất</button>
-        </div>
-    </div>
-
-    <!-- Bảng danh sách đợt điều trị bệnh nhân -->
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 50px;">STT</th>
-                    <th>Họ Tên</th>
-                    <th style="width: 80px;">Năm Sinh</th>
-                    <th style="width: 60px;">GT</th>
-                    <th>Số BHYT</th>
-                    <th>Chẩn Đoán</th>
-                    <th>Nhập Trạm</th>
-                    <th>Chuyển Viện</th>
-                    <th>Bệnh Viện Tuyến Trên</th>
-                    <th>Xuất Viện</th>
-                    <th style="width: 60px; text-align: center;">Đợt</th>
-                    <th style="width: 100px;">Trạng Thái</th>
-                    <th style="width: 120px; text-align: center;">Thao Tác</th>
-                </tr>
-            </thead>
-            <tbody id="patient-table-body">
-                <!-- Dữ liệu tự động đổ từ Javascript -->
-            </tbody>
-        </table>
-    </div>
-
-    <!-- MODAL 1: THÊM BỆNH NHÂN MỚI -->
-    <div id="modal-patient" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h2>Thêm Mới Bệnh Nhân & Đợt Điều Trị Đầu Tiên</h2>
-                <button class="close-modal" onclick="closeModal('modal-patient')">&times;</button>
+        <!-- KHỐI THỐNG KÊ RÚT GỌN (Dạng lưới nhỏ gọn có thể bấm để lọc nhanh) -->
+        <section class="grid grid-cols-4 gap-2 mb-4">
+            <div onclick="setStatusFilter('')" class="bg-white p-2 rounded-xl shadow-sm border-l-4 border-blue-600 text-center cursor-pointer hover:bg-blue-50/50 active:scale-95 transition-all">
+                <span class="text-[9px] text-slate-500 font-bold block uppercase">Tổng BN</span>
+                <span id="stat-total" class="text-lg font-bold text-slate-900">0</span>
             </div>
-            <form id="form-new-patient" onsubmit="saveNewPatient(event)">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Họ và Tên bệnh nhân *</label>
-                        <input type="text" id="p-name" required placeholder="Ví dụ: Nguyễn Văn A">
-                    </div>
-                    <div class="form-group">
-                        <label>Năm sinh *</label>
-                        <input type="number" id="p-year" required min="1900" max="2026" placeholder="Ví dụ: 1975">
-                    </div>
-                    <div class="form-group">
-                        <label>Giới tính *</label>
-                        <select id="p-gender" required>
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Số Thẻ BHYT</label>
-                        <input type="text" id="p-bhyt" placeholder="Nhập số BHYT (nếu có)">
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày nhập trạm xá trung tâm</label>
-                        <input type="date" id="s-nhaptram">
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày chuyển viện lên tuyến trên *</label>
-                        <input type="date" id="s-chuyenvien" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Bệnh viện tuyến trên tiếp nhận *</label>
-                        <input type="text" id="s-hospital" required placeholder="Ví dụ: Chợ Rẫy, Bình Dương...">
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày xuất viện trở lại trung tâm</label>
-                        <input type="date" id="s-xuatvien">
-                    </div>
-                    <div class="form-group full-width">
-                        <label>Chẩn đoán y khoa *</label>
-                        <input type="text" id="s-chuanDoan" required placeholder="Ví dụ: Tăng huyết áp, Đột quỵ...">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn" style="background:#cbd5e1" onclick="closeModal('modal-patient')">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-primary">Lưu thông tin</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 2: THÊM ĐỢT ĐIỀU TRỊ MỚI -->
-    <div id="modal-session" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h2>Thêm Đợt Điều Trị Mới Cho Bệnh Nhân Cũ</h2>
-                <button class="close-modal" onclick="closeModal('modal-session')">&times;</button>
+            <div onclick="setStatusFilter('treating')" class="bg-white p-2 rounded-xl shadow-sm border-l-4 border-amber-500 text-center cursor-pointer hover:bg-amber-50/50 active:scale-95 transition-all">
+                <span class="text-[9px] text-slate-500 font-bold block uppercase">Đang ĐT</span>
+                <span id="stat-treating" class="text-lg font-bold text-amber-600">0</span>
             </div>
-            <form id="form-new-session" onsubmit="saveNewSession(event)">
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label>Chọn Bệnh Nhân Đang Có Trong Danh Sách *</label>
-                        <select id="s-patient-id" required style="width: 100%;">
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày nhập trạm xá đợt này</label>
-                        <input type="date" id="s2-nhaptram">
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày chuyển viện đợt này *</label>
-                        <input type="date" id="s2-chuyenvien" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Bệnh viện tiếp nhận đợt này *</label>
-                        <input type="text" id="s2-hospital" required placeholder="Ví dụ: Nhân Ái, Chợ Rẫy...">
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày xuất viện đợt này</label>
-                        <input type="date" id="s2-xuatvien">
-                    </div>
-                    <div class="form-group full-width">
-                        <label>Chẩn đoán y khoa đợt này *</label>
-                        <input type="text" id="s2-chuanDoan" required placeholder="Nhập chẩn đoán y khoa">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn" style="background:#cbd5e1" onclick="closeModal('modal-session')">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-secondary">Cập nhật đợt mới</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 3: SỔ GIAO CA ĐIỆN TỬ -->
-    <div id="modal-handover" class="modal-overlay">
-        <div class="modal-box large">
-            <div class="modal-header">
-                <h2>Sổ Giao Ca Điện Tử (Nhật ký theo dõi bàn giao trực)</h2>
-                <button class="close-modal" onclick="closeModal('modal-handover')">&times;</button>
+            <div onclick="setStatusFilter('discharged')" class="bg-white p-2 rounded-xl shadow-sm border-l-4 border-emerald-500 text-center cursor-pointer hover:bg-emerald-50/50 active:scale-95 transition-all">
+                <span class="text-[9px] text-slate-500 font-bold block uppercase">Đã Về</span>
+                <span id="stat-discharged" class="text-lg font-bold text-emerald-600">0</span>
             </div>
+            <div class="bg-white p-2 rounded-xl shadow-sm border-l-4 border-teal-500 text-center">
+                <span class="text-[9px] text-slate-500 font-bold block uppercase">Bệnh Viện</span>
+                <span id="stat-hospitals" class="text-lg font-bold text-teal-600">0</span>
+            </div>
+        </section>
+
+        <!-- THANH TRẠNG THÁI LỌC NHANH (QUICK STATUS FILTER BAR) -->
+        <section class="mb-4">
+            <div class="bg-white p-1 rounded-2xl shadow-sm border border-slate-100 flex gap-1">
+                <button onclick="setStatusFilter('')" id="tab-all" class="flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all duration-200 bg-blue-600 text-white shadow-sm">
+                    Tất cả (<span id="count-all-tab">0</span>)
+                </button>
+                <button onclick="setStatusFilter('treating')" id="tab-treating" class="flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all duration-200 text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Đang ĐT (<span id="count-treating-tab">0</span>)
+                </button>
+                <button onclick="setStatusFilter('discharged')" id="tab-discharged" class="flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all duration-200 text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Đã về (<span id="count-discharged-tab">0</span>)
+                </button>
+            </div>
+        </section>
+
+        <!-- THANH CÔNG CỤ: Ô TÌM KIẾM & NÚT LỌC THU GỌN -->
+        <section class="bg-white p-3 rounded-2xl shadow-sm mb-4 border border-slate-100">
+            <div class="flex gap-2">
+                <div class="relative flex-grow">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                    <input type="text" id="search-box" oninput="renderList()" placeholder="Tìm tên, số BHYT, bệnh viện..." 
+                        class="w-full bg-slate-100 pl-9 pr-3 py-2 rounded-xl text-sm outline-none border border-transparent focus:border-blue-500 focus:bg-white transition-all">
+                </div>
+                <button onclick="toggleFilterPanel()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all text-sm font-semibold">
+                    <i class="fa-solid fa-filter text-xs"></i>
+                    <span>Lọc</span>
+                </button>
+            </div>
+
+            <!-- Khung bộ lọc mở rộng (Ẩn mặc định, bấm nút Lọc mới hiện ra để tránh tốn không gian) -->
+            <div id="filter-panel" class="hidden mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Năm</label>
+                    <select id="filter-year" onchange="renderList()" class="bg-slate-50 border border-slate-200 text-xs rounded-lg p-1.5 outline-none">
+                        <option value="">Tất cả</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Bệnh viện</label>
+                    <select id="filter-hospital" onchange="renderList()" class="bg-slate-50 border border-slate-200 text-xs rounded-lg p-1.5 outline-none max-w-[110px]">
+                        <option value="">Tất cả</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Trạng thái</label>
+                    <select id="filter-status" onchange="renderList()" class="bg-slate-50 border border-slate-200 text-xs rounded-lg p-1.5 outline-none">
+                        <option value="">Tất cả</option>
+                        <option value="treating">Đang điều trị</option>
+                        <option value="discharged">Xuất viện</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- THANH CHỨC NĂNG CHÍNH (Nút bấm to rõ dễ tương tác bằng ngón tay) -->
+        <section class="flex gap-2.5 mb-4">
+            <button onclick="openModal('modal-patient')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-xl font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-user-plus text-xs"></i> Thêm Bệnh Nhân
+            </button>
+            <button onclick="openHandoverModal()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2.5 px-4 rounded-xl font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-clipboard-user text-xs"></i> Sổ Giao Ca trực
+            </button>
+        </section>
+
+        <!-- DANH SÁCH BỆNH NHÂN DẠNG THẺ (Thay thế cho bảng cồng kềnh) -->
+        <section class="space-y-3" id="cards-container">
+            <!-- Thẻ bệnh nhân sẽ tự động sinh từ Javascript -->
+        </section>
+
+    </main>
+
+    <!-- ==================== HỘP THOẠI CHI TIẾT BỆNH NHÂN & LỊCH SỬ ĐIỀU TRỊ (DETAIL SHEET) ==================== -->
+    <div id="modal-detail" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-t-3xl md:rounded-2xl shadow-xl flex flex-col max-h-[92vh] md:max-h-[85vh] overflow-hidden animate-slide-up">
+            <!-- Thanh kéo nhỏ giả lập ứng dụng di động -->
+            <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2.5 md:hidden"></div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
-                <div style="border-right: 1px solid var(--border-color); padding-right: 15px;">
-                    <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--primary-color);">Tạo Biên Bản Giao Ca Mới</h3>
-                    <form id="form-handover" onsubmit="saveHandover(event)" style="display:flex; flex-direction:column; gap:12px;">
-                        <div class="form-group">
-                            <label>Ngày trực *</label>
-                            <input type="date" id="h-date" required>
+            <div class="px-5 pb-4 pt-1 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded uppercase">Hồ sơ bệnh nhân</span>
+                    <h2 id="det-name" class="text-xl font-bold text-slate-900 mt-0.5">---</h2>
+                </div>
+                <button onclick="closeModal('modal-detail')" class="bg-slate-100 hover:bg-slate-200 text-slate-500 p-2 rounded-full transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Vùng nội dung chi tiết -->
+            <div class="p-5 overflow-y-auto space-y-5 no-scrollbar flex-grow">
+                <!-- Thông tin hành chính rút gọn -->
+                <div class="bg-blue-50/70 p-4 rounded-2xl grid grid-cols-2 gap-3 border border-blue-100/50">
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">Năm sinh</span>
+                        <span id="det-birth-gender" class="text-sm font-semibold text-slate-800">---</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">Số thẻ BHYT</span>
+                        <span id="det-bhyt" class="text-sm font-semibold text-mono text-slate-800">---</span>
+                    </div>
+                </div>
+
+                <!-- Lịch sử các đợt điều trị dạng Dòng thời gian (Timeline) -->
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-blue-600 text-xs"></i>
+                            LỊCH SỬ ĐIỀU TRỊ CHUYỂN TUYẾN
+                        </h3>
+                        <button onclick="triggerAddSession()" class="text-xs text-blue-600 font-bold flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-lg">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Thêm đợt
+                        </button>
+                    </div>
+
+                    <!-- Danh sách đợt điều trị -->
+                    <div id="det-sessions-timeline" class="space-y-4 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200">
+                        <!-- Các mốc đợt trực tiếp render từ JS -->
+                    </div>
+                </div>
+
+                <!-- Form ẩn thêm đợt điều trị mới cho bệnh nhân này -->
+                <div id="quick-add-session-box" class="hidden bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs text-slate-700 uppercase">Khai báo đợt điều trị mới</h4>
+                    <form id="form-quick-session" onsubmit="saveQuickSession(event)">
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-bold text-slate-500">Bệnh viện tiếp nhận *</label>
+                                <input type="text" id="qs-hospital" required placeholder="Nhân Ái, Chợ Rẫy..." class="bg-white border border-slate-200 text-xs rounded-lg p-2">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-bold text-slate-500">Chẩn đoán bệnh *</label>
+                                <input type="text" id="qs-diagnosis" required placeholder="Ghi rõ chẩn đoán..." class="bg-white border border-slate-200 text-xs rounded-lg p-2">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Ca trực *</label>
-                            <select id="h-shift" required>
-                                <option value="Ca Sáng (06:00 - 14:00)">Ca Sáng (06:00 - 14:00)</option>
-                                <option value="Ca Chiều (14:00 - 22:00)">Ca Chiều (14:00 - 22:00)</option>
-                                <option value="Ca Đêm (22:00 - 06:00 sáng sau)">Ca Đêm (22:00 - 06:00 sáng sau)</option>
-                            </select>
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-bold text-slate-500">Nhập trạm</label>
+                                <input type="date" id="qs-nhaptram" class="bg-white border border-slate-200 text-[10px] rounded-lg p-1.5">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-bold text-slate-500">Chuyển viện *</label>
+                                <input type="date" id="qs-chuyenvien" required class="bg-white border border-slate-200 text-[10px] rounded-lg p-1.5">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-bold text-slate-500">Xuất viện</label>
+                                <input type="date" id="qs-xuatvien" class="bg-white border border-slate-200 text-[10px] rounded-lg p-1.5">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Nhân viên bàn giao *</label>
-                            <input type="text" id="h-staff" required placeholder="Nhập họ tên người trực">
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold py-2 rounded-lg">Lưu đợt mới</button>
+                            <button type="button" onclick="triggerAddSession()" class="bg-slate-200 text-slate-700 text-xs font-bold py-2 px-3 rounded-lg">Đóng</button>
                         </div>
-                        <div class="form-group">
-                            <label>Nội dung chi tiết tình hình bàn giao bệnh nhân *</label>
-                            <textarea id="h-content" rows="6" required placeholder="Ghi cụ thể diễn biến bệnh nhân ở các tuyến..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-warning" style="width: 100%; justify-content: center;">Ký Tên & Lưu Sổ Giao Ca</button>
                     </form>
                 </div>
+            </div>
 
-                <div>
-                    <h3 style="font-size: 14px; margin-bottom: 10px; color: #475569;">Lịch Sử Nhật Ký Giao Ca</h3>
-                    <div id="handover-logs-container" style="max-height: 450px; overflow-y: auto; padding-right: 5px;">
-                    </div>
-                </div>
+            <!-- Footer của chi tiết bệnh nhân -->
+            <div class="bg-slate-50 p-4 border-t border-slate-100 flex gap-2">
+                <button id="btn-delete-patient" onclick="deleteEntirePatient()" class="hidden flex-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold py-2.5 rounded-xl text-xs transition-all">
+                    ⚠️ Xóa hồ sơ gốc
+                </button>
+                <button onclick="closeModal('modal-detail')" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition-all">
+                    Đóng lại
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 4: CẬP NHẬT NGÀY XUẤT VIỆN NHANH -->
-    <div id="modal-discharge-quick" class="modal-overlay">
-        <div class="modal-box" style="max-width: 400px;">
-            <div class="modal-header">
-                <h2>Cập Nhật Xuất Viện Nhanh</h2>
-                <button class="close-modal" onclick="closeModal('modal-discharge-quick')">&times;</button>
+    <!-- ==================== MODAL: THÊM BỆNH NHÂN MỚI (ĐỢT ĐẦU) ==================== -->
+    <div id="modal-patient" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-t-3xl md:rounded-2xl shadow-xl flex flex-col max-h-[92vh] md:max-h-[85vh] overflow-hidden animate-slide-up">
+            <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2.5 md:hidden"></div>
+            <div class="px-5 pb-3 pt-1 border-b border-slate-100 flex justify-between items-center">
+                <h2 class="text-base font-bold text-slate-900">THÊM BỆNH NHÂN MỚI</h2>
+                <button onclick="closeModal('modal-patient')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form id="form-discharge-quick" onsubmit="saveQuickDischarge(event)">
-                <input type="hidden" id="dq-session-id">
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label id="dq-label-name" style="font-weight: bold; color: var(--primary-color);"></label>
-                    <p id="dq-label-info" style="font-size: 13px; color:#64748b; margin-top:5px;"></p>
+            <form id="form-new-patient" onsubmit="saveNewPatient(event)" class="flex flex-col overflow-hidden">
+                <div class="p-5 overflow-y-auto space-y-4 flex-grow no-scrollbar">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500">Họ và Tên bệnh nhân *</label>
+                        <input type="text" id="p-name" required placeholder="Ví dụ: Nguyễn Văn A" class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-bold text-slate-500">Năm sinh *</label>
+                            <input type="number" id="p-year" required min="1900" max="2026" placeholder="1970" class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-bold text-slate-500">Giới tính *</label>
+                            <select id="p-gender" required class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-blue-500 bg-white">
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500">Mã Số Thẻ BHYT</label>
+                        <input type="text" id="p-bhyt" placeholder="Nhập số thẻ hoặc để trống" class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <div class="border-t border-slate-100 my-2 pt-3">
+                        <h4 class="text-xs font-bold text-blue-700 uppercase mb-3">Đợt điều trị đầu tiên</h4>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs font-bold text-slate-500">Bệnh viện tiếp nhận *</label>
+                                <input type="text" id="s-hospital" required placeholder="Bệnh viện Nhân Ái..." class="border border-slate-200 rounded-xl p-2 text-sm outline-none focus:border-blue-500">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs font-bold text-slate-500">Chẩn đoán y khoa *</label>
+                                <input type="text" id="s-chuanDoan" required placeholder="TD TBMMN/THA..." class="border border-slate-200 rounded-xl p-2 text-sm outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-bold text-slate-500">Nhập trạm</label>
+                                <input type="date" id="s-nhaptram" class="border border-slate-200 rounded-xl p-1.5 text-xs outline-none focus:border-blue-500">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-bold text-slate-500">Chuyển viện *</label>
+                                <input type="date" id="s-chuyenvien" required class="border border-slate-200 rounded-xl p-1.5 text-xs outline-none focus:border-blue-500">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-bold text-slate-500">Xuất viện</label>
+                                <input type="date" id="s-xuatvien" class="border border-slate-200 rounded-xl p-1.5 text-xs outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label>Chọn Ngày Xuất Viện Thực Tế *</label>
-                    <input type="date" id="dq-date" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn" style="background:#cbd5e1" onclick="closeModal('modal-discharge-quick')">Hủy</button>
-                    <button type="submit" class="btn btn-success">Xác nhận xuất viện</button>
+                <div class="bg-slate-50 p-4 border-t border-slate-100 flex gap-2">
+                    <button type="button" onclick="closeModal('modal-patient')" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition-all">Hủy</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all">Lưu thông tin</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- ==================== MODAL: SỔ GIAO CA ĐIỆN TỬ (Tối ưu Tab di động) ==================== -->
+    <div id="modal-handover" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-t-3xl md:rounded-2xl shadow-xl flex flex-col h-[90vh] md:h-[80vh] overflow-hidden animate-slide-up">
+            <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2.5 md:hidden"></div>
+            
+            <div class="px-5 pb-2 pt-1 border-b border-slate-100 flex justify-between items-center">
+                <h2 class="text-base font-bold text-slate-900">SỔ GIAO CA ĐIỆN TỬ</h2>
+                <button onclick="closeModal('modal-handover')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
 
+            <!-- CHUYỂN ĐỔI TAB TRÊN DI ĐỘNG (Tiết kiệm không gian) -->
+            <div class="flex border-b border-slate-200">
+                <button id="tab-btn-write" onclick="switchHandoverTab('write')" class="flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600">
+                    <i class="fa-solid fa-pen-to-square text-xs mr-1"></i> Ghi ca mới
+                </button>
+                <button id="tab-btn-history" onclick="switchHandoverTab('history')" class="flex-1 py-3 text-sm font-bold text-slate-500 hover:text-slate-700">
+                    <i class="fa-solid fa-book-open text-xs mr-1"></i> Xem nhật ký (<span id="handover-count-badge">0</span>)
+                </button>
+            </div>
+
+            <!-- KHỐI TAB 1: GHI CHÉP GIAO CA MỚI -->
+            <div id="tab-write-content" class="p-5 overflow-y-auto flex-grow space-y-4 no-scrollbar">
+                <form id="form-handover" onsubmit="saveHandover(event)" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-bold text-slate-500">Ngày trực *</label>
+                            <input type="date" id="h-date" required class="border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-bold text-slate-500">Nhân viên trực *</label>
+                            <input type="text" id="h-staff" required placeholder="Họ tên người bàn giao" class="border border-slate-200 rounded-xl p-2 text-sm outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500">Ca trực bàn giao *</label>
+                        <select id="h-shift" required class="border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 bg-white">
+                            <option value="Ca Sáng (06:00 - 14:00)">Ca Sáng (06:00 - 14:00)</option>
+                            <option value="Ca Chiều (14:00 - 22:00)">Ca Chiều (14:00 - 22:00)</option>
+                            <option value="Ca Đêm (22:00 - 06:00 sáng sau)">Ca Đêm (22:00 - 06:00 sáng sau)</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500">Nội dung tình hình bàn giao cụ thể *</label>
+                        <textarea id="h-content" required rows="5" placeholder="Ghi nhận cụ thể diễn biến sức khỏe bệnh nhân, tình hình điều trị, xe cộ hoặc lưu ý khẩn cho ca trực sau..." class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-blue-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition-all">
+                        🖊️ Ký Tên & Lưu Biên Bản
+                    </button>
+                </form>
+            </div>
+
+            <!-- KHỐI TAB 2: LỊCH SỬ NHẬT KÝ CA TRỰC -->
+            <div id="tab-history-content" class="p-5 overflow-y-auto flex-grow space-y-3 hidden no-scrollbar bg-slate-50">
+                <div id="handover-logs-container" class="space-y-3">
+                    <!-- Sẽ tự động render từ JS -->
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-100 flex gap-2">
+                <button onclick="closeModal('modal-handover')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition-all">
+                    Đóng Sổ Giao Ca
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: PHỤ CẬP NHẬT NGÀY XUẤT VIỆN NHANH ==================== -->
+    <div id="modal-discharge-quick" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-5 space-y-4">
+            <h3 class="font-bold text-slate-900 text-base">Báo xuất viện bệnh nhân</h3>
+            <div class="p-3 bg-teal-50 rounded-xl border border-teal-100 text-xs text-teal-800">
+                <p id="dq-label-name" class="font-bold"></p>
+                <p id="dq-label-info" class="mt-1 opacity-80"></p>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-bold text-slate-500">Chọn ngày xuất viện thực tế *</label>
+                <input type="date" id="dq-date" required class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-blue-500">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeModal('modal-discharge-quick')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">Hủy</button>
+                <button onclick="saveQuickDischarge()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-xl text-xs">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LOGIC XỬ LÝ SỰ KIỆN JAVASCRIPT ==================== -->
     <script>
-        // --- 1. KHỞI TẠO CƠ SỞ DỮ LIỆU BAN ĐẦU ---
+        // --- 1. KHỞI TẠO CƠ SỞ DỮ LIỆU ĐỒNG BỘ FILE CŨ (Dùng chung bộ khóa localStorage) ---
         let currentRole = "staff"; 
-        const ADMIN_PASSWORD = "admin"; // Bạn có thể thay chữ "admin" này thành mật khẩu riêng của bạn trong code nếu cần
+        const ADMIN_PASSWORD = "admin"; 
+        let activePatientId = null; // Bệnh nhân đang được mở xem chi tiết
 
         let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [
             { id: "p1", name: "Trần Chính", birthYear: "1970", gender: "Nam", bhyt: "-" },
@@ -622,155 +423,194 @@
             { id: "h1", date: "2026-06-02", shift: "Ca Sáng (06:00 - 14:00)", staffName: "Nguyễn Thị Hoa", content: "Đã chuyển viện an toàn bệnh nhân Trần Chính lên bệnh viện Nhân Ái vào sáng nay do có cơn co giật đột xuất liên tục. Đã bàn giao đầy đủ hồ sơ bệnh án kèm thẻ BHYT cho điều dưỡng tuyến trên trực tiếp đón nhận." }
         ];
 
+        // Lưu giữ liệu
         function saveToLocalStorage() {
             localStorage.setItem('qlbn_patients', JSON.stringify(patients));
             localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
             localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
         }
 
-        // --- 2. XỬ LÝ PHÂN QUYỀN (ROLE ACCESS CONTROL) ---
-        function handleRoleChange(selectedRole) {
+        // --- 2. XỬ LÝ PHÂN QUYỀN (ROLE MANAGEMENT) ---
+        function switchRole(selectedRole) {
             if (selectedRole === 'admin') {
-                const inputPassword = prompt("Vui lòng nhập mật khẩu Admin để kích hoạt tính năng xoá dữ liệu:");
-                if (inputPassword === ADMIN_PASSWORD) {
-                    currentRole = 'admin';
-                    alert("Kích hoạt quyền Admin thành công! Bạn hiện đã có quyền xóa các đợt điều trị và nhật ký giao ca.");
+                const pass = prompt("Nhập mật khẩu quản trị viên để mở quyền Admin:");
+                if (pass === ADMIN_PASSWORD) {
+                    currentRole = "admin";
+                    alert("Đã kích hoạt quyền Admin. Bạn hiện có quyền xóa hồ sơ gốc và xóa đợt bệnh.");
                 } else {
-                    alert("Sai mật khẩu bảo vệ! Hệ thống tự động trả về quyền Nhân Viên Trực Ca.");
-                    document.getElementById('current-role-select').value = 'staff';
-                    currentRole = 'staff';
+                    alert("Mật khẩu không chính xác!");
+                    document.getElementById('role-select').value = "staff";
+                    currentRole = "staff";
                 }
             } else {
-                currentRole = 'staff';
-                alert("Đã chuyển về quyền Nhân Viên. Các chức năng xoá dữ liệu nguy hiểm đã bị ẩn.");
+                currentRole = "staff";
+                alert("Đã trả về quyền Nhân viên trực ca.");
             }
-            renderMainData();
-            if(document.getElementById('modal-handover').style.display === 'flex') {
-                renderHandoverLogs();
+            // Render lại để áp quyền hiển thị nút xóa
+            renderList();
+            if (activePatientId) {
+                viewPatientDetails(activePatientId);
             }
         }
 
-        // --- 3. ĐỊNH DẠNG NGÀY THÁNG ---
-        function formatDateDisplay(dateString) {
-            if (!dateString) return "-";
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
+        // --- 2.5 THANH TRẠNG THÁI LỌC NHANH ---
+        function setStatusFilter(status) {
+            document.getElementById('filter-status').value = status;
+            renderList();
         }
 
-        // --- 4. ĐIỀU KHIỂN ĐÓNG MỞ CỬA SỔ POP-UP (MODAL) ---
+        function updateActiveTabVisuals(activeStatus) {
+            const tabs = {
+                '': { id: 'tab-all', activeClass: 'bg-blue-600 text-white shadow-sm' },
+                'treating': { id: 'tab-treating', activeClass: 'bg-amber-500 text-white shadow-sm' },
+                'discharged': { id: 'tab-discharged', activeClass: 'bg-emerald-600 text-white shadow-sm' }
+            };
+            
+            Object.keys(tabs).forEach(status => {
+                const tabConfig = tabs[status];
+                const tabEl = document.getElementById(tabConfig.id);
+                if (!tabEl) return;
+                
+                if (status === activeStatus) {
+                    tabEl.className = `flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all duration-200 ${tabConfig.activeClass}`;
+                } else {
+                    tabEl.className = `flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all duration-200 text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-1`;
+                }
+            });
+        }
+
+        // --- 3. ĐÓNG MỞ MODALS & TỔ CHỨC TAB ---
         function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
-            if (modalId === 'modal-session') {
-                updatePatientDropdown();
-            }
+            document.getElementById(modalId).classList.remove('hidden');
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+            document.getElementById(modalId).classList.add('hidden');
         }
 
-        function updatePatientDropdown() {
-            const select = document.getElementById('s-patient-id');
-            select.innerHTML = '';
-            patients.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = `${p.name} (NS: ${p.birthYear} - BHYT: ${p.bhyt})`;
-                select.appendChild(opt);
-            });
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filter-panel');
+            panel.classList.toggle('hidden');
         }
 
         function openHandoverModal() {
             openModal('modal-handover');
-            renderHandoverLogs();
+            switchHandoverTab('write');
             document.getElementById('h-date').value = new Date().toISOString().split('T')[0];
         }
 
-        function openDischargeQuick(sessionId) {
-            const session = sessions.find(s => s.id === sessionId);
-            const patient = patients.find(p => p.id === session.patientId);
-            
-            document.getElementById('dq-session-id').value = sessionId;
-            document.getElementById('dq-label-name').textContent = `Bệnh nhân: ${patient.name}`;
-            document.getElementById('dq-label-info').textContent = `Đợt điều trị thứ ${session.sessionNum} tại bệnh viện ${session.hospital}`;
-            document.getElementById('dq-date').value = new Date().toISOString().split('T')[0];
-            
-            openModal('modal-discharge-quick');
+        function switchHandoverTab(tab) {
+            const writeBtn = document.getElementById('tab-btn-write');
+            const historyBtn = document.getElementById('tab-btn-history');
+            const writeContent = document.getElementById('tab-write-content');
+            const historyContent = document.getElementById('tab-history-content');
+
+            if (tab === 'write') {
+                writeBtn.className = "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600";
+                historyBtn.className = "flex-1 py-3 text-sm font-bold text-slate-500 hover:text-slate-700";
+                writeContent.classList.remove('hidden');
+                historyContent.classList.add('hidden');
+            } else {
+                historyBtn.className = "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600";
+                writeBtn.className = "flex-1 py-3 text-sm font-bold text-slate-500 hover:text-slate-700";
+                writeContent.classList.add('hidden');
+                historyContent.classList.remove('hidden');
+                renderHandoverLogs();
+            }
         }
 
-        // --- 5. TÍNH TOÁN BỘ LỌC ĐỘNG ---
-        function initFilterOptions() {
+        // --- 4. FORMAT NGÀY THÁNG GỌN ---
+        function formatDate(dateStr) {
+            if (!dateStr) return "-";
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            const d = String(date.getDate()).padStart(2, '0');
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const y = String(date.getFullYear()).substring(2); // Lấy 2 số cuối năm (2026 -> 26) cho gọn di động
+            return `${d}/${m}/${y}`;
+        }
+
+        // --- 5. TẠO BỘ LỌC ĐỘNG TỪ DỮ LIỆU ---
+        function initFilters() {
             const yearSelect = document.getElementById('filter-year');
             const hospitalSelect = document.getElementById('filter-hospital');
-            
+
             const currentYear = yearSelect.value;
             const currentHospital = hospitalSelect.value;
 
             const years = new Set();
+            const hospitals = new Set();
+
             sessions.forEach(s => {
                 if (s.chuyenVien) {
-                    const yearStr = s.chuyenVien.substring(0, 4);
-                    if(yearStr) years.add(yearStr);
+                    years.add(s.chuyenVien.substring(0, 4));
+                }
+                if (s.hospital) {
+                    hospitals.add(s.hospital.trim());
                 }
             });
 
-            const hospitals = new Set();
-            sessions.forEach(s => {
-                if (s.hospital) hospitals.add(s.hospital.trim());
-            });
-
-            yearSelect.innerHTML = '<option value="">Tất cả các năm</option>';
+            // Đổ năm
+            yearSelect.innerHTML = '<option value="">Tất cả</option>';
             Array.from(years).sort((a,b)=>b-a).forEach(y => {
-                const opt = document.createElement('option');
-                opt.value = y;
-                opt.textContent = `Năm ${y}`;
-                yearSelect.appendChild(opt);
+                yearSelect.innerHTML += `<option value="${y}">Năm ${y}</option>`;
             });
 
-            hospitalSelect.innerHTML = '<option value="">Tất cả bệnh viện</option>';
+            // Đổ bệnh viện
+            hospitalSelect.innerHTML = '<option value="">Tất cả</option>';
             Array.from(hospitals).sort().forEach(h => {
-                const opt = document.createElement('option');
-                opt.value = h;
-                opt.textContent = h;
-                hospitalSelect.appendChild(opt);
+                hospitalSelect.innerHTML += `<option value="${h}">${h}</option>`;
             });
 
             yearSelect.value = currentYear;
             hospitalSelect.value = currentHospital;
         }
 
-        // --- 6. HÀM HIỂN THỊ DỮ LIỆU BẢNG & KIỂM TRA QUYỀN XOÁ ---
-        function renderMainData() {
-            const tbody = document.getElementById('patient-table-body');
-            tbody.innerHTML = '';
+        // --- 6. HIỂN THỊ DANH SÁCH BỆNH NHÂN DẠNG THẺ TỐI ƯU ---
+        function renderList() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
 
-            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+            const searchVal = document.getElementById('search-box').value.toLowerCase().trim();
             const yearFilter = document.getElementById('filter-year').value;
             const hospitalFilter = document.getElementById('filter-hospital').value;
             const statusFilter = document.getElementById('filter-status').value;
 
-            let countTotalPatients = patients.length;
+            let countTotal = patients.length;
             let countTreating = 0;
             let countDischarged = 0;
             const activeHospitals = new Set();
 
-            let displayIndex = 1;
+            // Sắp xếp các đợt điều trị mới nhất lên trên
+            const filteredSessions = [...sessions].sort((a,b) => b.id.localeCompare(a.id));
 
-            sessions.forEach(session => {
+            // Đếm thống kê thực tế trước khi lọc hiển thị
+            sessions.forEach(s => {
+                if (!s.xuatVien) countTreating++;
+                else countDischarged++;
+                if (s.hospital) activeHospitals.add(s.hospital.trim());
+            });
+
+            document.getElementById('stat-total').textContent = countTotal;
+            document.getElementById('stat-treating').textContent = countTreating;
+            document.getElementById('stat-discharged').textContent = countDischarged;
+            document.getElementById('stat-hospitals').textContent = activeHospitals.size;
+
+            // Cập nhật số đếm trên thanh trạng thái lọc nhanh
+            document.getElementById('count-all-tab').textContent = countTotal;
+            document.getElementById('count-treating-tab').textContent = countTreating;
+            document.getElementById('count-discharged-tab').textContent = countDischarged;
+
+            // Đồng bộ trạng thái hiển thị của thanh trạng thái lọc nhanh
+            updateActiveTabVisuals(statusFilter);
+
+            let visibleCount = 0;
+
+            filteredSessions.forEach(session => {
                 const patient = patients.find(p => p.id === session.patientId);
                 if (!patient) return;
 
-                if (!session.xuatVien) {
-                    countTreating++;
-                } else {
-                    countDischarged++;
-                }
-                if(session.hospital) activeHospitals.add(session.hospital.trim());
-
+                // Thực hiện lọc dữ liệu nâng cao
                 const matchSearch = patient.name.toLowerCase().includes(searchVal) || 
                                     patient.bhyt.toLowerCase().includes(searchVal) || 
                                     session.chuanDoan.toLowerCase().includes(searchVal) ||
@@ -786,85 +626,172 @@
                                     (statusFilter === 'discharged' && isDischarged);
 
                 if (matchSearch && matchYear && matchHospital && matchStatus) {
-                    const tr = document.createElement('tr');
+                    visibleCount++;
                     const statusText = !isDischarged ? "Đang điều trị" : "Xuất viện";
-                    const statusClass = !isDischarged ? "status-treating" : "status-discharged";
-                    
-                    // KIỂM TRA PHÂN QUYỀN TRÊN NÚT BẤM HÀNH ĐỘNG
-                    let actionButton = "";
-                    if (!isDischarged) {
-                        actionButton = `<button class="btn btn-success btn-action" onclick="openDischargeQuick('${session.id}')">🩺 Báo Xuất Viện</button>`;
-                    } else {
-                        if (currentRole === 'admin') {
-                            actionButton = `<button class="btn btn-danger btn-action" onclick="deleteSession('${session.id}')">❌ Xóa đợt này</button>`;
-                        } else {
-                            actionButton = `<span style="color: #64748b; font-style: italic; font-size:12px;">🔒 Chỉ Admin được xoá</span>`;
+                    const statusClass = !isDischarged ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
+
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3 hover:border-blue-400 transition-all cursor-pointer";
+                    // Bấm bất kỳ đâu vào thẻ đều mở ra khung chi tiết
+                    card.onclick = (e) => {
+                        // Tránh trigger khi bấm các nút hành động con
+                        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'I') {
+                            viewPatientDetails(patient.id);
                         }
+                    };
+
+                    // Phần nút báo xuất viện nhanh gọn trên thẻ nếu đang điều trị
+                    let quickActionBtn = "";
+                    if (!isDischarged) {
+                        quickActionBtn = `
+                            <button onclick="event.stopPropagation(); openDischargeQuick('${session.id}')" 
+                                class="text-xs font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-square-check text-[10px]"></i> Báo về Trạm
+                            </button>
+                        `;
                     }
 
-                    tr.innerHTML = `
-                        <td style="text-align: center; font-weight: 500;">${displayIndex++}</td>
-                        <td style="font-weight: 600; color: #1e3a8a;">${patient.name}</td>
-                        <td>${patient.birthYear}</td>
-                        <td>${patient.gender}</td>
-                        <td style="font-family: monospace; font-size:13px;">${patient.bhyt || '-'}</td>
-                        <td style="color: #475569;">${session.chuanDoan}</td>
-                        <td>${formatDateDisplay(session.nhapTram)}</td>
-                        <td>${formatDateDisplay(session.chuyenVien)}</td>
-                        <td style="font-weight: 500; color: #0d9488;">${session.hospital}</td>
-                        <td>${formatDateDisplay(session.xuatVien)}</td>
-                        <td style="text-align: center;"><span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight:600;">${session.sessionNum}</span></td>
-                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                        <td style="text-align: center;">${actionButton}</td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            });
+                    card.innerHTML = `
+                        <!-- Dòng 1: Thông tin chính -->
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-base text-slate-900">${patient.name}</h3>
+                                <div class="flex gap-2 items-center text-xs text-slate-500 mt-0.5">
+                                    <span>${patient.gender}</span>
+                                    <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <span>NS: ${patient.birthYear}</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-1 rounded-lg uppercase ${statusClass}">
+                                ${statusText}
+                            </span>
+                        </div>
 
-            document.getElementById('stat-total-patients').textContent = countTotalPatients;
-            document.getElementById('stat-treating').textContent = countTreating;
-            document.getElementById('stat-discharged').textContent = countDischarged;
-            document.getElementById('stat-hospitals').textContent = activeHospitals.size;
-        }
+                        <!-- Dòng 2: Nội dung đợt điều trị chuyển viện -->
+                        <div class="text-xs space-y-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-100/50">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold uppercase">Tuyến trên</span>
+                                <strong class="text-slate-800 text-xs">${session.hospital}</strong>
+                            </div>
+                            <p class="text-slate-600 line-clamp-1"><span class="text-slate-400">Bệnh:</span> ${session.chuanDoan}</p>
+                            <div class="flex justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-200/50">
+                                <span>Chuyển: ${formatDate(session.chuyenVien)}</span>
+                                <span>Về: ${isDischarged ? formatDate(session.xuatVien) : '---'}</span>
+                            </div>
+                        </div>
 
-        // --- 7. HIỂN THỊ SỔ GIAO CA & KIỂM TRA QUYỀN XOÁ NHẬT KÝ ---
-        function renderHandoverLogs() {
-            const container = document.getElementById('handover-logs-container');
-            container.innerHTML = '';
-
-            if (handovers.length === 0) {
-                container.innerHTML = '<p style="color:#64748b; font-style:italic;">Chưa có nhật ký ghi chép giao ca nào.</p>';
-                return;
-            }
-
-            const sortedHandovers = [...handovers].sort((a, b) => new Date(b.date + 'T23:59:59') - new Date(a.date + 'T23:59:59'));
-
-            sortedHandovers.forEach(log => {
-                const div = document.createElement('div');
-                div.className = 'log-item';
-                
-                let deleteSectionHtml = "";
-                if (currentRole === 'admin') {
-                    deleteSectionHtml = `
-                        <div style="text-align:right; margin-top:10px; border-top:1px dashed #e2e8f0; padding-top:5px;">
-                            <a href="#" onclick="deleteHandover('${log.id}')" style="color:var(--danger-color); text-decoration:none; font-size:12px; font-weight:500;">❌ Xóa dòng giao ca này</a>
+                        <!-- Dòng 3: Nút điều hướng thông minh bên dưới thẻ -->
+                        <div class="flex justify-between items-center pt-1">
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">Đợt ${session.sessionNum}</span>
+                            <div class="flex gap-2">
+                                ${quickActionBtn}
+                                <button onclick="viewPatientDetails('${patient.id}')" class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1">
+                                    Chi tiết <i class="fa-solid fa-angle-right text-[10px]"></i>
+                                </button>
+                            </div>
                         </div>
                     `;
+                    container.appendChild(card);
+                }
+            });
+
+            if (visibleCount === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-2xl border border-slate-100">
+                        <i class="fa-solid fa-folder-open text-slate-300 text-3xl mb-2"></i>
+                        <p class="text-slate-500 text-sm">Không tìm thấy bệnh nhân nào phù hợp bộ lọc.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // --- 7. XEM CHI TIẾT BỆNH NHÂN (Hiển thị tất cả lịch sử điều trị) ---
+        function viewPatientDetails(patientId) {
+            activePatientId = patientId;
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+
+            // Đổ thông tin hành chính
+            document.getElementById('det-name').textContent = patient.name;
+            document.getElementById('det-birth-gender').textContent = `${patient.gender} - Sinh năm ${patient.birthYear}`;
+            document.getElementById('det-bhyt').textContent = patient.bhyt && patient.bhyt !== '-' ? patient.bhyt : "Chưa có BHYT";
+
+            // Hiển thị nút xóa bệnh nhân nếu là Admin
+            const delPatientBtn = document.getElementById('btn-delete-patient');
+            if (currentRole === 'admin') {
+                delPatientBtn.classList.remove('hidden');
+            } else {
+                delPatientBtn.classList.add('hidden');
+            }
+
+            // Ẩn form thêm đợt nhanh nếu đang mở
+            document.getElementById('quick-add-session-box').classList.add('hidden');
+
+            // Render Timeline các đợt bệnh nhân này
+            renderPatientSessionsTimeline(patientId);
+
+            openModal('modal-detail');
+        }
+
+        function renderPatientSessionsTimeline(patientId) {
+            const timeline = document.getElementById('det-sessions-timeline');
+            timeline.innerHTML = '';
+
+            // Lấy tất cả đợt của bệnh nhân này, xếp từ đợt mới nhất lên đầu
+            const patientSessions = sessions.filter(s => s.patientId === patientId).sort((a,b)=> b.sessionNum - a.sessionNum);
+
+            patientSessions.forEach(s => {
+                const isDischarged = s.xuatVien !== "";
+                const dotColor = !isDischarged ? "border-amber-500 bg-amber-500 text-white animate-pulse" : "border-emerald-500 bg-emerald-500 text-white";
+                
+                // Nút thao tác đợt bệnh nhân
+                let actionHtml = "";
+                if (!isDischarged) {
+                    actionHtml = `
+                        <button onclick="openDischargeQuick('${s.id}')" class="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded border border-teal-200 mt-2">
+                            🩺 Báo xuất viện đợt trực
+                        </button>
+                    `;
+                } else if (currentRole === 'admin') {
+                    actionHtml = `
+                        <button onclick="deleteSession('${s.id}')" class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200 mt-2">
+                            ❌ Xóa đợt này
+                        </button>
+                    `;
                 }
 
-                div.innerHTML = `
-                    <div class="log-meta">
-                        <span>📅 Ngày trực: <strong>${formatDateDisplay(log.date)}</strong> - 🕒 ${log.shift}</span>
-                        <span style="color:var(--primary-color);">✍️ Người trực: <strong>${log.staffName}</strong></span>
+                const item = document.createElement('div');
+                item.className = "relative pl-8 pb-1";
+                item.innerHTML = `
+                    <!-- Chấm mốc tròn timeline -->
+                    <span class="absolute left-1.5 top-1.5 w-4 h-4 rounded-full border-2 ${dotColor} flex items-center justify-center text-[8px] font-bold z-10">
+                        ${s.sessionNum}
+                    </span>
+                    
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-xs text-slate-800">${s.hospital}</h4>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded uppercase font-semibold ${isDischarged ? 'bg-emerald-100 text-emerald-800':'bg-amber-100 text-amber-800'}">
+                                ${isDischarged ? 'Đã về':'Đang điều trị'}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-1"><span class="text-slate-400">Bệnh:</span> ${s.chuanDoan}</p>
+                        
+                        <div class="grid grid-cols-3 gap-1 text-[10px] text-slate-400 mt-2 pt-2 border-t border-slate-200/60">
+                            <span>Nhập trạm: ${s.nhapTram ? formatDate(s.nhapTram) : '-'}</span>
+                            <span>Chuyển đi: ${formatDate(s.chuyenVien)}</span>
+                            <span>Xuất viện: ${isDischarged ? formatDate(s.xuatVien) : '---'}</span>
+                        </div>
+                        ${actionHtml}
                     </div>
-                    <div class="log-content">${log.content}</div>
-                    ${deleteSectionHtml}
                 `;
-                container.appendChild(div);
+                timeline.appendChild(item);
             });
         }
 
-        // --- 8. CÁC HÀM LƯU DỮ LIỆU TỪ FORM ---
+        // --- 8. NHẬP LIỆU THÔNG TIN MỚI ---
+
+        // Thêm mới hoàn toàn 1 bệnh nhân và đợt đầu
         function saveNewPatient(event) {
             event.preventDefault();
             const name = document.getElementById('p-name').value.trim();
@@ -895,31 +822,42 @@
             });
 
             saveToLocalStorage();
-            initFilterOptions();
-            renderMainData();
+            initFilters();
+            renderList();
             
             document.getElementById('form-new-patient').reset();
             closeModal('modal-patient');
-            alert('Đã thêm mới thành công bệnh nhân và đợt điều trị đầu tiên!');
+            alert('Đã thêm mới thành công bệnh nhân và đợt điều trị chuyển viện thứ nhất!');
         }
 
-        function saveNewSession(event) {
-            event.preventDefault();
-            const patientId = document.getElementById('s-patient-id').value;
-            const nhapTram = document.getElementById('s2-nhaptram').value;
-            const chuyenVien = document.getElementById('s2-chuyenvien').value;
-            const hospital = document.getElementById('s2-hospital').value.trim();
-            const xuatVien = document.getElementById('s2-xuatvien').value;
-            const chuanDoan = document.getElementById('s2-chuanDoan').value.trim();
+        // Ẩn hiện khung thêm đợt điều trị nhanh ngay trong màn hình chi tiết bệnh nhân
+        function triggerAddSession() {
+            const box = document.getElementById('quick-add-session-box');
+            box.classList.toggle('hidden');
+            document.getElementById('form-quick-session').reset();
+            document.getElementById('qs-chuyenvien').value = new Date().toISOString().split('T')[0];
+        }
 
-            const patientPastSessions = sessions.filter(s => s.patientId === patientId);
+        // Lưu đợt điều trị mới cho bệnh nhân cũ
+        function saveQuickSession(event) {
+            event.preventDefault();
+            if (!activePatientId) return;
+
+            const nhapTram = document.getElementById('qs-nhaptram').value;
+            const chuyenVien = document.getElementById('qs-chuyenvien').value;
+            const hospital = document.getElementById('qs-hospital').value.trim();
+            const xuatVien = document.getElementById('qs-xuatvien').value;
+            const chuanDoan = document.getElementById('qs-diagnosis').value.trim();
+
+            // Tính số đợt tiếp theo
+            const patientPastSessions = sessions.filter(s => s.patientId === activePatientId);
             const currentSessionNumber = patientPastSessions.length + 1;
 
-            const newSessionId = "s_" + Date.now();
+            const newSessionId = "qs_" + Date.now();
 
             sessions.push({
                 id: newSessionId,
-                patientId: patientId,
+                patientId: activePatientId,
                 sessionNum: currentSessionNumber,
                 nhapTram: nhapTram,
                 chuyenVien: chuyenVien,
@@ -929,14 +867,46 @@
             });
 
             saveToLocalStorage();
-            initFilterOptions();
-            renderMainData();
-
-            document.getElementById('form-new-session').reset();
-            closeModal('modal-session');
-            alert(`Đã cập nhật thành công ĐỢT ĐIỀU TRỊ THỨ ${currentSessionNumber} cho bệnh nhân!`);
+            initFilters();
+            renderList();
+            renderPatientSessionsTimeline(activePatientId);
+            triggerAddSession();
+            alert(`Đã cập nhật thành công đợt điều trị thứ ${currentSessionNumber} cho bệnh nhân này!`);
         }
 
+        // --- 9. BÁO XUẤT VIỆN NHANH ---
+        let quickDischargeSessionId = null;
+
+        function openDischargeQuick(sessionId) {
+            const session = sessions.find(s => s.id === sessionId);
+            const patient = patients.find(p => p.id === session.patientId);
+            
+            quickDischargeSessionId = sessionId;
+            document.getElementById('dq-label-name').textContent = `Bệnh nhân: ${patient.name}`;
+            document.getElementById('dq-label-info').textContent = `Cập nhật ngày về của đợt ${session.sessionNum} tại ${session.hospital}`;
+            document.getElementById('dq-date').value = new Date().toISOString().split('T')[0];
+            
+            openModal('modal-discharge-quick');
+        }
+
+        function saveQuickDischarge() {
+            const dischargeDate = document.getElementById('dq-date').value;
+            if (!dischargeDate) return;
+
+            const index = sessions.findIndex(s => s.id === quickDischargeSessionId);
+            if (index !== -1) {
+                sessions[index].xuatVien = dischargeDate;
+                saveToLocalStorage();
+                renderList();
+                if (activePatientId) {
+                    renderPatientSessionsTimeline(activePatientId);
+                }
+                closeModal('modal-discharge-quick');
+                alert('Đã cập nhật ngày xuất viện của bệnh nhân về trung tâm!');
+            }
+        }
+
+        // --- 10. SỔ GIAO CA ĐIỆN TỬ ---
         function saveHandover(event) {
             event.preventDefault();
             const date = document.getElementById('h-date').value;
@@ -954,61 +924,109 @@
 
             handovers.push(newLog);
             saveToLocalStorage();
-            renderHandoverLogs();
-
+            
+            // Xóa nội dung nhập
             document.getElementById('h-content').value = '';
-            alert('Đã ký tên và lưu vào biên bản lịch sử bàn giao ca trực thành công!');
+            alert('Đã ký tên bàn giao và lưu sổ giao trực ca thành công!');
+            switchHandoverTab('history');
         }
 
-        function saveQuickDischarge(event) {
-            event.preventDefault();
-            const sessionId = document.getElementById('dq-session-id').value;
-            const dischargeDate = document.getElementById('dq-date').value;
+        function renderHandoverLogs() {
+            const container = document.getElementById('handover-logs-container');
+            container.innerHTML = '';
+            
+            // Cập nhật số ca trên huy hiệu
+            document.getElementById('handover-count-badge').textContent = handovers.length;
 
-            const sessionIndex = sessions.findIndex(s => s.id === sessionId);
-            if (sessionIndex !== -1) {
-                sessions[sessionIndex].xuatVien = dischargeDate;
-                saveToLocalStorage();
-                renderMainData();
-                closeModal('modal-discharge-quick');
-                alert('Đã cập nhật ngày xuất viện của bệnh nhân về trung tâm bảo trợ!');
-            }
-        }
-
-        // --- 9. KIỂM TRA CHẶT CHẼ QUYỀN ADMIN TRƯỚC KHI XOÁ DỮ LIỆU ---
-        function deleteSession(sessionId) {
-            if (currentRole !== 'admin') {
-                alert('Hành động bị từ chối: Chỉ tài khoản có vai trò Admin mới được phép xóa dữ liệu lịch sử!');
+            if (handovers.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Chưa có bản ghi bàn giao ca trực nào.</p>';
                 return;
             }
-            if (confirm('Bạn có chắc chắn muốn xóa lịch sử đợt điều trị này không? Dữ liệu đã xóa không thể khôi phục.')) {
+
+            const sorted = [...handovers].sort((a,b) => b.id.localeCompare(a.id));
+
+            sorted.forEach(log => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2";
+                
+                let deleteBtn = "";
+                if (currentRole === 'admin') {
+                    deleteBtn = `
+                        <div class="text-right border-t border-slate-100 pt-2">
+                            <button onclick="deleteHandover('${log.id}')" class="text-[10px] text-red-500 font-bold hover:underline">
+                                <i class="fa-solid fa-trash-can text-[9px] mr-0.5"></i> Xóa biên bản
+                            </button>
+                        </div>
+                    `;
+                }
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-start text-[11px] text-slate-400 border-b border-slate-100 pb-1.5">
+                        <span>📅 Ngày: <strong>${formatDate(log.date)}</strong></span>
+                        <span class="text-blue-700 font-bold">✍️ Trực ca: ${log.staffName}</span>
+                    </div>
+                    <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold uppercase block w-fit">
+                        ${log.shift}
+                    </span>
+                    <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed">${log.content}</p>
+                    ${deleteBtn}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- 11. CÁC HÀM XÓA DỮ LIỆU (YÊU CẦU QUYỀN ADMIN CHẶT CHẼ) ---
+        function deleteSession(sessionId) {
+            if (currentRole !== 'admin') {
+                alert('Yêu cầu từ chối: Chỉ quản trị viên mới được phép xóa đợt điều trị!');
+                return;
+            }
+            if (confirm('Bạn chắc chắn muốn xóa lịch sử đợt bệnh này chứ? Dữ liệu đã xóa không thể phục hồi.')) {
                 sessions = sessions.filter(s => s.id !== sessionId);
                 saveToLocalStorage();
-                initFilterOptions();
-                renderMainData();
+                initFilters();
+                renderList();
+                if (activePatientId) {
+                    renderPatientSessionsTimeline(activePatientId);
+                }
             }
         }
 
         function deleteHandover(logId) {
             if (currentRole !== 'admin') {
-                alert('Hành động bị từ chối: Chỉ tài khoản có vai trò Admin mới được phép xóa nhật ký giao ca!');
+                alert('Yêu cầu từ chối: Chỉ quản trị viên mới được quyền xóa nhật ký giao ca trực!');
                 return;
             }
-            if (confirm('Bạn có chắc chắn muốn xóa dòng nhật ký bàn giao ca này không?')) {
+            if (confirm('Bạn chắc chắn muốn xóa dòng bàn giao trực ca này?')) {
                 handovers = handovers.filter(h => h.id !== logId);
                 saveToLocalStorage();
                 renderHandoverLogs();
             }
         }
 
-        document.getElementById('search-input').addEventListener('input', renderMainData);
-        document.getElementById('filter-year').addEventListener('change', renderMainData);
-        document.getElementById('filter-hospital').addEventListener('change', renderMainData);
-        document.getElementById('filter-status').addEventListener('change', renderMainData);
+        function deleteEntirePatient() {
+            if (currentRole !== 'admin') {
+                alert('Yêu cầu từ chối: Chỉ quản trị viên mới được xóa hồ sơ gốc!');
+                return;
+            }
+            if (confirm('CẢNH BÁO: Hành động này sẽ xóa vĩnh viễn bệnh nhân này cùng toàn bộ các đợt điều trị liên quan khỏi hệ thống. Bạn vẫn muốn tiếp tục chứ?')) {
+                // Xóa bệnh nhân
+                patients = patients.filter(p => p.id !== activePatientId);
+                // Xóa các đợt liên quan
+                sessions = sessions.filter(s => s.patientId !== activePatientId);
+                
+                saveToLocalStorage();
+                initFilters();
+                renderList();
+                closeModal('modal-detail');
+                alert('Đã xóa vĩnh viễn toàn bộ hồ sơ bệnh án thành công.');
+            }
+        }
 
+        // Khởi chạy hệ thống
         window.onload = function() {
-            initFilterOptions();
-            renderMainData();
+            initFilters();
+            renderList();
         };
     </script>
 </body>
