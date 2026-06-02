@@ -17,6 +17,9 @@
         .pulse-orange {
             animation: pulse-orange 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
+        .pulse-orange {
+            animation: pulse-orange 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
         /* Tuỳ biến thanh cuộn mượt mà */
         ::-webkit-scrollbar {
             width: 8px;
@@ -34,16 +37,16 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen p-4">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen p-4 pb-12">
 
-    <!-- ==================== THANH ĐẦU TRANG & VAI TRÒ HỆ THỐNG (ĐÃ THU GỌN CHIỀU CAO) ==================== -->
+    <!-- ==================== THANH ĐẦU TRANG & VAI TRÒ HỆ THỐNG ==================== -->
     <header class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white rounded-xl shadow-md px-5 py-3.5 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
             <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                 <i class="fa-solid fa-hospital-user text-teal-300"></i>
                 HỆ THỐNG QUẢN LÝ BỆNH NHÂN CHUYỂN TUYẾN & GIAO CA ĐIỆN TỬ
             </h1>
-            <p class="text-xs opacity-80 mt-0.5">Trung tâm Bảo trợ Xã hội - Giải pháp tối ưu hóa đợt điều trị và quản lý ca trực</p>
+            <p class="text-xs opacity-80 mt-0.5">Trung tâm Bảo trợ Xã hội - Giải pháp tối ưu hóa đợt điều trị và quản lý ca trực chuyên tuyến</p>
         </div>
         
         <!-- Khối điều hướng và chọn vai trò bảo mật thông tin -->
@@ -58,7 +61,7 @@
         </div>
     </header>
 
-    <!-- ==================== KHỐI THỐNG KÊ NHANH (ĐÃ THU GỌN CỰC KỲ MỎNG & THOÁNG) ==================== -->
+    <!-- ==================== KHỐI THỐNG KÊ NHANH ==================== -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <!-- Thống kê tổng số bệnh nhân -->
         <div onclick="filterByStat('')" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600 flex items-center justify-between cursor-pointer hover:shadow-md hover:scale-[1.005] transition-all">
@@ -103,7 +106,7 @@
             <!-- Ô nhập tìm kiếm từ khóa thời gian thực -->
             <div class="relative w-full sm:w-72">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
-                <input type="text" id="search-box" oninput="renderTable()" placeholder="Tìm tên, số thẻ BHYT, bệnh..." class="w-full pl-8 pr-4 py-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all">
+                <input type="text" id="search-box" oninput="renderTable()" placeholder="Tìm tên, số thẻ BHYT, bệnh, ghi chú..." class="w-full pl-8 pr-4 py-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all">
             </div>
 
             <!-- Các bộ lọc thả xuống -->
@@ -143,7 +146,7 @@
                 <thead>
                     <tr class="bg-indigo-900 text-white text-[11px] font-bold uppercase tracking-wider">
                         <th class="py-2.5 px-3 border border-slate-300 text-center w-[50px]">STT</th>
-                        <th class="py-2.5 px-4 border border-slate-300 text-left min-w-[240px]">Họ và Tên bệnh nhân</th>
+                        <th class="py-2.5 px-4 border border-slate-300 text-left min-w-[200px]">Họ và Tên bệnh nhân</th>
                         <th class="py-2.5 px-2 border border-slate-300 text-center w-[60px]">NS</th>
                         <th class="py-2.5 px-2 border border-slate-300 text-center w-[50px]">GT</th>
                         <th class="py-2.5 px-3 border border-slate-300 text-left w-[140px]">Số thẻ BHYT</th>
@@ -151,13 +154,14 @@
                         <th class="py-2.5 px-3 border border-slate-300 text-center w-[100px]">Nhập trạm</th>
                         <th class="py-2.5 px-3 border border-slate-300 text-center w-[100px]">Chuyển đi</th>
                         <th class="py-2.5 px-4 border border-slate-300 text-left w-[170px]">Bệnh viện tuyến trên</th>
+                        <th class="py-2.5 px-4 border border-slate-300 text-left min-w-[220px]">Ghi chú diễn biến / Lộ trình</th>
                         <th class="py-2.5 px-3 border border-slate-300 text-center w-[100px]">Xuất viện</th>
                         <th class="py-2.5 px-2 border border-slate-300 text-center w-[50px]">Đợt</th>
                         <th class="py-2.5 px-3 border border-slate-300 text-center w-[130px]">Trạng thái</th>
                         <th class="py-2.5 px-3 border border-slate-300 text-center w-[150px]">Thao tác trực ca</th>
                     </tr>
                 </thead>
-                <tbody id="patient-table-body" class="text-xs divide-y divide-slate-200">
+                <tbody id="patient-table-body" class="text-xs divide-y divide-slate-300">
                     <!-- Javascript sẽ tự động điền dữ liệu động vào đây -->
                 </tbody>
             </table>
@@ -228,6 +232,10 @@
                         <input type="date" id="s-xuatvien" class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-blue-500">
                     </div>
                 </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Ghi chú diễn biến / Lộ trình di chuyển điều trị</label>
+                    <textarea id="s-notes" rows="2" placeholder="Ví dụ: Người nhà tự chăm nuôi, đã chuyển từ tuyến huyện lên tuyến tỉnh ngày..." class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-blue-500"></textarea>
+                </div>
 
                 <div class="pt-4 border-t flex justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
                     <button type="button" onclick="closeModal('modal-patient')" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-sm">Hủy bỏ</button>
@@ -277,6 +285,10 @@
                         <input type="date" id="s2-xuatvien" class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-teal-500">
                     </div>
                 </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Ghi chú diễn biến / Lộ trình di chuyển đợt này</label>
+                    <textarea id="s2-notes" rows="2" placeholder="Nhập ghi chú hoặc lộ trình di chuyển của đợt này..." class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-teal-500"></textarea>
+                </div>
 
                 <div class="pt-4 border-t flex justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
                     <button type="button" onclick="closeModal('modal-session')" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-sm">Hủy bỏ</button>
@@ -286,30 +298,35 @@
         </div>
     </div>
 
-    <!-- ==================== MODAL 3: SỔ GIAO CA ĐIỆN TỬ (CHIA ĐÔI MÀN HÌNH XEM TIỆN LỢI) ==================== -->
+    <!-- ==================== MODAL 3: SỔ GIAO CA ĐIỆN TỬ (TỐI ƯU LIVE HOSPITALIZED VIEW) ==================== -->
     <div id="modal-handover" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden">
-        <div class="bg-white w-full max-w-5xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="bg-white w-full max-w-6xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 bg-amber-500 text-white flex justify-between items-center">
                 <h2 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-book-medical"></i> Sổ Giao Ca Trực - Nhật ký theo dõi trực tuyến</h2>
                 <button onclick="closeModal('modal-handover')" class="text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden flex-grow max-h-[75vh]">
-                <!-- Cột trái: Form nhập văn bản bàn giao ca mới -->
-                <form id="form-handover" onsubmit="saveHandover(event)" class="lg:col-span-5 flex flex-col space-y-4">
-                    <h3 class="font-bold text-xs text-amber-600 uppercase tracking-wider border-b pb-1">Soạn biên bản giao trực</h3>
+                <!-- Cột trái: Form nhập văn bản bàn giao ca mới (5/12 cols) -->
+                <form id="form-handover" onsubmit="saveHandover(event)" class="lg:col-span-5 flex flex-col space-y-3">
+                    <div class="flex justify-between items-center border-b pb-1">
+                        <h3 class="font-bold text-xs text-amber-600 uppercase tracking-wider">Soạn biên bản giao trực</h3>
+                        <button type="button" onclick="autoGenerateActiveHandover()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2 py-1 rounded transition-all flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-magic"></i> 📋 Trích xuất danh sách nằm viện
+                        </button>
+                    </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-bold text-slate-500">Ngày trực ban *</label>
-                            <input type="date" id="h-date" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none focus:border-amber-500">
+                            <input type="date" id="h-date" required class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-amber-500">
                         </div>
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-bold text-slate-500">Nhân viên bàn giao *</label>
-                            <input type="text" id="h-staff" required placeholder="Họ và Tên" class="border border-slate-200 rounded-xl p-2 text-sm outline-none focus:border-amber-500">
+                            <input type="text" id="h-staff" required placeholder="Họ và Tên" class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-amber-500">
                         </div>
                     </div>
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-bold text-slate-500">Ca bàn giao trực *</label>
-                        <select id="h-shift" required class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-amber-500 bg-white">
+                        <select id="h-shift" required class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-amber-500 bg-white">
                             <option value="Ca Sáng (06:00 - 14:00)">Ca Sáng (06:00 - 14:00)</option>
                             <option value="Ca Chiều (14:00 - 22:00)">Ca Chiều (14:00 - 22:00)</option>
                             <option value="Ca Đêm (22:00 - 06:00 sáng sau)">Ca Đêm (22:00 - 06:00 sáng sau)</option>
@@ -317,18 +334,33 @@
                     </div>
                     <div class="flex flex-col gap-1 flex-grow">
                         <label class="text-xs font-bold text-slate-500">Nội dung chi tiết tình hình bệnh nhân và lưu ý *</label>
-                        <textarea id="h-content" required rows="5" placeholder="Ghi nhận cụ thể tình trạng sức khỏe các bệnh nhân nằm viện tuyến trên, xe cộ, thuốc men để bàn giao cho ca trực sau nắm bắt..." class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-amber-500 h-full resize-none"></textarea>
+                        <textarea id="h-content" required placeholder="Ghi nhận cụ thể tình trạng sức khỏe các bệnh nhân nằm viện tuyến trên, xe cộ, thuốc men để bàn giao cho ca trực sau nắm bắt... Bạn có thể dùng tính năng 'Trích xuất' ở góc trên để nạp danh sách tự động." class="border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-amber-500 h-full resize-none min-h-[160px]"></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow transition-all flex items-center justify-center gap-1.5">
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-xl text-xs shadow transition-all flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-pen-nib"></i> Ký tên & Bàn giao ca
                     </button>
                 </form>
 
-                <!-- Cột phải: Lịch sử các ca bàn giao trước đó -->
+                <!-- Cột phải: Lịch sử và xem Live bệnh nhân (7/12 cols) -->
                 <div class="lg:col-span-7 flex flex-col overflow-hidden">
-                    <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider border-b pb-1 mb-3">Lịch sử nhật ký giao ban trực</h3>
+                    <!-- Tab điều hướng cột bên phải -->
+                    <div class="flex border-b border-slate-200 mb-3">
+                        <button type="button" id="tab-handover-history" onclick="switchRightHandoverTab('history')" class="py-2 px-4 text-xs font-bold text-blue-800 border-b-2 border-blue-600 outline-none">
+                            <i class="fa-solid fa-history"></i> Lịch sử nhật ký giao ban
+                        </button>
+                        <button type="button" id="tab-handover-live" onclick="switchRightHandoverTab('live')" class="py-2 px-4 text-xs font-bold text-slate-500 hover:text-blue-600 outline-none flex items-center gap-1">
+                            <i class="fa-solid fa-hospital-pulse text-amber-500 pulse-orange"></i> Danh sách BN đang nằm viện (Live)
+                        </button>
+                    </div>
+
+                    <!-- Nội dung Tab 1: Lịch sử -->
                     <div id="handover-logs-container" class="overflow-y-auto pr-2 space-y-3 flex-grow">
-                        <!-- Tự động render bằng JS -->
+                        <!-- Render qua JS -->
+                    </div>
+
+                    <!-- Nội dung Tab 2: Danh sách Live (Mặc định ẩn) -->
+                    <div id="handover-live-container" class="overflow-y-auto pr-2 space-y-3 flex-grow hidden bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <!-- Render qua JS -->
                     </div>
                 </div>
             </div>
@@ -419,12 +451,37 @@
                         <input type="date" id="edit-s-xuatvien" class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-indigo-500">
                     </div>
                 </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Ghi chú diễn biến / Lộ trình di chuyển đợt này</label>
+                    <textarea id="edit-s-notes" rows="3" placeholder="Ví dụ: Người nhà tự chăm nuôi, chuyển tuyến từ ngày..." class="border border-slate-200 rounded-xl p-2.5 text-sm outline-none focus:border-indigo-500"></textarea>
+                </div>
 
                 <div class="pt-4 border-t flex justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
                     <button type="button" onclick="closeModal('modal-edit')" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-sm">Hủy bỏ</button>
                     <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow">Lưu cập nhật</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ==================== HỆ THỐNG THÔNG BÁO CUSTOM THAY THẾ CHO NATIVE ALERTS/CONFIRMS ==================== -->
+    <div id="custom-notification" class="fixed top-5 right-5 z-[9999] transform translate-x-full transition-all duration-300 pointer-events-none">
+        <div id="notify-box" class="bg-indigo-900 text-white font-bold py-3 px-6 rounded-xl shadow-2xl border border-indigo-700 flex items-center gap-3">
+            <span id="notify-icon"><i class="fa-solid fa-circle-info text-teal-300"></i></span>
+            <span id="notify-text" class="text-xs font-semibold"></span>
+        </div>
+    </div>
+
+    <div id="custom-confirm-modal" class="modal-overlay fixed inset-0 bg-black/60 z-[9998] flex items-center justify-center hidden">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4">
+            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2 text-rose-600">
+                <i class="fa-solid fa-circle-exclamation"></i> Xác nhận hành động
+            </h3>
+            <p id="confirm-text" class="text-xs text-slate-600 leading-relaxed"></p>
+            <div class="flex gap-2 pt-2">
+                <button id="btn-confirm-cancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">Hủy bỏ</button>
+                <button id="btn-confirm-agree" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl text-xs">Đồng ý</button>
+            </div>
         </div>
     </div>
 
@@ -435,7 +492,51 @@
         const ADMIN_PASSWORD = "admin"; // Mật khẩu đổi sang quyền quản lý để xóa dữ liệu
         let quickDischargeSessionId = null; // ID của đợt bệnh nhân cần báo xuất viện nhanh
 
-        // --- 1. KHỞI TẠO CƠ SỞ DỮ LIỆU BAN ĐẦU ---
+        // --- HỆ THỐNG THÔNG BÁO VÀ HỘP THOẠI XÁC NHẬN TÙY BIẾN ---
+        function showNotification(message, isError = false) {
+            const container = document.getElementById('custom-notification');
+            const box = document.getElementById('notify-box');
+            const icon = document.getElementById('notify-icon');
+            const text = document.getElementById('notify-text');
+
+            text.textContent = message;
+            if (isError) {
+                box.className = "bg-rose-900 text-white font-bold py-3 px-6 rounded-xl shadow-2xl border border-rose-700 flex items-center gap-3";
+                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-300"></i>';
+            } else {
+                box.className = "bg-indigo-900 text-white font-bold py-3 px-6 rounded-xl shadow-2xl border border-indigo-700 flex items-center gap-3";
+                icon.innerHTML = '<i class="fa-solid fa-circle-check text-teal-300"></i>';
+            }
+
+            container.classList.remove('translate-x-full');
+            setTimeout(() => {
+                container.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        let confirmCallback = null;
+        function showConfirm(message, callback) {
+            document.getElementById('confirm-text').textContent = message;
+            const modal = document.getElementById('custom-confirm-modal');
+            modal.classList.remove('hidden');
+            confirmCallback = callback;
+        }
+
+        document.getElementById('btn-confirm-cancel').onclick = function() {
+            document.getElementById('custom-confirm-modal').classList.add('hidden');
+            confirmCallback = null;
+        };
+
+        document.getElementById('btn-confirm-agree').onclick = function() {
+            document.getElementById('custom-confirm-modal').classList.add('hidden');
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            confirmCallback = null;
+        };
+
+
+        // --- KHỞI TẠO CƠ SỞ DỮ LIỆU BAN ĐẦU ---
         let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [
             { id: "p1", name: "Trần Chính", birthYear: "1970", gender: "Nam", bhyt: "-" },
             { id: "p2", name: "Nguyễn Bá Trọng", birthYear: "1965", gender: "Nam", bhyt: "BT2797930434436" },
@@ -444,10 +545,10 @@
         ];
 
         let sessions = JSON.parse(localStorage.getItem('qlbn_sessions')) || [
-            { id: "s1", patientId: "p1", sessionNum: 1, nhapTram: "2026-06-01", chuyenVien: "2026-06-01", chuanDoan: "Viêm Phế Quản/ Động kinh", hospital: "Nhân Ái", xuatVien: "" },
-            { id: "s2", patientId: "p2", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-05", chuanDoan: "U thực quản", hospital: "Chợ Rẫy", xuatVien: "2026-01-07" },
-            { id: "s3", patientId: "p3", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-03", chuanDoan: "TD TBMMN/THA", hospital: "Bình Dương", xuatVien: "2026-05-12" },
-            { id: "s4", patientId: "p4", sessionNum: 1, nhapTram: "2026-01-01", chuyenVien: "2026-01-01", chuanDoan: "Tăng huyết áp/Sốt CRNN", hospital: "BÌNH LONG", xuatVien: "2026-05-09" }
+            { id: "s1", patientId: "p1", sessionNum: 1, nhapTram: "2026-06-01", chuyenVien: "2026-06-01", chuanDoan: "Viêm Phế Quản/ Động kinh", hospital: "Nhân Ái", xuatVien: "", notes: "Đã chuyển từ trạm xá lên bệnh viện Nhân Ái bằng xe chuyên dụng trung tâm." },
+            { id: "s2", patientId: "p2", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-05", chuanDoan: "U thực quản", hospital: "Chợ Rẫy", xuatVien: "2026-01-07", notes: "Người nhà chăm nuôi chính, đã chuyển viện an toàn." },
+            { id: "s3", patientId: "p3", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-03", chuanDoan: "TD TBMMN/THA", hospital: "Bình Dương", xuatVien: "2026-05-12", notes: "Chuyển từ tuyến huyện lên tỉnh ngày 03/01." },
+            { id: "s4", patientId: "p4", sessionNum: 1, nhapTram: "2026-01-01", chuyenVien: "2026-01-01", chuanDoan: "Tăng huyết áp/Sốt CRNN", hospital: "BÌNH LONG", xuatVien: "2026-05-09", notes: "Bệnh nhân điều trị bình thường và đã xuất viện an toàn về trung tâm bảo trợ." }
         ];
 
         let handovers = JSON.parse(localStorage.getItem('qlbn_handovers')) || [
@@ -487,7 +588,9 @@
         function openHandoverModal() {
             openModal('modal-handover');
             renderHandoverLogs();
+            renderHandoverLiveList();
             document.getElementById('h-date').value = new Date().toISOString().split('T')[0];
+            switchRightHandoverTab('history');
         }
 
         // --- 3. ĐỊNH DẠNG NGÀY THÁNG ĐẸP ---
@@ -507,15 +610,15 @@
                 const pass = prompt("Nhập mật khẩu quản lý để đổi quyền hạn:");
                 if (pass === ADMIN_PASSWORD) {
                     currentRole = "admin";
-                    alert("Đã chuyển đổi sang quyền quản lý ADMIN thành công. Bạn hiện có quyền xóa thông tin!");
+                    showNotification("Đã chuyển đổi sang quyền quản lý ADMIN thành công. Bạn hiện có quyền xóa thông tin!");
                 } else {
-                    alert("Mật khẩu không chính xác!");
+                    showNotification("Mật khẩu không chính xác!", true);
                     document.getElementById('role-select').value = "staff";
                     currentRole = "staff";
                 }
             } else {
                 currentRole = "staff";
-                alert("Đã trả quyền của bạn về Nhân Viên Trực Ca.");
+                showNotification("Đã trả quyền của bạn về Nhân Viên Trực Ca.");
             }
             renderTable();
         }
@@ -560,6 +663,98 @@
             hospitalSelect.value = currentHospital;
         }
 
+        // --- 6.1 GIAO DIỆN PHỤ SỔ GIAO CA ĐIỆN TỬ: TRÍCH XUẤT LIVE & ĐIỀU CHỈNH TAB PHẢI ---
+        function switchRightHandoverTab(tabName) {
+            const btnHistory = document.getElementById('tab-handover-history');
+            const btnLive = document.getElementById('tab-handover-live');
+            const logContainer = document.getElementById('handover-logs-container');
+            const liveContainer = document.getElementById('handover-live-container');
+
+            if (tabName === 'history') {
+                btnHistory.className = "py-2 px-4 text-xs font-bold text-blue-800 border-b-2 border-blue-600 outline-none";
+                btnLive.className = "py-2 px-4 text-xs font-bold text-slate-500 hover:text-blue-600 outline-none flex items-center gap-1";
+                logContainer.classList.remove('hidden');
+                liveContainer.classList.add('hidden');
+            } else {
+                btnLive.className = "py-2 px-4 text-xs font-bold text-blue-800 border-b-2 border-blue-600 outline-none flex items-center gap-1";
+                btnHistory.className = "py-2 px-4 text-xs font-bold text-slate-500 hover:text-blue-600 outline-none";
+                logContainer.classList.add('hidden');
+                liveContainer.classList.remove('hidden');
+                renderHandoverLiveList();
+            }
+        }
+
+        // Tự động render danh sách bệnh nhân đang nằm viện thời gian thực (Live)
+        function renderHandoverLiveList() {
+            const container = document.getElementById('handover-live-container');
+            container.innerHTML = '';
+
+            const activeSessions = sessions.filter(s => !s.xuatVien);
+
+            if (activeSessions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-bed text-3xl mb-2 opacity-55"></i>
+                        <p class="text-xs">Hiện tại không có bệnh nhân nào nằm viện điều trị tuyến trên.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            activeSessions.forEach(session => {
+                const patient = patients.find(p => p.id === session.patientId);
+                if (!patient) return;
+
+                const div = document.createElement('div');
+                div.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-1";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <strong class="text-blue-900 text-xs">${patient.name}</strong>
+                        <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold">ĐANG ĐIỀU TRỊ</span>
+                    </div>
+                    <div class="text-[11px] text-slate-600 space-y-1">
+                        <p>📍 <strong>Bệnh viện:</strong> ${session.hospital} (Chuyển đi: ${formatDate(session.chuyenVien)})</p>
+                        <p>🩺 <strong>Chẩn đoán:</strong> ${session.chuanDoan}</p>
+                        <p class="text-slate-500 italic">📝 <strong>Ghi chú:</strong> ${session.notes || "Chưa có ghi chú riêng biệt."}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Tự động trích xuất biên bản giao ca dựa theo live data
+        function autoGenerateActiveHandover() {
+            const activeSessions = sessions.filter(s => !s.xuatVien);
+            const dateStr = new Date().toLocaleDateString('vi-VN');
+
+            let report = `BIÊN BẢN BÀN GIAO CA TRỰC - NGÀY ${dateStr}\n`;
+            report += `=================================================\n\n`;
+            report += `TÌNH HÌNH CÁC BỆNH NHÂN ĐANG ĐIỀU TRỊ TUYẾN TRÊN:\n`;
+
+            if (activeSessions.length === 0) {
+                report += `- Hiện tại không có bệnh nhân nào đang nằm điều trị tuyến trên.\n`;
+            } else {
+                activeSessions.forEach((session, index) => {
+                    const patient = patients.find(p => p.id === session.patientId);
+                    if (patient) {
+                        report += `${index + 1}. Bệnh nhân: ${patient.name} (Sinh năm: ${patient.birthYear})\n`;
+                        report += `   + Bệnh viện: ${session.hospital} (Ngày chuyển đi: ${formatDate(session.chuyenVien)})\n`;
+                        report += `   + Chẩn đoán khoa học: ${session.chuanDoan}\n`;
+                        report += `   + Diễn biến trong ca trực: [Ghi nhận sức khỏe, thay đổi tại đây...]\n`;
+                        report += `   + Lộ trình / Ghi chú: ${session.notes || "Bình thường"}\n`;
+                        report += `   ---------------------------------------------\n`;
+                    }
+                });
+            }
+
+            report += `\nLƯU Ý KHÁC VỀ THUỐC MEN, XE CỘ & ĐIỆN THOẠI TRONG CA TRỰC:\n`;
+            report += `- Điện thoại liên lạc: Thông suốt.\n`;
+            report += `- Tình hình xe cộ, bàn giao sổ sách: [Ghi chú thêm...]`;
+
+            document.getElementById('h-content').value = report;
+            showNotification("Đã tự động trích xuất danh sách bệnh nhân đang nằm viện vào form soạn!");
+        }
+
         // --- 7. HIỂN THỊ DỮ LIỆU BẢNG BỆNH NHÂN (LƯỚI RÕ RÀNG & THU GỌN KHOẢNG CÁCH) ---
         function renderTable() {
             const tbody = document.getElementById('patient-table-body');
@@ -599,7 +794,8 @@
                 const matchSearch = patient.name.toLowerCase().includes(searchVal) || 
                                     patient.bhyt.toLowerCase().includes(searchVal) || 
                                     session.chuanDoan.toLowerCase().includes(searchVal) ||
-                                    session.hospital.toLowerCase().includes(searchVal);
+                                    session.hospital.toLowerCase().includes(searchVal) ||
+                                    (session.notes && session.notes.toLowerCase().includes(searchVal));
 
                 const sYear = session.chuyenVien ? session.chuyenVien.substring(0, 4) : "";
                 const matchYear = !yearFilter || (sYear === yearFilter);
@@ -674,19 +870,20 @@
 
                     tr.className = rowClass;
                     tr.innerHTML = `
-                        <td class="py-2 px-3 text-center font-bold text-slate-500 border border-slate-200">${displayIndex++}</td>
-                        <td class="py-2 px-4 font-bold text-blue-900 whitespace-nowrap border border-slate-200">${patient.name}</td>
-                        <td class="py-2 px-2 text-center border border-slate-200">${patient.birthYear}</td>
-                        <td class="py-2 px-2 text-center border border-slate-200">${patient.gender}</td>
-                        <td class="py-2 px-3 font-mono text-xs text-slate-600 border border-slate-200">${patient.bhyt}</td>
-                        <td class="py-2 px-4 text-slate-600 leading-relaxed border border-slate-200">${session.chuanDoan}</td>
-                        <td class="py-2 px-3 text-center text-xs border border-slate-200">${session.nhapTram ? formatDate(session.nhapTram) : '-'}</td>
-                        <td class="py-2 px-3 text-center text-xs font-semibold text-slate-800 border border-slate-200">${formatDate(session.chuyenVien)}</td>
-                        <td class="py-2 px-4 font-bold text-teal-700 border border-slate-200">${session.hospital}</td>
-                        <td class="py-2 px-3 text-center text-xs font-semibold ${isDischarged ? 'text-emerald-700' : 'text-slate-400'} border border-slate-200">${isDischarged ? formatDate(session.xuatVien) : '-'}</td>
-                        <td class="py-2 px-2 text-center border border-slate-200"><span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-bold">Đợt ${session.sessionNum}</span></td>
-                        <td class="py-2 px-3 text-center border border-slate-200">${statusLabel}</td>
-                        <td class="py-2 px-3 border border-slate-200">${actionButtons}</td>
+                        <td class="py-2 px-3 text-center font-bold text-slate-500 border border-slate-300">${displayIndex++}</td>
+                        <td class="py-2 px-4 font-bold text-blue-900 whitespace-nowrap border border-slate-300">${patient.name}</td>
+                        <td class="py-2 px-2 text-center border border-slate-300">${patient.birthYear}</td>
+                        <td class="py-2 px-2 text-center border border-slate-300">${patient.gender}</td>
+                        <td class="py-2 px-3 font-mono text-xs text-slate-600 border border-slate-300">${patient.bhyt}</td>
+                        <td class="py-2 px-4 text-slate-600 leading-relaxed border border-slate-300">${session.chuanDoan}</td>
+                        <td class="py-2 px-3 text-center text-xs border border-slate-300">${session.nhapTram ? formatDate(session.nhapTram) : '-'}</td>
+                        <td class="py-2 px-3 text-center text-xs font-semibold text-slate-800 border border-slate-300">${formatDate(session.chuyenVien)}</td>
+                        <td class="py-2 px-4 font-bold text-teal-700 border border-slate-300">${session.hospital}</td>
+                        <td class="py-2 px-4 text-slate-500 border border-slate-300 leading-normal max-w-[280px] truncate hover:whitespace-normal transition-all duration-150" title="${session.notes || '-'}">${session.notes || '-'}</td>
+                        <td class="py-2 px-3 text-center text-xs font-semibold ${isDischarged ? 'text-emerald-700' : 'text-slate-400'} border border-slate-300">${isDischarged ? formatDate(session.xuatVien) : '-'}</td>
+                        <td class="py-2 px-2 text-center border border-slate-300"><span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-bold">Đợt ${session.sessionNum}</span></td>
+                        <td class="py-2 px-3 text-center border border-slate-300">${statusLabel}</td>
+                        <td class="py-2 px-3 border border-slate-300">${actionButtons}</td>
                     `;
                     tbody.appendChild(tr);
                 }
@@ -712,6 +909,7 @@
             const hospital = document.getElementById('s-hospital').value.trim();
             const xuatVien = document.getElementById('s-xuatvien').value;
             const chuanDoan = document.getElementById('s-chuanDoan').value.trim();
+            const notes = document.getElementById('s-notes').value.trim();
 
             const newPatientId = "p_" + Date.now();
             const newSessionId = "s_" + Date.now();
@@ -732,7 +930,8 @@
                 chuyenVien: chuyenVien,
                 chuanDoan: chuanDoan,
                 hospital: hospital,
-                xuatVien: xuatVien
+                xuatVien: xuatVien,
+                notes: notes
             });
 
             saveToLocalStorage();
@@ -741,7 +940,7 @@
             
             document.getElementById('form-new-patient').reset();
             closeModal('modal-patient');
-            alert('Thêm hồ sơ bệnh nhân mới và đợt điều trị thứ nhất thành công!');
+            showNotification('Thêm hồ sơ bệnh nhân mới và đợt điều trị thứ nhất thành công!');
         }
 
         // --- 8.2 LƯU THÊM ĐỢT ĐIỀU TRỊ MỚI (BỆNH NHÂN CŨ) ---
@@ -753,6 +952,7 @@
             const hospital = document.getElementById('s2-hospital').value.trim();
             const xuatVien = document.getElementById('s2-xuatvien').value;
             const chuanDoan = document.getElementById('s2-chuanDoan').value.trim();
+            const notes = document.getElementById('s2-notes').value.trim();
 
             const pastCount = sessions.filter(s => s.patientId === patientId).length;
             const nextSessionNum = pastCount + 1;
@@ -767,7 +967,8 @@
                 chuyenVien: chuyenVien,
                 chuanDoan: chuanDoan,
                 hospital: hospital,
-                xuatVien: xuatVien
+                xuatVien: xuatVien,
+                notes: notes
             });
 
             saveToLocalStorage();
@@ -776,7 +977,7 @@
 
             document.getElementById('form-new-session').reset();
             closeModal('modal-session');
-            alert(`Thêm đợt điều trị thứ ${nextSessionNum} cho bệnh nhân thành công!`);
+            showNotification(`Thêm đợt điều trị thứ ${nextSessionNum} cho bệnh nhân thành công!`);
         }
 
         // --- 9. NGHIỆP VỤ BÁO XUẤT VIỆN NHANH ---
@@ -802,7 +1003,7 @@
                 saveToLocalStorage();
                 renderTable();
                 closeModal('modal-discharge-quick');
-                alert('Đã cập nhật ngày xuất viện. Trạng thái bệnh nhân chuyển thành "Đã xuất viện".');
+                showNotification('Đã cập nhật ngày xuất viện. Trạng thái bệnh nhân chuyển thành "Đã xuất viện".');
             }
         }
 
@@ -826,6 +1027,7 @@
             document.getElementById('edit-s-nhaptram').value = session.nhapTram || '';
             document.getElementById('edit-s-chuyenvien').value = session.chuyenVien || '';
             document.getElementById('edit-s-xuatvien').value = session.xuatVien || '';
+            document.getElementById('edit-s-notes').value = session.notes || '';
 
             openModal('modal-edit');
         }
@@ -850,13 +1052,14 @@
                 sessions[sIdx].nhapTram = document.getElementById('edit-s-nhaptram').value;
                 sessions[sIdx].chuyenVien = document.getElementById('edit-s-chuyenvien').value;
                 sessions[sIdx].xuatVien = document.getElementById('edit-s-xuatvien').value;
+                sessions[sIdx].notes = document.getElementById('edit-s-notes').value.trim();
             }
 
             saveToLocalStorage();
             initFilterDropdowns();
             renderTable();
             closeModal('modal-edit');
-            alert('Cập nhật thay đổi thông tin bệnh nhân và đợt điều trị thành công!');
+            showNotification('Cập nhật thay đổi thông tin bệnh nhân và đợt điều trị thành công!');
         }
 
         // --- 11. NGHIỆP VỤ SỔ GIAO CA ĐIỆN TỬ ---
@@ -878,7 +1081,7 @@
             saveToLocalStorage();
             renderHandoverLogs();
             document.getElementById('h-content').value = '';
-            alert('Biên bản giao trực đã được ký tên và lưu vào sổ nhật ký trực thành công!');
+            showNotification('Biên bản giao trực đã được ký tên và lưu vào sổ nhật ký trực thành công!');
         }
 
         function renderHandoverLogs() {
@@ -921,27 +1124,29 @@
         // --- 12. CÁC NGHIỆP VỤ XÓA HỒ SƠ (YÊU CẦU QUYỀN ADMIN) ---
         function deleteSession(sessionId) {
             if (currentRole !== 'admin') {
-                alert('Lỗi truy cập: Chỉ quản trị viên mới được thực hiện quyền xóa dữ liệu!');
+                showNotification('Lỗi truy cập: Chỉ quản trị viên mới được thực hiện quyền xóa dữ liệu!', true);
                 return;
             }
-            if (confirm('Bạn chắc chắn muốn xóa lịch sử đợt bệnh này chứ? Dữ liệu đã xóa không thể phục hồi.')) {
+            showConfirm('Bạn chắc chắn muốn xóa lịch sử đợt bệnh này chứ? Dữ liệu đã xóa không thể phục hồi.', function() {
                 sessions = sessions.filter(s => s.id !== sessionId);
                 saveToLocalStorage();
                 initFilterDropdowns();
                 renderTable();
-            }
+                showNotification('Đã xóa thành công đợt bệnh nhân chỉ định.');
+            });
         }
 
         function deleteHandover(logId) {
             if (currentRole !== 'admin') {
-                alert('Lỗi truy cập: Chỉ quản trị viên mới được thực hiện quyền xóa nhật ký trực!');
+                showNotification('Lỗi truy cập: Chỉ quản trị viên mới được thực hiện quyền xóa nhật ký trực!', true);
                 return;
             }
-            if (confirm('Bạn chắc chắn muốn xóa dòng nhật ký bàn giao ca trực này?')) {
+            showConfirm('Bạn chắc chắn muốn xóa dòng nhật ký bàn giao ca trực này?', function() {
                 handovers = handovers.filter(h => h.id !== logId);
                 saveToLocalStorage();
                 renderHandoverLogs();
-            }
+                showNotification('Đã xóa dòng nhật ký trực ban chỉ định.');
+            });
         }
 
         // --- Khởi chạy phần mềm lần đầu ---
