@@ -25,7 +25,7 @@
         .animate-slide-up {
             animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        /* Tuỳ biến thanh cuộn mượt mà */
+        /* Tuỳ biến thanh cuộn mượt mà cho bảng */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -75,7 +75,7 @@
     </section>
 
     <!-- ==================== THANH CÔNG CỤ TÌM KIẾM & NÚT TIỆN ÍCH ==================== -->
-    <section class="px-3 mb-3 flex flex-col gap-2">
+    <section class="px-3 mb-2 flex flex-col gap-2">
         <!-- Tìm kiếm từ khóa -->
         <div class="relative w-full">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
@@ -109,18 +109,25 @@
 
     <!-- ==================== DANH SÁCH BỆNH NHÂN DẠNG BẢNG CHIA CỘT RÕ RÀNG ==================== -->
     <main class="flex-grow px-3">
-        <div class="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <!-- Banner thông báo hỗ trợ định hướng vuốt ngang trên điện thoại -->
+        <div class="flex items-center gap-1.5 text-[10px] text-blue-800 bg-blue-50 border border-blue-200 rounded-xl p-2.5 mb-2 shadow-sm font-semibold animate-pulse">
+            <i class="fa-solid fa-circle-info text-blue-600 text-xs"></i>
+            <span>💡 Cố định 2 cột đầu. Vuốt bảng sang trái <i class="fa-solid fa-arrow-left"></i> để xem cột Chẩn đoán và Thao tác.</span>
+        </div>
+
+        <div class="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm relative">
             <table class="w-full border-collapse border border-slate-300 text-[11px]">
                 <thead>
                     <tr class="bg-indigo-900 text-white text-[10px] font-bold uppercase tracking-wider">
-                        <th class="py-2 px-1.5 border border-slate-300 text-center w-[40px]">STT</th>
-                        <th class="py-2 px-2 border border-slate-300 text-left min-w-[130px]">Họ và Tên</th>
-                        <th class="py-2 px-1 border border-slate-300 text-center w-[45px]">NS</th>
-                        <th class="py-2 px-1 border border-slate-300 text-center w-[40px]">GT</th>
-                        <th class="py-2 px-2 border border-slate-300 text-left min-w-[110px]">Bệnh viện điều trị</th>
-                        <th class="py-2 px-2 border border-slate-300 text-left min-w-[120px]">Chẩn đoán</th>
-                        <th class="py-2 px-1.5 border border-slate-300 text-center w-[95px]">Trạng thái</th>
-                        <th class="py-2 px-1.5 border border-slate-300 text-center w-[150px]">Thao tác</th>
+                        <!-- Cố định cột STT và Họ Tên trên thanh tiêu đề -->
+                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[40px] sticky left-0 bg-indigo-900 z-20">STT</th>
+                        <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[130px] sticky left-[40px] bg-indigo-900 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">Họ và Tên</th>
+                        <th class="py-2.5 px-1 border border-slate-300 text-center w-[45px]">NS</th>
+                        <th class="py-2.5 px-1 border border-slate-300 text-center w-[40px]">GT</th>
+                        <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[110px]">Bệnh viện điều trị</th>
+                        <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[120px]">Chẩn đoán</th>
+                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[95px]">Trạng thái</th>
+                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[150px]">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="patient-table-body" class="divide-y divide-slate-200">
@@ -644,7 +651,7 @@
             hospitalSelect.value = currentHospital;
         }
 
-        // --- RENDER DANH SÁCH BỆNH NHÂN THEO BẢNG CHIA CỘT RÕ RÀNG ---
+        // --- RENDER DANH SÁCH BỆNH NHÂN THEO BẢNG CHIA CỘT RÕ RÀNG (CÓ STICKY MOBILE) ---
         function renderList() {
             const tbody = document.getElementById('patient-table-body');
             const emptyState = document.getElementById('empty-state');
@@ -700,6 +707,8 @@
                     
                     let bgClass = "bg-white hover:bg-slate-50 transition-all";
                     let badgeHtml = "";
+                    // Chọn màu nền trơn (solid) cho các cột sticky để tránh việc cuộn chữ luồn ở dưới
+                    let stickyBg = isDischarged ? "bg-white" : "bg-[#fffbeb]";
 
                     if (!isDischarged) {
                         bgClass = "bg-amber-50/70 hover:bg-amber-100/90 font-medium border-l-4 border-l-amber-500";
@@ -734,15 +743,16 @@
                         }
                     }
 
+                    // Tích hợp sticky class trực tiếp cho STT (sticky left-0) và Họ và Tên (sticky left-40px)
                     tr.innerHTML = `
-                        <td class="py-2.5 px-1.5 text-center font-bold text-slate-500 border border-slate-300">${displayIndex++}</td>
-                        <td class="py-2.5 px-2 font-bold text-blue-950 border border-slate-300 whitespace-nowrap">${patient.name}</td>
-                        <td class="py-2.5 px-1 text-center border border-slate-300">${patient.birthYear}</td>
-                        <td class="py-2.5 px-1 text-center border border-slate-300">${patient.gender}</td>
-                        <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300">${session.hospital}</td>
-                        <td class="py-2.5 px-2 border border-slate-300 text-slate-700">${session.chuanDoan || '-'}</td>
-                        <td class="py-2.5 px-1.5 text-center border border-slate-300">${badgeHtml}</td>
-                        <td class="py-2.5 px-1.5 border border-slate-300">
+                        <td class="py-2.5 px-1.5 text-center font-bold text-slate-500 border border-slate-300 sticky left-0 ${stickyBg} z-10">${displayIndex++}</td>
+                        <td class="py-2.5 px-2 font-black text-blue-950 border border-slate-300 whitespace-nowrap sticky left-[40px] ${stickyBg} z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">${patient.name}</td>
+                        <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.birthYear}</td>
+                        <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.gender}</td>
+                        <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300 bg-inherit">${session.hospital}</td>
+                        <td class="py-2.5 px-2 border border-slate-300 text-slate-700 bg-inherit">${session.chuanDoan || '-'}</td>
+                        <td class="py-2.5 px-1.5 text-center border border-slate-300 bg-inherit">${badgeHtml}</td>
+                        <td class="py-2.5 px-1.5 border border-slate-300 bg-inherit">
                             <div class="flex items-center justify-center gap-1">
                                 <button onclick="openPatientDetailSheet('${patient.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] py-1 px-2 rounded-lg shadow-sm transition-all flex items-center gap-0.5">
                                     <i class="fa-solid fa-eye"></i> Xem
