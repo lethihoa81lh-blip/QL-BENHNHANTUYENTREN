@@ -88,12 +88,6 @@
         </select>
         <select id="filter-hospital" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[75px] shrink-0">
             <option value="">B.Viện</option>
-            <select id="filter-status-2" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold w-[90px]">
-    <option value="">Trạng thái</option>
-    <option value="treating">Đang nằm viện</option>
-    <option value="discharged">Xuất viện</option>
-    <option value="death">Tử vong</option>
-</select>
         </select>
         <!-- Input ẩn giữ giá trạng thái lọc -->
         <input type="hidden" id="filter-status" value="">
@@ -660,18 +654,11 @@
             const searchVal = document.getElementById('search-box').value.toLowerCase().trim();
             const yearFilter = document.getElementById('filter-year').value;
             const hospitalFilter = document.getElementById('filter-hospital').value;
-            const statusFilter2 = document.getElementById('filter-status-2').value;
+            const statusFilter = document.getElementById('filter-status').value;
 
             let countTotal = patients.length;
             let countTreating = 0;
-let countDischarged = 0;
-let countDeath = 0;
-
-sessions.forEach(s => {
-    if (s.status === "treating") countTreating++;
-    else if (s.status === "discharged") countDischarged++;
-    else if (s.status === "death") countDeath++;
-});
+            let countDischarged = 0;
             const activeHospitals = new Set();
 
             // Sắp xếp các đợt điều trị mới nhất lên đầu
@@ -703,10 +690,6 @@ sessions.forEach(s => {
                 
                 const isDischarged = session.xuatVien !== "";
                 let matchStatus = true;
-
-if (statusFilter2) {
-    matchStatus = session.status === statusFilter2;
-}
                 if (statusFilter) {
                     matchStatus = (statusFilter === 'treating' && !isDischarged) || 
                                   (statusFilter === 'discharged' && isDischarged);
@@ -825,19 +808,6 @@ if (statusFilter2) {
                 const dotColor = !isDischarged ? "bg-amber-500 border-amber-500" : "bg-emerald-500 border-emerald-500";
                 
                 let quickDischargeBtn = "";
-if (!isDischarged) {
-    quickDischargeBtn = `
-        <button onclick="openDischargeQuick('${s.id}')" 
-        class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg">
-            🩺 Báo xuất viện
-        </button>
-
-        <button onclick="markDeath('${s.id}')"
-        class="bg-slate-800 hover:bg-black text-white font-bold text-[10px] px-2.5 py-1 rounded-lg">
-            ☠️ Tử vong
-        </button>
-    `;
-}
                 if (!isDischarged) {
                     quickDischargeBtn = `
                         <button onclick="openDischargeQuick('${s.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg transition-all shadow-sm">
@@ -924,7 +894,6 @@ if (!isDischarged) {
                 hospital: hospital,
                 xuatVien: xuatVien,
                 notes: notes
-                status: xuatVien ? "discharged" : "treating"
             });
 
             saveToLocalStorage();
@@ -1114,7 +1083,6 @@ if (!isDischarged) {
             const idx = sessions.findIndex(s => s.id === quickDischargeSessionId);
             if (idx !== -1) {
                 sessions[idx].xuatVien = dateVal;
-                sessions[idx].status = "discharged";
                 saveToLocalStorage();
                 renderList();
                 if (activePatientId) {
@@ -1124,22 +1092,7 @@ if (!isDischarged) {
                 showNotification('Đã báo bệnh nhân xuất viện thành công!');
             }
         }
-function markDeath(sessionId) {
-    const idx = sessions.findIndex(s => s.id === sessionId);
-    if (idx !== -1) {
-        sessions[idx].status = "death";
-        sessions[idx].xuatVien = new Date().toISOString().split('T')[0];
 
-        saveToLocalStorage();
-        renderList();
-
-        if (activePatientId) {
-            renderPatientDetailTimeline(activePatientId);
-        }
-
-        showNotification("Đã cập nhật tử vong.");
-    }
-}
         // --- SỔ GIAO CA ĐIỆN TỬ ---
         function switchHandoverTab(tab) {
             const wBtn = document.getElementById('tab-write-btn');
