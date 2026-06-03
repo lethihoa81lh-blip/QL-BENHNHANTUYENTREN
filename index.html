@@ -74,37 +74,31 @@
         </div>
     </section>
 
-    <!-- ==================== THANH CÔNG CỤ TÌM KIẾM & NÚT TIỆN ÍCH ==================== -->
-    <section class="px-3 mb-2 flex flex-col gap-2">
-        <!-- Tìm kiếm từ khóa -->
-        <div class="relative w-full">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
-            <input type="text" id="search-box" oninput="renderList()" placeholder="Tìm theo tên bệnh nhân, bệnh viện..." class="w-full pl-8 pr-4 py-2 rounded-xl border border-slate-200 text-xs outline-none bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition-all">
+    <!-- ==================== THANH CÔNG CỤ TÌM KIẾM & BỘ LỌC (GOM THÀNH 1 DÒNG TỐI ƯU MOBILE) ==================== -->
+    <section class="px-3 mb-2 flex items-center gap-1.5">
+        <!-- Tìm kiếm từ khóa co giãn linh hoạt -->
+        <div class="relative flex-grow min-w-[90px]">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-[10px]"></i>
+            <input type="text" id="search-box" oninput="renderList()" placeholder="Tìm kiếm..." class="w-full pl-6 pr-2 py-1.5 rounded-xl border border-slate-200 text-[10px] outline-none bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition-all">
         </div>
 
-        <!-- Bộ lọc ẩn / hiện nhỏ gọn -->
-        <div class="flex gap-2 justify-between">
-            <div class="flex gap-1.5 flex-grow">
-                <select id="filter-year" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none flex-grow">
-                    <option value="">Tất cả năm</option>
-                </select>
-                <select id="filter-hospital" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none flex-grow max-w-[130px]">
-                    <option value="">Tất cả bệnh viện</option>
-                </select>
-                <!-- Input ẩn giữ giá trạng thái lọc -->
-                <input type="hidden" id="filter-status" value="">
-            </div>
+        <!-- Các bộ lọc thả xuống mỏng nhẹ -->
+        <select id="filter-year" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[65px] shrink-0">
+            <option value="">Năm</option>
+        </select>
+        <select id="filter-hospital" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[75px] shrink-0">
+            <option value="">B.Viện</option>
+        </select>
+        <!-- Input ẩn giữ giá trạng thái lọc -->
+        <input type="hidden" id="filter-status" value="">
 
-            <!-- Nút giao ca trực và thêm BN -->
-            <div class="flex gap-1">
-                <button onclick="openModal('modal-patient')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-xl text-[10px] shadow flex items-center justify-center transition-all active:scale-95" title="Thêm bệnh nhân">
-                    <i class="fa-solid fa-user-plus"></i>
-                </button>
-                <button onclick="openHandoverModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-2.5 rounded-xl text-[10px] shadow flex items-center gap-1 transition-all active:scale-95">
-                    <i class="fa-solid fa-clipboard-user"></i> Sổ Giao Ca
-                </button>
-            </div>
-        </div>
+        <!-- Các nút tiện ích nhanh dạng Icon để tiết kiệm diện tích tối đa -->
+        <button onclick="openModal('modal-patient')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-xl text-[10px] shadow flex items-center justify-center h-8 w-8 shrink-0 transition-all active:scale-95" title="Thêm bệnh nhân">
+            <i class="fa-solid fa-user-plus"></i>
+        </button>
+        <button onclick="openHandoverModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold p-2 rounded-xl text-[10px] shadow flex items-center justify-center h-8 w-8 shrink-0 transition-all active:scale-95" title="Sổ Giao Ca">
+            <i class="fa-solid fa-clipboard-user"></i>
+        </button>
     </section>
 
     <!-- ==================== DANH SÁCH BỆNH NHÂN DẠNG BẢNG CHIA CỘT RÕ RÀNG ==================== -->
@@ -637,12 +631,12 @@
                 }
             });
 
-            yearSelect.innerHTML = '<option value="">Tất cả năm</option>';
+            yearSelect.innerHTML = '<option value="">Năm</option>';
             Array.from(years).sort((a,b) => b-a).forEach(y => {
-                yearSelect.innerHTML += `<option value="${y}">Năm ${y}</option>`;
+                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
             });
 
-            hospitalSelect.innerHTML = '<option value="">Tất cả BV</option>';
+            hospitalSelect.innerHTML = '<option value="">B.Viện</option>';
             Array.from(hospitals).sort().forEach(h => {
                 hospitalSelect.innerHTML += `<option value="${h}">${h}</option>`;
             });
