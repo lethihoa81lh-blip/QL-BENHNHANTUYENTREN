@@ -647,125 +647,81 @@
 
         // --- RENDER DANH SÁCH BỆNH NHÂN THEO BẢNG CHIA CỘT RÕ RÀNG (CÓ STICKY MOBILE) ---
         function renderList() {
-            const tbody = document.getElementById('patient-table-body');
-            const emptyState = document.getElementById('empty-state');
-            tbody.innerHTML = '';
+    const tbody = document.getElementById('patient-table-body');
+    const emptyState = document.getElementById('empty-state');
+    tbody.innerHTML = '';
 
-            const searchVal = document.getElementById('search-box').value.toLowerCase().trim();
-            const yearFilter = document.getElementById('filter-year').value;
-            const hospitalFilter = document.getElementById('filter-hospital').value;
-            const statusFilter = document.getElementById('filter-status').value;
+    const searchVal = document.getElementById('search-box').value.toLowerCase().trim();
+    const yearFilter = document.getElementById('filter-year').value;
+    const hospitalFilter = document.getElementById('filter-hospital').value;
+    const statusFilter = document.getElementById('filter-status').value; // Biến lọc trạng thái
 
-            let countTotal = patients.length;
-            let countTreating = 0;
-            let countDischarged = 0;
-            const activeHospitals = new Set();
+    let countTotal = patients.length;
+    let countTreating = 0;
+    let countDischarged = 0;
 
-            // Sắp xếp các đợt điều trị mới nhất lên đầu
-            const sortedSessions = [...sessions].sort((a, b) => b.id.localeCompare(a.id));
+    sessions.forEach(s => {
+        if (!s.xuatVien) countTreating++;
+        else countDischarged++;
+    });
 
-            sessions.forEach(s => {
-                if (!s.xuatVien) countTreating++;
-                else countDischarged++;
-                if (s.hospital) activeHospitals.add(s.hospital.trim());
-            });
+    document.getElementById('stat-total').textContent = countTotal;
+    document.getElementById('stat-treating').textContent = countTreating;
+    document.getElementById('stat-discharged').textContent = countDischarged;
 
-            document.getElementById('stat-total').textContent = countTotal;
-            document.getElementById('stat-treating').textContent = countTreating;
-            document.getElementById('stat-discharged').textContent = countDischarged;
+    let visibleCount = 0;
+    let displayIndex = 1;
+    const sortedSessions = [...sessions].sort((a, b) => b.id.localeCompare(a.id));
 
-            let visibleCount = 0;
-            let displayIndex = 1;
+    sortedSessions.forEach(session => {
+        const patient = patients.find(p => p.id === session.patientId);
+        if (!patient) return;
 
-            sortedSessions.forEach(session => {
-                const patient = patients.find(p => p.id === session.patientId);
-                if (!patient) return;
+        // Các điều kiện lọc
+        const matchSearch = patient.name.toLowerCase().includes(searchVal) || session.hospital.toLowerCase().includes(searchVal);
+        const sYear = session.chuyenVien ? session.chuyenVien.substring(0, 4) : "";
+        const matchYear = !yearFilter || (sYear === yearFilter);
+        const matchHospital = !hospitalFilter || (session.hospital.trim() === hospitalFilter.trim());
+        
+        // Điều kiện lọc trạng thái mới
+        const isDischarged = session.xuatVien !== "";
+        let matchStatus = true;
+        if (statusFilter === 'treating') matchStatus = !isDischarged;
+        if (statusFilter === 'discharged') matchStatus = isDischarged;
 
-                const matchSearch = patient.name.toLowerCase().includes(searchVal) || 
-                                    session.hospital.toLowerCase().includes(searchVal);
+        if (matchSearch && matchYear && matchHospital && matchStatus) {
+            visibleCount++;
+            const tr = document.createElement('tr');
+            let bgClass = isDischarged ? "bg-white hover:bg-slate-50" : "bg-amber-50/70 hover:bg-amber-100/90 font-medium border-l-4 border-l-amber-500";
+            let stickyBg = isDischarged ? "bg-white" : "bg-amber-50/70";
+            let badgeHtml = isDischarged ? `<span class="inline-flex items-center text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-bold">Đã về</span>` : `<span class="inline-flex items-center text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold"><span class="h-1 w-1 mr-1 rounded-full bg-amber-500"></span>Nằm viện</span>`;
+            
+            let actionBtnHtml = !isDischarged ? 
+                `<button onclick="openDischargeQuick('${session.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[9px] py-1 px-2 rounded-lg">Báo về</button>` : 
+                (currentRole === "admin" ? `<button onclick="deleteSession('${session.id}')" class="bg-rose-100 text-rose-600 font-bold text-[9px] py-1 px-2 rounded-lg">Xóa</button>` : `<span class="text-[9px] text-slate-400 italic">🔒</span>`);
 
-                const sYear = session.chuyenVien ? session.chuyenVien.substring(0, 4) : "";
-                const matchYear = !yearFilter || (sYear === yearFilter);
-                const matchHospital = !hospitalFilter || (session.hospital.trim() === hospitalFilter.trim());
-                
-                const isDischarged = session.xuatVien !== "";
-                let matchStatus = true;
-                if (statusFilter) {
-                    matchStatus = (statusFilter === 'treating' && !isDischarged) || 
-                                  (statusFilter === 'discharged' && isDischarged);
-                }
-
-                if (matchSearch && matchYear && matchHospital && matchStatus) {
-                    visibleCount++;
-                    const tr = document.createElement('tr');
-                    
-                    let bgClass = "bg-white hover:bg-slate-50 transition-all";
-                    let badgeHtml = "";
-                    // Chọn màu nền trơn (solid) cho các cột sticky để tránh việc cuộn chữ luồn ở dưới
-                    let stickyBg = isDischarged ? "bg-white" : "bg-[#fffbeb]";
-
-                    if (!isDischarged) {
-                        bgClass = "bg-amber-50/70 hover:bg-amber-100/90 font-medium border-l-4 border-l-amber-500";
-                        badgeHtml = `
-                            <span class="inline-flex items-center text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold">
-                                <span class="h-1 w-1 mr-1 rounded-full bg-amber-500 pulse-orange"></span>Nằm viện
-                            </span>
-                        `;
-                    } else {
-                        badgeHtml = `<span class="inline-flex items-center text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-bold">Đã về</span>`;
-                    }
-
-                    tr.className = `${bgClass} text-slate-800 border-b border-slate-200`;
-                    
-                    // Nút báo về hoặc xoá dựa trên vai trò
-                    let actionBtnHtml = "";
-                    if (!isDischarged) {
-                        actionBtnHtml = `
-                            <button onclick="openDischargeQuick('${session.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[9px] py-1 px-2 rounded-lg shadow-sm transition-all flex items-center gap-0.5">
-                                <i class="fa-solid fa-house-chimney-medical"></i> Báo về
-                            </button>
-                        `;
-                    } else {
-                        if (currentRole === "admin") {
-                            actionBtnHtml = `
-                                <button onclick="deleteSession('${session.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold text-[9px] py-1 px-2 rounded-lg transition-all flex items-center gap-0.5">
-                                    <i class="fa-solid fa-trash-can"></i> Xóa đợt
-                                </button>
-                            `;
-                        } else {
-                            actionBtnHtml = `<span class="text-[9px] text-slate-400 italic">🔒 Hoàn thành</span>`;
-                        }
-                    }
-
-                    // Tích hợp sticky class trực tiếp cho STT (sticky left-0) và Họ và Tên (sticky left-40px)
-                    tr.innerHTML = `
-                        <td class="py-2.5 px-1.5 text-center font-bold text-slate-500 border border-slate-300 sticky left-0 ${stickyBg} z-10">${displayIndex++}</td>
-                        <td class="py-2.5 px-2 font-black text-blue-950 border border-slate-300 whitespace-nowrap sticky left-[40px] ${stickyBg} z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">${patient.name}</td>
-                        <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.birthYear}</td>
-                        <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.gender}</td>
-                        <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300 bg-inherit">${session.hospital}</td>
-                        <td class="py-2.5 px-2 border border-slate-300 text-slate-700 bg-inherit">${session.chuanDoan || '-'}</td>
-                        <td class="py-2.5 px-1.5 text-center border border-slate-300 bg-inherit">${badgeHtml}</td>
-                        <td class="py-2.5 px-1.5 border border-slate-300 bg-inherit">
-                            <div class="flex items-center justify-center gap-1">
-                                <button onclick="openPatientDetailSheet('${patient.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] py-1 px-2 rounded-lg shadow-sm transition-all flex items-center gap-0.5">
-                                    <i class="fa-solid fa-eye"></i> Xem
-                                </button>
-                                ${actionBtnHtml}
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            });
-
-            if (visibleCount === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-            }
+            tr.className = `${bgClass} text-slate-800 border-b border-slate-200`;
+            tr.innerHTML = `
+                <td class="py-2.5 px-1.5 text-center font-bold text-slate-500 border border-slate-300 sticky left-0 ${stickyBg} z-10">${displayIndex++}</td>
+                <td class="py-2.5 px-2 font-black text-blue-950 border border-slate-300 sticky left-[40px] ${stickyBg} z-10">${patient.name}</td>
+                <td class="py-2.5 px-1 text-center border border-slate-300">${patient.birthYear}</td>
+                <td class="py-2.5 px-1 text-center border border-slate-300">${patient.gender}</td>
+                <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300">${session.hospital}</td>
+                <td class="py-2.5 px-2 border border-slate-300">${session.chuanDoan || '-'}</td>
+                <td class="py-2.5 px-1.5 text-center border border-slate-300">${badgeHtml}</td>
+                <td class="py-2.5 px-1.5 border border-slate-300">
+                    <div class="flex items-center justify-center gap-1">
+                        <button onclick="openPatientDetailSheet('${patient.id}')" class="bg-blue-600 text-white font-bold text-[9px] py-1 px-2 rounded-lg">Xem</button>
+                        ${actionBtnHtml}
+                    </div>
+                </td>`;
+            tbody.appendChild(tr);
         }
+    });
 
+    emptyState.classList.toggle('hidden', visibleCount > 0);
+}
+                   
         // --- XEM CHI TIẾT BỆNH NHÂN (TRƯỢT LÊN SHEET) ---
         function openPatientDetailSheet(patientId) {
             activePatientId = patientId;
