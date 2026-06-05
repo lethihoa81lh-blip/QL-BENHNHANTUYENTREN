@@ -19,27 +19,27 @@
     </header>
 
     <section class="p-3 grid grid-cols-4 gap-2">
-        <div onclick="filterByStat('')" class="bg-white p-2 rounded-xl shadow-sm border-l-4 border-blue-600 cursor-pointer">
+        <div onclick="filterByStat('')" class="bg-white p-2 rounded-xl shadow-sm border-l-4 border-blue-600 cursor-pointer active:scale-95 transition-all">
             <span class="text-[9px] font-bold text-slate-500">TỔNG</span>
             <h3 id="stat-total" class="text-base font-black">0</h3>
         </div>
-        <div onclick="filterByStat('treating')" class="bg-amber-50 p-2 rounded-xl shadow-sm border-l-4 border-amber-500 cursor-pointer">
+        <div onclick="filterByStat('treating')" class="bg-amber-50 p-2 rounded-xl shadow-sm border-l-4 border-amber-500 cursor-pointer active:scale-95 transition-all">
             <span class="text-[9px] font-bold text-amber-800">ĐANG ĐT</span>
             <h3 id="stat-treating" class="text-base font-black">0</h3>
         </div>
-        <div onclick="filterByStat('discharged')" class="bg-emerald-50 p-2 rounded-xl shadow-sm border-l-4 border-emerald-500 cursor-pointer">
+        <div onclick="filterByStat('discharged')" class="bg-emerald-50 p-2 rounded-xl shadow-sm border-l-4 border-emerald-500 cursor-pointer active:scale-95 transition-all">
             <span class="text-[9px] font-bold text-emerald-800">XUẤT VIỆN</span>
             <h3 id="stat-discharged" class="text-base font-black">0</h3>
         </div>
-        <div onclick="filterByStat('deceased')" class="bg-red-50 p-2 rounded-xl shadow-sm border-l-4 border-red-500 cursor-pointer">
+        <div onclick="filterByStat('deceased')" class="bg-red-50 p-2 rounded-xl shadow-sm border-l-4 border-red-500 cursor-pointer active:scale-95 transition-all">
             <span class="text-[9px] font-bold text-red-800">TỬ VONG</span>
             <h3 id="stat-deceased" class="text-base font-black">0</h3>
         </div>
     </section>
 
     <section class="px-3 mb-4 flex items-center gap-2">
-        <input type="text" id="search-box" oninput="renderList()" placeholder="Tìm kiếm bệnh nhân..." class="flex-grow p-2 rounded-xl border border-slate-200 text-sm outline-none">
-        <button onclick="window.openHandoverModal()" class="bg-amber-500 text-white p-2 rounded-xl h-8 w-8 shadow" title="Sổ Giao Ca">
+        <input type="text" id="search-box" oninput="renderList()" placeholder="Tìm kiếm tên bệnh nhân..." class="flex-grow p-2 rounded-xl border border-slate-200 text-sm outline-none">
+        <button onclick="window.openHandoverModal()" class="bg-amber-500 text-white p-2 rounded-xl h-8 w-8 shadow active:scale-95 transition-all" title="Sổ Giao Ca">
             <i class="fa-solid fa-clipboard-user"></i>
         </button>
     </section>
@@ -47,15 +47,15 @@
     <div id="patient-list" class="px-3 space-y-2"></div>
 
     <div id="handover-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-sm shadow-xl">
-            <h2 class="font-bold text-lg mb-4 text-slate-800">Sổ Giao Ca (Đang ĐT)</h2>
+        <div class="bg-white p-6 rounded-2xl w-full max-w-sm shadow-xl animate-in fade-in zoom-in duration-200">
+            <h2 class="font-bold text-lg mb-4 text-slate-800 border-b pb-2">Sổ Giao Ca (Đang ĐT)</h2>
             <div id="handover-content" class="text-sm space-y-2 max-h-60 overflow-y-auto"></div>
-            <button onclick="document.getElementById('handover-modal').classList.add('hidden')" class="mt-6 w-full bg-slate-800 text-white p-2 rounded-xl font-bold">Đóng</button>
+            <button onclick="document.getElementById('handover-modal').classList.add('hidden')" class="mt-6 w-full bg-slate-800 text-white p-2 rounded-xl font-bold active:scale-95 transition-all">Đóng</button>
         </div>
     </div>
 
     <script>
-        // Dữ liệu mẫu (Bạn có thể cập nhật danh sách này)
+        // Dữ liệu bệnh nhân (Bạn có thể thêm dữ liệu vào đây)
         let patients = [
             { id: 1, name: "Nguyễn Văn A", status: "treating" },
             { id: 2, name: "Trần Thị B", status: "deceased" },
@@ -64,27 +64,36 @@
 
         let currentFilter = '';
 
-        // Hàm lọc
+        // Hàm cập nhật thống kê
+        function updateStats() {
+            document.getElementById('stat-total').innerText = patients.length;
+            document.getElementById('stat-treating').innerText = patients.filter(p => p.status === 'treating').length;
+            document.getElementById('stat-discharged').innerText = patients.filter(p => p.status === 'discharged').length;
+            document.getElementById('stat-deceased').innerText = patients.filter(p => p.status === 'deceased').length;
+        }
+
+        // Hàm lọc theo trạng thái
         window.filterByStat = function(status) {
             currentFilter = status;
             renderList();
         };
 
-        // Render danh sách
+        // Hàm hiển thị danh sách
         window.renderList = function() {
             const searchTerm = document.getElementById('search-box').value.toLowerCase();
             const listContainer = document.getElementById('patient-list');
             
             const filtered = patients.filter(p => {
-                return (p.name.toLowerCase().includes(searchTerm)) && 
-                       (currentFilter === '' || p.status === currentFilter);
+                const matchSearch = p.name.toLowerCase().includes(searchTerm);
+                const matchFilter = currentFilter === '' || p.status === currentFilter;
+                return matchSearch && matchFilter;
             });
 
             listContainer.innerHTML = filtered.map(p => `
                 <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
-                    <span class="text-sm font-medium">${p.name}</span>
+                    <span class="text-sm font-medium text-slate-700">${p.name}</span>
                     <span class="text-[10px] uppercase font-bold px-2 py-1 rounded-full ${getStatusStyle(p.status)}">
-                        ${p.status}
+                        ${p.status === 'treating' ? 'Đang ĐT' : p.status === 'deceased' ? 'Tử Vong' : 'Xuất Viện'}
                     </span>
                 </div>
             `).join('');
@@ -98,25 +107,18 @@
             return 'bg-emerald-100 text-emerald-700';
         }
 
-        // Thống kê
-        function updateStats() {
-            document.getElementById('stat-total').innerText = patients.length;
-            document.getElementById('stat-treating').innerText = patients.filter(p => p.status === 'treating').length;
-            document.getElementById('stat-discharged').innerText = patients.filter(p => p.status === 'discharged').length;
-            document.getElementById('stat-deceased').innerText = patients.filter(p => p.status === 'deceased').length;
-        }
-
-        // Mở sổ giao ca
+        // Hàm mở sổ giao ca
         window.openHandoverModal = function() {
             const content = document.getElementById('handover-content');
             const active = patients.filter(p => p.status === 'treating');
             content.innerHTML = active.length > 0 
-                ? active.map(p => `<p class="border-b pb-1">• ${p.name}</p>`).join('') 
-                : "Không có bệnh nhân đang điều trị.";
+                ? active.map(p => `<p class="border-b border-slate-100 py-1 text-slate-700">• ${p.name}</p>`).join('') 
+                : "<p class='text-slate-400 italic'>Không có bệnh nhân đang điều trị.</p>";
             document.getElementById('handover-modal').classList.remove('hidden');
         };
 
         // Khởi chạy
+        updateStats();
         renderList();
     </script>
 </body>
