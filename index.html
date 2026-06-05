@@ -607,10 +607,17 @@
         ];
 
         function saveToLocalStorage() {
-            localStorage.setItem('qlbn_patients', JSON.stringify(patients));
-            localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
-            localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
-        }
+    localStorage.setItem('qlbn_patients', JSON.stringify(patients));
+    localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
+    localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
+
+    // Đồng bộ lên Firebase nếu đã kết nối
+    if (window.db) {
+        firebaseSet(firebaseRef(window.db, 'patients'), patients);
+        firebaseSet(firebaseRef(window.db, 'sessions'), sessions);
+        firebaseSet(firebaseRef(window.db, 'handovers'), handovers);
+    }
+}
 
         // Helper tìm đợt điều trị mới nhất của một bệnh nhân
         function getLatestSession(patientId) {
@@ -1380,5 +1387,30 @@
             renderList();
         };
     </script>
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+  authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+  databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ql-benhnhantuyentren",
+  storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+  messagingSenderId: "127051253047",
+  appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+  measurementId: "G-0JPKGYLJK0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.db = db;
+window.firebaseRef = ref;
+window.firebaseSet = set;
+window.firebaseGet = get;
+
+console.log("Firebase connected");
+</script>
 </body>
 </html>
