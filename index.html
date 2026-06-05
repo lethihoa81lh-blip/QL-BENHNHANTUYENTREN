@@ -47,12 +47,17 @@
             <p class="text-[9px] opacity-80 mt-0.5">Trung tâm Bảo trợ Xã hội</p>
         </div>
         
-        <!-- Chọn quyền hạn gọn gàng -->
-        <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg border border-white/20">
-            <select id="role-select" onchange="switchRole(this.value)" class="bg-indigo-950 text-white font-bold text-[10px] rounded p-1 outline-none cursor-pointer">
-                <option value="staff">Nhân Viên</option>
-                <option value="admin">Quản Trị (Admin)</option>
-            </select>
+        <!-- Chọn quyền hạn gọn gàng & Nút Reset Bộ Nhớ Di Động -->
+        <div class="flex items-center gap-1.5">
+            <button onclick="clearMobileCache()" class="bg-white/10 hover:bg-white/20 text-white rounded-lg p-1.5 border border-white/20 text-xs flex items-center justify-center transition-all active:scale-95" title="Xóa bộ nhớ đệm di động">
+                <i class="fa-solid fa-rotate text-teal-300"></i>
+            </button>
+            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg border border-white/20">
+                <select id="role-select" onchange="switchRole(this.value)" class="bg-indigo-950 text-white font-bold text-[10px] rounded p-1 outline-none cursor-pointer">
+                    <option value="staff">Nhân Viên</option>
+                    <option value="admin">Quản Trị (Admin)</option>
+                </select>
+            </div>
         </div>
     </header>
 
@@ -586,7 +591,8 @@
         }
 
         // --- CƠ SỞ DỮ LIỆU ĐỒNG BỘ LOCALSTORAGE ---
-        let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [
+        // Khai báo dữ liệu gốc chuẩn để nạp lại khi cần reset bộ nhớ
+        const DEFAULT_PATIENTS = [
             { id: "p1", name: "Trần Chính", birthYear: "1970", gender: "Nam", bhyt: "-" },
             { id: "p2", name: "Nguyễn Bá Trọng", birthYear: "1965", gender: "Nam", bhyt: "BT2797930434436" },
             { id: "p3", name: "Nguyễn Văn Thông", birthYear: "1965", gender: "Nam", bhyt: "BT2797912305952" },
@@ -594,7 +600,7 @@
             { id: "p5", name: "Phạm Văn Đức", birthYear: "1948", gender: "Nam", bhyt: "BT2797930411223" }
         ];
 
-        let sessions = JSON.parse(localStorage.getItem('qlbn_sessions')) || [
+        const DEFAULT_SESSIONS = [
             { id: "s1", patientId: "p1", sessionNum: 1, nhapTram: "2026-06-01", chuyenVien: "2026-06-01", chuanDoan: "Viêm Phế Quản/ Động kinh", hospital: "Nhân Ái", xuatVien: "", ketQua: "", notes: "Đã chuyển từ trạm xá lên bệnh viện Nhân Ái bằng xe chuyên dụng trung tâm." },
             { id: "s2", patientId: "p2", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-05", chuanDoan: "U thực quản", hospital: "Chợ Rẫy", xuatVien: "2026-01-07", ketQua: "discharged", notes: "Người nhà chăm nuôi chính, đã chuyển viện an toàn." },
             { id: "s3", patientId: "p3", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-03", chuanDoan: "TD TBMMN/THA", hospital: "Bình Dương", xuatVien: "2026-05-12", ketQua: "discharged", notes: "Chuyển từ tuyến huyện lên tỉnh ngày 03/01." },
@@ -602,9 +608,31 @@
             { id: "s5", patientId: "p5", sessionNum: 1, nhapTram: "2026-02-10", chuyenVien: "2026-02-12", chuanDoan: "Suy kiệt tuổi già / Tai biến", hospital: "Chợ Rẫy", xuatVien: "2026-02-15", ketQua: "deceased", notes: "Bệnh nhân chuyển nặng nhanh, tử vong tại bệnh viện Chợ Rẫy ngày 15/02/2026. Đã bàn giao thi hài về gia đình lo hậu sự." }
         ];
 
-        let handovers = JSON.parse(localStorage.getItem('qlbn_handovers')) || [
+        const DEFAULT_HANDOVERS = [
             { id: "h1", date: "2026-06-02", shift: "Ca Sáng (06:00 - 14:00)", staffName: "Nguyễn Thị Hoa", content: "Đã chuyển viện an toàn bệnh nhân Trần Chính lên bệnh viện Nhân Ái vào sáng nay do có cơn co giật đột xuất liên tục. Đã bàn giao đầy đủ hồ sơ bệnh án kèm thẻ BHYT cho điều dưỡng tuyến trên trực tiếp đón nhận." }
         ];
+
+        let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [...DEFAULT_PATIENTS];
+        let sessions = JSON.parse(localStorage.getItem('qlbn_sessions')) || [...DEFAULT_SESSIONS];
+        let handovers = JSON.parse(localStorage.getItem('qlbn_handovers')) || [...DEFAULT_HANDOVERS];
+
+        // Hàm giúp dọn sạch bộ nhớ trình duyệt cũ trên điện thoại để cập nhật nhanh
+        function clearMobileCache() {
+            showConfirm("Bạn có chắc chắn muốn RESET dữ liệu? Hành động này sẽ dọn sạch bộ nhớ đệm cũ và đồng bộ lại dữ liệu gốc mới nhất từ hệ thống.", function() {
+                localStorage.removeItem('qlbn_patients');
+                localStorage.removeItem('qlbn_sessions');
+                localStorage.removeItem('qlbn_handovers');
+                
+                patients = [...DEFAULT_PATIENTS];
+                sessions = [...DEFAULT_SESSIONS];
+                handovers = [...DEFAULT_HANDOVERS];
+                
+                saveToLocalStorage();
+                initFilterDropdowns();
+                renderList();
+                showNotification("Đã reset và đồng bộ hóa thành công dữ liệu di động của bạn!");
+            });
+        }
 
         function saveToLocalStorage() {
             localStorage.setItem('qlbn_patients', JSON.stringify(patients));
