@@ -47,18 +47,12 @@
             <p class="text-[9px] opacity-80 mt-0.5">Trung tâm Bảo trợ Xã hội</p>
         </div>
         
-        <!-- Chọn quyền hạn gọn gàng & Nút Sao Lưu Dữ Liệu An Toàn -->
-        <div class="flex items-center gap-1.5">
-            <button onclick="openModal('modal-backup-restore')" class="bg-teal-600 hover:bg-teal-700 text-white rounded-lg p-1.5 border border-teal-500 text-xs flex items-center justify-center gap-1 transition-all active:scale-95 font-bold" title="Sao lưu / Khôi phục dữ liệu">
-                <i class="fa-solid fa-cloud-arrow-up text-white"></i>
-                <span class="text-[9px]">Sao lưu</span>
-            </button>
-            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg border border-white/20">
-                <select id="role-select" onchange="switchRole(this.value)" class="bg-indigo-950 text-white font-bold text-[10px] rounded p-1 outline-none cursor-pointer">
-                    <option value="staff">Nhân Viên</option>
-                    <option value="admin">Quản Trị (Admin)</option>
-                </select>
-            </div>
+        <!-- Chọn quyền hạn gọn gàng -->
+        <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg border border-white/20">
+            <select id="role-select" onchange="switchRole(this.value)" class="bg-indigo-950 text-white font-bold text-[10px] rounded p-1 outline-none cursor-pointer">
+                <option value="staff">Nhân Viên</option>
+                <option value="admin">Quản Trị (Admin)</option>
+            </select>
         </div>
     </header>
 
@@ -150,51 +144,6 @@
             <p class="text-xs font-semibold">Không tìm thấy bệnh nhân phù hợp bộ lọc.</p>
         </div>
     </main>
-
-    <!-- ==================== MODAL SAO LƯU VÀ KHÔI PHỤC AN TOÀN (NEW) ==================== -->
-    <div id="modal-backup-restore" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="px-5 py-3 bg-teal-800 text-white flex justify-between items-center">
-                <h2 class="font-bold text-sm"><i class="fa-solid fa-shield-halved"></i> Sao lưu & Khôi phục</h2>
-                <button onclick="closeModal('modal-backup-restore')" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-5 space-y-4 overflow-y-auto no-scrollbar bg-slate-50 text-xs">
-                <p class="text-slate-600 leading-relaxed">
-                    Công cụ này giúp bạn chuyển dữ liệu đã nhập từ Máy tính sang Điện thoại cực kỳ an toàn mà không lo bị mất dữ liệu!
-                </p>
-                
-                <!-- Khối Xuất dữ liệu -->
-                <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
-                    <h3 class="font-bold text-teal-800 flex items-center gap-1">
-                        <i class="fa-solid fa-file-export"></i> 1. Xuất dữ liệu (Lấy mã)
-                    </h3>
-                    <p class="text-[11px] text-slate-500">Bấm nút bên dưới để tạo mã sao lưu, sau đó gửi mã này sang điện thoại:</p>
-                    <button onclick="exportBackupData()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-1.5 rounded-lg">
-                        Tạo mã sao lưu
-                    </button>
-                    <textarea id="backup-code-area" readonly placeholder="Mã sao lưu sẽ xuất hiện ở đây..." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-[10px] font-mono h-16 resize-none outline-none focus:border-teal-500 hidden"></textarea>
-                    <button id="btn-copy-backup" onclick="copyBackupCode()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1 rounded-lg border text-[10px] hidden">
-                        <i class="fa-solid fa-copy"></i> Sao chép mã
-                    </button>
-                </div>
-
-                <!-- Khối Nhập dữ liệu -->
-                <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
-                    <h3 class="font-bold text-blue-800 flex items-center gap-1">
-                        <i class="fa-solid fa-file-import"></i> 2. Nhập dữ liệu (Khôi phục)
-                    </h3>
-                    <p class="text-[11px] text-slate-500">Dán mã sao lưu đã nhận từ thiết bị khác vào ô dưới đây để nạp dữ liệu:</p>
-                    <textarea id="import-code-area" placeholder="Dán mã sao lưu vào đây..." class="w-full bg-white border border-slate-200 rounded-lg p-2 text-[10px] font-mono h-16 resize-none outline-none focus:border-blue-500"></textarea>
-                    <button onclick="importBackupData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg">
-                        Xác nhận khôi phục
-                    </button>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-3 border-t flex justify-end">
-                <button onclick="closeModal('modal-backup-restore')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-1.5 px-4 rounded-xl">Đóng</button>
-            </div>
-        </div>
-    </div>
 
     <!-- ==================== MODAL CHI TIẾT BỆNH NHÂN TRƯỢT LÊN (SLIDE-UP DETAILS) ==================== -->
     <div id="modal-detail-sheet" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
@@ -637,8 +586,7 @@
         }
 
         // --- CƠ SỞ DỮ LIỆU ĐỒNG BỘ LOCALSTORAGE ---
-        // Khai báo dữ liệu gốc chuẩn để nạp lại khi cần thiết lập ban đầu
-        const DEFAULT_PATIENTS = [
+        let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [
             { id: "p1", name: "Trần Chính", birthYear: "1970", gender: "Nam", bhyt: "-" },
             { id: "p2", name: "Nguyễn Bá Trọng", birthYear: "1965", gender: "Nam", bhyt: "BT2797930434436" },
             { id: "p3", name: "Nguyễn Văn Thông", birthYear: "1965", gender: "Nam", bhyt: "BT2797912305952" },
@@ -646,7 +594,7 @@
             { id: "p5", name: "Phạm Văn Đức", birthYear: "1948", gender: "Nam", bhyt: "BT2797930411223" }
         ];
 
-        const DEFAULT_SESSIONS = [
+        let sessions = JSON.parse(localStorage.getItem('qlbn_sessions')) || [
             { id: "s1", patientId: "p1", sessionNum: 1, nhapTram: "2026-06-01", chuyenVien: "2026-06-01", chuanDoan: "Viêm Phế Quản/ Động kinh", hospital: "Nhân Ái", xuatVien: "", ketQua: "", notes: "Đã chuyển từ trạm xá lên bệnh viện Nhân Ái bằng xe chuyên dụng trung tâm." },
             { id: "s2", patientId: "p2", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-05", chuanDoan: "U thực quản", hospital: "Chợ Rẫy", xuatVien: "2026-01-07", ketQua: "discharged", notes: "Người nhà chăm nuôi chính, đã chuyển viện an toàn." },
             { id: "s3", patientId: "p3", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-03", chuanDoan: "TD TBMMN/THA", hospital: "Bình Dương", xuatVien: "2026-05-12", ketQua: "discharged", notes: "Chuyển từ tuyến huyện lên tỉnh ngày 03/01." },
@@ -654,81 +602,9 @@
             { id: "s5", patientId: "p5", sessionNum: 1, nhapTram: "2026-02-10", chuyenVien: "2026-02-12", chuanDoan: "Suy kiệt tuổi già / Tai biến", hospital: "Chợ Rẫy", xuatVien: "2026-02-15", ketQua: "deceased", notes: "Bệnh nhân chuyển nặng nhanh, tử vong tại bệnh viện Chợ Rẫy ngày 15/02/2026. Đã bàn giao thi hài về gia đình lo hậu sự." }
         ];
 
-        const DEFAULT_HANDOVERS = [
+        let handovers = JSON.parse(localStorage.getItem('qlbn_handovers')) || [
             { id: "h1", date: "2026-06-02", shift: "Ca Sáng (06:00 - 14:00)", staffName: "Nguyễn Thị Hoa", content: "Đã chuyển viện an toàn bệnh nhân Trần Chính lên bệnh viện Nhân Ái vào sáng nay do có cơn co giật đột xuất liên tục. Đã bàn giao đầy đủ hồ sơ bệnh án kèm thẻ BHYT cho điều dưỡng tuyến trên trực tiếp đón nhận." }
         ];
-
-        let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [...DEFAULT_PATIENTS];
-        let sessions = JSON.parse(localStorage.getItem('qlbn_sessions')) || [...DEFAULT_SESSIONS];
-        let handovers = JSON.parse(localStorage.getItem('qlbn_handovers')) || [...DEFAULT_HANDOVERS];
-
-        // --- CƠ CHẾ SAO LƯU & KHÔI PHỤC THỰC TẾ AN TOÀN (NEW) ---
-        function exportBackupData() {
-            try {
-                const packageData = {
-                    patients: patients,
-                    sessions: sessions,
-                    handovers: handovers,
-                    exportTime: Date.now()
-                };
-                // Mã hóa base64 để người dùng dễ sao chép không bị lỗi định dạng
-                const code = btoa(unescape(encodeURIComponent(JSON.stringify(packageData))));
-                
-                const codeArea = document.getElementById('backup-code-area');
-                const copyBtn = document.getElementById('btn-copy-backup');
-                
-                if (codeArea && copyBtn) {
-                    codeArea.value = code;
-                    codeArea.classList.remove('hidden');
-                    copyBtn.classList.remove('hidden');
-                    showNotification("Mã sao lưu đã được tạo!");
-                }
-            } catch (err) {
-                showNotification("Lỗi khi tạo mã sao lưu!", true);
-            }
-        }
-
-        function copyBackupCode() {
-            const codeArea = document.getElementById('backup-code-area');
-            if (codeArea && codeArea.value) {
-                codeArea.select();
-                codeArea.setSelectionRange(0, 99999); // Mobile
-                document.execCommand('copy');
-                showNotification("Đã sao chép mã! Bạn hãy gửi nó sang điện thoại.");
-            }
-        }
-
-        function importBackupData() {
-            const importArea = document.getElementById('import-code-area');
-            if (!importArea || !importArea.value.trim()) {
-                showNotification("Vui lòng dán mã sao lưu vào ô trống!", true);
-                return;
-            }
-
-            showConfirm("Hành động này sẽ tải toàn bộ dữ liệu từ mã sao lưu vào thiết bị này. Bạn có chắc chắn muốn nạp dữ liệu?", function() {
-                try {
-                    const rawString = decodeURIComponent(escape(atob(importArea.value.trim())));
-                    const packageData = JSON.parse(rawString);
-
-                    if (packageData && packageData.patients && packageData.sessions && packageData.handovers) {
-                        patients = packageData.patients;
-                        sessions = packageData.sessions;
-                        handovers = packageData.handovers;
-
-                        saveToLocalStorage();
-                        initFilterDropdowns();
-                        renderList();
-                        importArea.value = "";
-                        closeModal('modal-backup-restore');
-                        showNotification("Khôi phục và nạp dữ liệu thành công!");
-                    } else {
-                        showNotification("Mã sao lưu không đúng cấu trúc!", true);
-                    }
-                } catch (err) {
-                    showNotification("Mã khôi phục không hợp lệ hoặc bị lỗi!", true);
-                }
-            });
-        }
 
         function saveToLocalStorage() {
             localStorage.setItem('qlbn_patients', JSON.stringify(patients));
@@ -758,19 +634,7 @@
         // --- ĐÓNG MỞ CỬA SỔ MODAL ---
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.remove('hidden');
-                // Reset vùng xuất mã khi mở lại modal sao lưu
-                if (modalId === 'modal-backup-restore') {
-                    const codeArea = document.getElementById('backup-code-area');
-                    const copyBtn = document.getElementById('btn-copy-backup');
-                    if (codeArea) {
-                        codeArea.value = "";
-                        codeArea.classList.add('hidden');
-                    }
-                    if (copyBtn) copyBtn.classList.add('hidden');
-                }
-            }
+            if (modal) modal.classList.remove('hidden');
         }
 
         // --- ĐÓNG MỞ CỬA SỔ MODAL THÔNG THƯỜNG ---
@@ -1331,6 +1195,7 @@
                 chuanDoan: chuanDoan,
                 hospital: hospital,
                 xuatVien: xuatVien,
+                ketQua: xuatVien ? "discharged" : "", 
                 notes: notes
             });
 
