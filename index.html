@@ -60,7 +60,9 @@
     <section class="p-3 grid grid-cols-2 gap-2">
         <div onclick="filterByStat('')" class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tổng bệnh nhân</span>
-            <h3 id="stat-total" class="text-base font-black text-slate-900 mt-0.5">0</h3>
+            <div id="stat-total" class="text-center mt-0.5">
+                <h3 class="text-base font-black text-slate-900 inline-block">0</h3>
+            </div>
         </div>
         <div onclick="filterByStat('treating')" class="bg-amber-50 p-2 rounded-xl shadow-sm border border-amber-200 border-l-4 border-l-amber-500 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-amber-800 uppercase tracking-wide flex items-center gap-1">
@@ -635,6 +637,7 @@
             if (modal) modal.classList.remove('hidden');
         }
 
+        // --- ĐÓNG MỞ CỬA SỔ MODAL THÔNG THƯỜNG ---
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.classList.add('hidden');
@@ -727,6 +730,7 @@
             let countTreating = 0;
             let countDischarged = 0;
             let countDeceased = 0;
+            let countNoSession = 0; // Đếm số ca chưa có đợt điều trị (Chưa đi ĐT)
 
             patients.forEach(p => {
                 const latest = getLatestSession(p.id);
@@ -736,6 +740,8 @@
                     if (!isDischarged) countTreating++;
                     else if (isDeceased) countDeceased++;
                     else countDischarged++;
+                } else {
+                    countNoSession++;
                 }
             });
 
@@ -744,13 +750,24 @@
             const statDischarged = document.getElementById('stat-discharged');
             const statDeceased = document.getElementById('stat-deceased');
 
-            if (statTotal) statTotal.textContent = countTotal;
+            if (statTotal) {
+                if (countNoSession > 0) {
+                    statTotal.innerHTML = `
+                        <h3 class="text-base font-black text-slate-900">${countTotal}</h3>
+                        <span class="text-[9px] text-slate-400 font-semibold block hover:underline" onclick="event.stopPropagation(); filterByStat('no_session')">
+                            (gồm ${countNoSession} ca chưa ĐT)
+                        </span>
+                    `;
+                } else {
+                    statTotal.innerHTML = `<h3 class="text-base font-black text-slate-900">${countTotal}</h3>`;
+                }
+            }
             if (statTreating) statTreating.textContent = countTreating;
             if (statDischarged) statDischarged.textContent = countDischarged;
             if (statDeceased) statDeceased.textContent = countDeceased;
 
             let visibleCount = 0;
-            let displayIndex = 1;
+            let displayIndex = 1; // RESET số thứ tự về 1 khi bắt đầu render bảng
 
             // Sắp xếp bệnh nhân có ngày chuyển viện mới nhất lên đầu
             const patientsWithLatest = patients.map(p => {
@@ -786,10 +803,13 @@
                     if (statusFilter === 'treating') matchStatus = !isDischarged && currentSession.id !== "";
                     else if (statusFilter === 'discharged') matchStatus = isNormalDischarged;
                     else if (statusFilter === 'deceased') matchStatus = isDeceased;
+                    else if (statusFilter === 'no_session') matchStatus = currentSession.id === "";
                 }
 
+                // CHỈ khi bản ghi khớp hoàn toàn các bộ lọc và chuẩn bị đưa lên giao diện, chúng ta mới gán STT và tăng dần displayIndex
                 if (matchSearch && matchYear && matchHospital && matchStatus) {
                     visibleCount++;
+                    const currentSTT = displayIndex++; // Số thứ tự chuẩn xác liên tục 1, 2, 3...
                     const tr = document.createElement('tr');
                     
                     let bgClass = "bg-white hover:bg-slate-50 transition-all";
@@ -837,7 +857,7 @@
                     }
 
                     tr.innerHTML = `
-                        <td class="py-2.5 px-1.5 text-center font-bold text-slate-500 border border-slate-300 sticky left-0 ${stickyBg} z-10">${displayIndex++}</td>
+                        <td class="py-2.5 px-1.5 text-center font-bold text-slate-500 border border-slate-300 sticky left-0 ${stickyBg} z-10">${currentSTT}</td>
                         <td class="py-2.5 px-2 font-black text-blue-950 border border-slate-300 whitespace-nowrap sticky left-[40px] ${stickyBg} z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">${patient.name}</td>
                         <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.birthYear}</td>
                         <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.gender}</td>
