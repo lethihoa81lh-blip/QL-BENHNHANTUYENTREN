@@ -232,7 +232,7 @@
                                 <textarea id="qs-notes" rows="2" placeholder="Lưu ý lộ trình điều trị, xe cộ, thuốc men..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500"></textarea>
                             </div>
                             <div class="flex gap-2 pt-1.5">
-                                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl shadow-sm">Lưu đợt mới</button>
+                                <button type="submit" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl shadow-sm">Lưu đợt mới</button>
                                 <button type="button" onclick="triggerAddSessionBox()" class="bg-slate-100 text-slate-600 text-xs font-semibold py-2 px-3 rounded-xl border">Đóng</button>
                             </div>
                         </form>
@@ -562,7 +562,6 @@
             confirmCallback = callback;
         }
 
-        // Đảm bảo không xảy ra lỗi Null Reference khi gán sự kiện cho confirm modal
         const cancelBtn = document.getElementById('btn-confirm-cancel');
         if (cancelBtn) {
             cancelBtn.onclick = function() {
@@ -609,6 +608,14 @@
             localStorage.setItem('qlbn_patients', JSON.stringify(patients));
             localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
             localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
+        }
+
+        // Helper tìm đợt điều trị mới nhất của một bệnh nhân
+        function getLatestSession(patientId) {
+            const patientSessions = sessions.filter(s => s.patientId === patientId);
+            if (patientSessions.length === 0) return null;
+            // Sắp xếp giảm dần theo sessionNum để lấy số lớn nhất
+            return [...patientSessions].sort((a, b) => b.sessionNum - a.sessionNum)[0];
         }
 
         // --- ĐỊNH DẠNG NGÀY THÁNG ---
@@ -698,7 +705,6 @@
             hospitalSelect.value = currentHospital;
         }
 
-        // --- RENDER DANH SÁCH BỆNH NHÂN THEO BẢNG CHIA CỘT RÕ RÀNG ---
         function renderList() {
             const tbody = document.getElementById('patient-table-body');
             const emptyState = document.getElementById('empty-state');
@@ -716,18 +722,21 @@
             const hospitalFilter = filterHospital ? filterHospital.value : "";
             const statusFilter = filterStatus ? filterStatus.value : "";
 
+            // Tính toán số liệu thống kê chuẩn xác dựa trên TRẠNG THÁI CUỐI CÙNG của từng bệnh nhân
             let countTotal = patients.length;
             let countTreating = 0;
             let countDischarged = 0;
             let countDeceased = 0;
 
-            // Sắp xếp các đợt điều trị mới nhất lên đầu
-            const sortedSessions = [...sessions].sort((a, b) => b.id.localeCompare(a.id));
-
-            sessions.forEach(s => {
-                if (!s.xuatVien) countTreating++;
-                else if (s.ketQua === 'deceased') countDeceased++;
-                else countDischarged++;
+            patients.forEach(p => {
+                const latest = getLatestSession(p.id);
+                if (latest) {
+                    const isDischarged = latest.xuatVien !== "";
+                    const isDeceased = isDischarged && latest.ketQua === 'deceased';
+                    if (!isDischarged) countTreating++;
+                    else if (isDeceased) countDeceased++;
+                    else countDischarged++;
+                }
             });
 
             const statTotal = document.getElementById('stat-total');
@@ -743,24 +752,38 @@
             let visibleCount = 0;
             let displayIndex = 1;
 
-            sortedSessions.forEach(session => {
-                const patient = patients.find(p => p.id === session.patientId);
-                if (!patient) return;
+            // Sắp xếp bệnh nhân có ngày chuyển viện mới nhất lên đầu
+            const patientsWithLatest = patients.map(p => {
+                return {
+                    patient: p,
+                    latestSession: getLatestSession(p.id)
+                };
+            }).sort((a, b) => {
+                const dateA = (a.latestSession && a.latestSession.chuyenVien) ? a.latestSession.chuyenVien : "";
+                const dateB = (b.latestSession && b.latestSession.chuyenVien) ? b.latestSession.chuyenVien : "";
+                return dateB.localeCompare(dateA);
+            });
+
+            patientsWithLatest.forEach(({ patient, latestSession }) => {
+                // Nếu bệnh nhân chưa có bất kỳ đợt điều trị nào, gán một object trống để hiển thị cơ bản
+                const currentSession = latestSession || {
+                    id: "", hospital: "-", chuyenVien: "", chuanDoan: "-", xuatVien: "", ketQua: "", notes: ""
+                };
 
                 const matchSearch = patient.name.toLowerCase().includes(searchVal) || 
-                                    session.hospital.toLowerCase().includes(searchVal);
+                                    currentSession.hospital.toLowerCase().includes(searchVal);
 
-                const sYear = session.chuyenVien ? session.chuyenVien.substring(0, 4) : "";
+                const sYear = currentSession.chuyenVien ? currentSession.chuyenVien.substring(0, 4) : "";
                 const matchYear = !yearFilter || (sYear === yearFilter);
-                const matchHospital = !hospitalFilter || (session.hospital.trim() === hospitalFilter.trim());
+                const matchHospital = !hospitalFilter || (currentSession.hospital.trim() === hospitalFilter.trim());
                 
-                const isDischarged = session.xuatVien !== "";
-                const isDeceased = isDischarged && session.ketQua === 'deceased';
-                const isNormalDischarged = isDischarged && session.ketQua !== 'deceased';
+                const isDischarged = currentSession.xuatVien !== "";
+                const isDeceased = isDischarged && currentSession.ketQua === 'deceased';
+                const isNormalDischarged = isDischarged && currentSession.ketQua !== 'deceased';
 
                 let matchStatus = true;
                 if (statusFilter) {
-                    if (statusFilter === 'treating') matchStatus = !isDischarged;
+                    if (statusFilter === 'treating') matchStatus = !isDischarged && currentSession.id !== "";
                     else if (statusFilter === 'discharged') matchStatus = isNormalDischarged;
                     else if (statusFilter === 'deceased') matchStatus = isDeceased;
                 }
@@ -773,7 +796,9 @@
                     let badgeHtml = "";
                     let stickyBg = "bg-white";
 
-                    if (!isDischarged) {
+                    if (currentSession.id === "") {
+                        badgeHtml = `<span class="inline-flex items-center text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-bold">Chưa đi ĐT</span>`;
+                    } else if (!isDischarged) {
                         stickyBg = "bg-[#fffbeb]";
                         bgClass = "bg-amber-50/70 hover:bg-amber-100/90 font-medium";
                         badgeHtml = `
@@ -791,23 +816,23 @@
 
                     tr.className = `${bgClass} text-slate-800 border-b border-slate-200`;
                     
-                    // Nút báo về hoặc xoá dựa trên vai trò
+                    // Nút thao tác tương ứng với đợt bệnh mới nhất
                     let actionBtnHtml = "";
-                    if (!isDischarged) {
+                    if (currentSession.id !== "" && !isDischarged) {
                         actionBtnHtml = `
-                            <button onclick="openDischargeQuick('${session.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[9px] py-1 px-1.5 rounded-lg shadow-sm transition-all flex items-center gap-0.5">
+                            <button onclick="openDischargeQuick('${currentSession.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[9px] py-1 px-1.5 rounded-lg shadow-sm transition-all flex items-center gap-0.5">
                                 <i class="fa-solid fa-house-chimney-medical"></i> Báo về
                             </button>
                         `;
                     } else {
-                        if (currentRole === "admin") {
+                        if (currentRole === "admin" && currentSession.id !== "") {
                             actionBtnHtml = `
-                                <button onclick="deleteSession('${session.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold text-[9px] py-1 px-1.5 rounded-lg transition-all flex items-center gap-0.5">
-                                    <i class="fa-solid fa-trash-can"></i> Xóa
+                                <button onclick="deleteSession('${currentSession.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold text-[9px] py-1 px-1.5 rounded-lg transition-all flex items-center gap-0.5">
+                                    <i class="fa-solid fa-trash-can"></i> Xóa đợt
                                 </button>
                             `;
                         } else {
-                            actionBtnHtml = `<span class="text-[9px] text-slate-400 italic">🔒 Hoàn thành</span>`;
+                            actionBtnHtml = `<span class="text-[9px] text-slate-400 italic">Khóa</span>`;
                         }
                     }
 
@@ -816,8 +841,8 @@
                         <td class="py-2.5 px-2 font-black text-blue-950 border border-slate-300 whitespace-nowrap sticky left-[40px] ${stickyBg} z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">${patient.name}</td>
                         <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.birthYear}</td>
                         <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.gender}</td>
-                        <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300 bg-inherit">${session.hospital}</td>
-                        <td class="py-2.5 px-2 border border-slate-300 text-slate-700 bg-inherit">${session.chuanDoan || '-'}</td>
+                        <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300 bg-inherit">${currentSession.hospital}</td>
+                        <td class="py-2.5 px-2 border border-slate-300 text-slate-700 bg-inherit">${currentSession.chuanDoan || '-'}</td>
                         <td class="py-2.5 px-1.5 text-center border border-slate-300 bg-inherit">${badgeHtml}</td>
                         <td class="py-2.5 px-1.5 border border-slate-300 bg-inherit">
                             <div class="flex items-center justify-center gap-1">
