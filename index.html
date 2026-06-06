@@ -1414,6 +1414,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+        import { onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+onValue(ref(db, "patients"), (snapshot) => {
+    console.log("📡 Data realtime:", snapshot.val());
+
+    // nếu bạn có hàm render thì gọi ở đây
+    // render(snapshot.val());
+});
 const testRef = ref(db, "test/connect");
 
 set(testRef, {
