@@ -1414,7 +1414,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const testRef = ref(db, "test/connect");
 
+set(testRef, {
+  ok: true,
+  time: Date.now()
+});
 window.db = db;
 window.firebaseRef = ref;
 window.firebaseSet = set;
