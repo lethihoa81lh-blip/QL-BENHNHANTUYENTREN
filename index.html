@@ -1375,69 +1375,10 @@
         }
 
         // --- KHỞI TRẠT LẦN ĐẦU ---
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import {
-  getDatabase,
-  ref,
-  onValue
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-
-/* =========================
-   🔥 FIREBASE CONFIG
-========================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
-  authDomain: "ql-benhnhantuyentren.firebaseapp.com",
-  databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ql-benhnhantuyentren",
-  storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
-  messagingSenderId: "127051253047",
-  appId: "1:127051253047:web:12899a0b0f28d0addd86b2"
-};
-
-/* =========================
-   🔥 INIT FIREBASE
-========================= */
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-/* =========================
-   🔥 RENDER (CHO UI CỦA BẠN)
-========================= */
-function renderList(data = {}) {
-    const list = document.getElementById("list");
-    if (!list) return;
-
-    list.innerHTML = "";
-
-    Object.keys(data || {}).forEach(id => {
-        const p = data[id];
-
-        if (!p) return;
-
-        list.innerHTML += `
-            <tr>
-                <td>${p.name || ""}</td>
-                <td>${p.age || ""}</td>
-                <td>${p.status || ""}</td>
-            </tr>
-        `;
-    });
-}
-
-/* 👉 CHO HTML GỌI ĐƯỢC renderList() */
-window.renderList = renderList;
-
-/* =========================
-   🔥 REALTIME SYNC FIREBASE
-========================= */
-const patientsRef = ref(db, "patients");
-
-onValue(patientsRef, (snap) => {
-    const data = snap.val();
-    renderList(data);
-});
-
-console.log("🔥 Firebase READY - CONNECT OK");
-</script>
+        window.onload = function() {
+            initFilterDropdowns();
+            renderList();
+        };
+    </script>
+</body>
+</html>
