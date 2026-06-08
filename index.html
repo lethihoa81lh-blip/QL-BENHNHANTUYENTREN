@@ -35,6 +35,26 @@
         }
     </style>
 </head>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-database-compat.js"></script>
+    <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+  authDomain: "QL-BENHNHANTUYENTREN.firebaseapp.com",
+  databaseURL: "https://QL-BENHNHANTUYENTREN-default-rtdb.firebaseio.com",
+  projectId: "QL-BENHNHANTUYENTREN",
+  storageBucket: "QL-BENHNHANTUYENTREN.appspot.com"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+        const patientsRef = db.ref("patients");
+
+patientsRef.on("value", (snapshot) => {
+    const data = snapshot.val();
+    console.log("Firebase patients:", data);
+});
+</script>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col pb-6">
 
     <!-- ==================== THANH ĐẦU TRANG & VAI TRÒ HỆ THỐNG ==================== -->
