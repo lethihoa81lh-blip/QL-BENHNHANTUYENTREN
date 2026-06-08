@@ -48,36 +48,14 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-        const patientsRef = db.ref("/");
-        let allPatients = [];
+const patientsRef = db.ref("patients");
 
 patientsRef.on("value", (snapshot) => {
     const data = snapshot.val();
-    allPatients = data ? Object.values(data) : [];
 
-    console.log("TOTAL:", allPatients.length);
-});
-        patientsRef.on("value", (snapshot) => {
-    const data = snapshot.val();
+    const allPatients = data ? Object.values(data) : [];
 
-    console.log("🔥 DỮ LIỆU FIREBASE THẬT:");
-    console.log(data);
-
-    console.log("📌 TỔNG SỐ BỆNH NHÂN:");
-    console.log(Object.keys(data || {}).length);
-});
-patientsRef.on("value", (snapshot) => {
-    const data = snapshot.val();
-
-    console.log("DATA:", data);
-
-    const count = data ? Object.keys(data).length : 0;
-
-    console.log("TỔNG BỆNH NHÂN:", count);
-});
-patientsRef.on("value", (snapshot) => {
-    const data = snapshot.val();
-    console.log("Firebase patients:", data);
+    console.log("📌 TOTAL:", allPatients.length);
 });
 </script>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col pb-6">
