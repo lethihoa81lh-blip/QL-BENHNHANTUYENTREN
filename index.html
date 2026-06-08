@@ -524,7 +524,7 @@
 
     <!-- ==================== JAVASCRIPT XỬ LÝ LOGIC CHUYÊN SÂU ==================== -->
     <script>
-        let currentRole = "staff"; 
+        <script type="module"> 
         const ADMIN_PASSWORD = "admin";
         let activePatientId = null; // ID bệnh nhân đang mở xem chi tiết
         let quickDischargeSessionId = null;
@@ -585,7 +585,7 @@
             };
         }
 
-        // --- CƠ SỞ DỮ LIỆU ĐỒNG BỘ LOCALSTORAGE ---
+        <script>
         let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [
             { id: "p1", name: "Trần Chính", birthYear: "1970", gender: "Nam", bhyt: "-" },
             { id: "p2", name: "Nguyễn Bá Trọng", birthYear: "1965", gender: "Nam", bhyt: "BT2797930434436" },
