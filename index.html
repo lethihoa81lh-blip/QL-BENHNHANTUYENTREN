@@ -49,7 +49,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
         const patientsRef = db.ref("patients");
+patientsRef.on("value", (snapshot) => {
+    const data = snapshot.val();
 
+    console.log("DATA:", data);
+
+    const count = data ? Object.keys(data).length : 0;
+
+    console.log("TỔNG BỆNH NHÂN:", count);
+});
 patientsRef.on("value", (snapshot) => {
     const data = snapshot.val();
     console.log("Firebase patients:", data);
