@@ -54,19 +54,20 @@ let patients = [];
 patientsRef.on("value", (snapshot) => {
     const data = snapshot.val();
 
-    console.log("🔥 RAW DATA:", data);
+    console.log("🔥 FIREBASE RAW:", data);
 
-    patients = data
-        ? Object.entries(data).map(([key, value]) => ({
-            id: key,
+    if (!data) {
+        patients = [];
+    } else {
+        patients = Object.entries(data).map(([id, value]) => ({
+            id,
             ...value
-        }))
-        : [];
+        }));
+    }
 
     console.log("📌 TOTAL:", patients.length);
 
-    renderList();
-    initFilterDropdowns();
+    console.log("CHECK LIST:", patients);
 });
 </script>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col pb-6">
