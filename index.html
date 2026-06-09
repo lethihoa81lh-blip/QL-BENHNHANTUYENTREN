@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QLBN Tuyến Trên - Bản Di Động Tối Giản</title>
-    <!-- Sử dụng Tailwind CSS CDN để thiết kế giao diện di động cực đẹp và gọn gàng -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
@@ -37,7 +36,6 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col pb-6">
 
-    <!-- ==================== THANH ĐẦU TRANG & VAI TRÒ HỆ THỐNG ==================== -->
     <header class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white shadow-md sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
         <div>
             <h1 class="font-bold text-sm tracking-tight flex items-center gap-1.5">
@@ -47,34 +45,32 @@
             <p class="text-[9px] opacity-80 mt-0.5">Trung tâm Bảo trợ Xã hội</p>
         </div>
         
-        <!-- Chọn quyền hạn gọn gàng -->
         <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg border border-white/20">
-            <select id="role-select" onchange="switchRole(this.value)" class="bg-indigo-950 text-white font-bold text-[10px] rounded p-1 outline-none cursor-pointer">
+            <select id="role-select" class="bg-indigo-950 text-white font-bold text-[10px] rounded p-1 outline-none cursor-pointer">
                 <option value="staff">Nhân Viên</option>
                 <option value="admin">Quản Trị (Admin)</option>
             </select>
         </div>
     </header>
 
-    <!-- ==================== KHỐI THỐNG KÊ NHANH (MỎNG NHẸ DẠNG TAB LỌC 2X2) ==================== -->
     <section class="p-3 grid grid-cols-2 gap-2">
-        <div onclick="filterByStat('')" class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
+        <div id="btn-stat-total" class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tổng bệnh nhân</span>
             <div id="stat-total" class="text-center mt-0.5">
                 <h3 class="text-base font-black text-slate-900 inline-block">0</h3>
             </div>
         </div>
-        <div onclick="filterByStat('treating')" class="bg-amber-50 p-2 rounded-xl shadow-sm border border-amber-200 border-l-4 border-l-amber-500 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition-all active:scale-95">
+        <div id="btn-stat-treating" class="bg-amber-50 p-2 rounded-xl shadow-sm border border-amber-200 border-l-4 border-l-amber-500 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-amber-800 uppercase tracking-wide flex items-center gap-1">
                 <span class="h-1.5 w-1.5 rounded-full bg-amber-500 pulse-orange"></span>Đang nằm ĐT
             </span>
             <h3 id="stat-treating" class="text-base font-black text-amber-700 mt-0.5">0</h3>
         </div>
-        <div onclick="filterByStat('discharged')" class="bg-emerald-50 p-2 rounded-xl shadow-sm border border-emerald-200 border-l-4 border-l-emerald-500 flex flex-col items-center justify-center cursor-pointer hover:bg-emerald-100 transition-all active:scale-95">
+        <div id="btn-stat-discharged" class="bg-emerald-50 p-2 rounded-xl shadow-sm border border-emerald-200 border-l-4 border-l-emerald-500 flex flex-col items-center justify-center cursor-pointer hover:bg-emerald-100 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-emerald-800 uppercase tracking-wide">Đã xuất viện</span>
             <h3 id="stat-discharged" class="text-base font-black text-emerald-700 mt-0.5">0</h3>
         </div>
-        <div onclick="filterByStat('deceased')" class="bg-rose-50 p-2 rounded-xl shadow-sm border border-rose-200 border-l-4 border-l-rose-500 flex flex-col items-center justify-center cursor-pointer hover:bg-rose-100 transition-all active:scale-95">
+        <div id="btn-stat-deceased" class="bg-rose-50 p-2 rounded-xl shadow-sm border border-rose-200 border-l-4 border-l-rose-500 flex flex-col items-center justify-center cursor-pointer hover:bg-rose-100 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-rose-800 uppercase tracking-wide flex items-center gap-1">
                 <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>Tử vong
             </span>
@@ -82,36 +78,29 @@
         </div>
     </section>
 
-    <!-- ==================== THANH CÔNG CỤ TÌM KIẾM & BỘ LỌC (GOM THÀNH 1 DÒNG TỐI ƯU MOBILE) ==================== -->
     <section class="px-3 mb-2 flex items-center gap-1.5">
-        <!-- Tìm kiếm từ khóa co giãn linh hoạt -->
         <div class="relative flex-grow min-w-[90px]">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-[10px]"></i>
-            <input type="text" id="search-box" oninput="renderList()" placeholder="Tìm kiếm..." class="w-full pl-6 pr-2 py-1.5 rounded-xl border border-slate-200 text-[10px] outline-none bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition-all">
+            <input type="text" id="search-box" placeholder="Tìm kiếm..." class="w-full pl-6 pr-2 py-1.5 rounded-xl border border-slate-200 text-[10px] outline-none bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition-all">
         </div>
 
-        <!-- Các bộ lọc thả xuống mỏng nhẹ -->
-        <select id="filter-year" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[65px] shrink-0">
+        <select id="filter-year" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[65px] shrink-0">
             <option value="">Năm</option>
         </select>
-        <select id="filter-hospital" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[75px] shrink-0">
+        <select id="filter-hospital" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[75px] shrink-0">
             <option value="">B.Viện</option>
         </select>
-        <!-- Input ẩn giữ trạng thái lọc -->
         <input type="hidden" id="filter-status" value="">
 
-        <!-- Các nút tiện ích nhanh dạng Icon để tiết kiệm diện tích tối đa -->
-        <button onclick="openModal('modal-patient')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-xl text-[10px] shadow flex items-center justify-center h-8 w-8 shrink-0 transition-all active:scale-95" title="Thêm bệnh nhân">
+        <button id="btn-open-add-modal" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-xl text-[10px] shadow flex items-center justify-center h-8 w-8 shrink-0 transition-all active:scale-95" title="Thêm bệnh nhân">
             <i class="fa-solid fa-user-plus"></i>
         </button>
-        <button onclick="openHandoverModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold p-2 rounded-xl text-[10px] shadow flex items-center justify-center h-8 w-8 shrink-0 transition-all active:scale-95" title="Sổ Giao Ca">
+        <button id="btn-open-handover" class="bg-amber-500 hover:bg-amber-600 text-white font-bold p-2 rounded-xl text-[10px] shadow flex items-center justify-center h-8 w-8 shrink-0 transition-all active:scale-95" title="Sổ Giao Ca">
             <i class="fa-solid fa-clipboard-user"></i>
         </button>
     </section>
 
-    <!-- ==================== DANH SÁCH BỆNH NHÂN DẠNG BẢNG CHIA CỘT RÕ RÀNG ==================== -->
     <main class="flex-grow px-3">
-        <!-- Banner thông báo hỗ trợ định hướng vuốt ngang trên điện thoại -->
         <div class="flex items-center gap-1.5 text-[10px] text-blue-800 bg-blue-50 border border-blue-200 rounded-xl p-2.5 mb-2 shadow-sm font-semibold animate-pulse">
             <i class="fa-solid fa-circle-info text-blue-600 text-xs"></i>
             <span>💡 Cố định 2 cột đầu. Vuốt bảng sang trái <i class="fa-solid fa-arrow-left"></i> để xem cột Chẩn đoán và Thao tác.</span>
@@ -121,7 +110,6 @@
             <table class="w-full border-collapse border border-slate-300 text-[11px]">
                 <thead>
                     <tr class="bg-indigo-900 text-white text-[10px] font-bold uppercase tracking-wider">
-                        <!-- Cố định cột STT và Họ Tên trên thanh tiêu đề -->
                         <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[40px] sticky left-0 bg-indigo-900 z-20">STT</th>
                         <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[130px] sticky left-[40px] bg-indigo-900 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">Họ và Tên</th>
                         <th class="py-2.5 px-1 border border-slate-300 text-center w-[45px]">NS</th>
@@ -133,41 +121,35 @@
                     </tr>
                 </thead>
                 <tbody id="patient-table-body" class="divide-y divide-slate-200">
-                    <!-- Javascript tự động điền các dòng tr và td kẻ ô vào đây -->
-                </tbody>
+                    </tbody>
             </table>
         </div>
 
-        <!-- Trạng thái trống -->
         <div id="empty-state" class="py-12 flex flex-col items-center justify-center text-slate-400 hidden bg-white rounded-2xl border border-slate-200 shadow-sm mx-1 mt-2">
             <i class="fa-solid fa-folder-open text-3xl mb-1.5 opacity-60"></i>
             <p class="text-xs font-semibold">Không tìm thấy bệnh nhân phù hợp bộ lọc.</p>
         </div>
     </main>
 
-    <!-- ==================== MODAL CHI TIẾT BỆNH NHÂN TRƯỢT LÊN (SLIDE-UP DETAILS) ==================== -->
-    <div id="modal-detail-sheet" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
+    <div id="modal-detail-sheet" class="fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
         <div class="bg-white w-full max-w-lg rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-slide-up">
-            <!-- Thanh kéo nhỏ giả lập mobile sheet -->
             <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2.5"></div>
             
             <div class="px-5 pb-3 pt-1 border-b border-slate-100 flex justify-between items-start">
                 <div>
-                    <h2 id="sheet-p-name" class="font-black text-lg text-slate-900">Nguyễn Văn A</h2>
-                    <p id="sheet-p-meta" class="text-xs text-slate-500 font-semibold mt-0.5">Nam - Sinh năm 1965</p>
+                    <h2 id="sheet-p-name" class="font-black text-lg text-slate-900">---</h2>
+                    <p id="sheet-p-meta" class="text-xs text-slate-500 font-semibold mt-0.5">---</p>
                 </div>
-                <button onclick="closeModal('modal-detail-sheet')" class="bg-slate-100 hover:bg-slate-200 text-slate-500 p-2 rounded-full transition-all">
+                <button id="btn-close-detail" class="bg-slate-100 hover:bg-slate-200 text-slate-500 p-2 rounded-full transition-all">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
-            <!-- Vùng nội dung cuộn -->
             <div class="p-5 overflow-y-auto space-y-4 flex-grow no-scrollbar bg-slate-50">
-                <!-- Thông tin hành chính gốc -->
                 <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-1.5">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Hồ sơ hành chính gốc</span>
-                        <button onclick="triggerEditPatient()" class="text-blue-600 text-[11px] font-bold flex items-center gap-1 hover:underline">
+                        <button id="btn-trigger-edit-root" class="text-blue-600 text-[11px] font-bold flex items-center gap-1 hover:underline">
                             <i class="fa-solid fa-user-pen text-[10px]"></i> Sửa thông tin
                         </button>
                     </div>
@@ -183,21 +165,19 @@
                     </div>
                 </div>
 
-                <!-- Lịch sử Đợt điều trị (Dòng thời gian - Timeline) -->
                 <div class="space-y-2.5">
                     <div class="flex justify-between items-center">
                         <h3 class="font-black text-xs text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                             <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Lịch sử đợt khám chữa bệnh
                         </h3>
-                        <button onclick="triggerAddSessionBox()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                        <button id="btn-trigger-add-session" class="bg-blue-50 hover:bg-blue-100 text-blue-600 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
                             <i class="fa-solid fa-plus text-[9px]"></i> Thêm đợt mới
                         </button>
                     </div>
 
-                    <!-- Mẫu Form nhanh để thêm đợt điều trị mới ngay tại chỗ -->
                     <div id="quick-add-session-box" class="hidden bg-white p-4 rounded-2xl border border-blue-100 shadow-sm space-y-3">
                         <h4 class="font-bold text-xs text-blue-700 uppercase">Khai báo đợt điều trị mới</h4>
-                        <form id="form-quick-session" onsubmit="saveQuickSession(event)" class="space-y-3">
+                        <form id="form-quick-session" class="space-y-3">
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-0.5">
                                     <label class="text-[10px] font-bold text-slate-500">Bệnh viện tuyến trên *</label>
@@ -218,51 +198,49 @@
                                     <input type="date" id="qs-chuyenvien" required class="bg-slate-50 border border-slate-200 text-[10px] rounded-xl p-1.5 outline-none focus:border-blue-500">
                                 </div>
                                 <div class="flex flex-col gap-0.5">
-                                    <label class="text-[9px] font-bold text-slate-500">Xuất viện / Từ trần</label>
+                                    <label class="text-[9px] font-bold text-slate-500">Xuất viện / Mất</label>
                                     <input type="date" id="qs-xuatvien" class="bg-slate-50 border border-slate-200 text-[10px] rounded-xl p-1.5 outline-none focus:border-blue-500">
                                 </div>
                             </div>
                             <div class="flex flex-col gap-0.5">
                                 <label class="text-[10px] font-bold text-slate-500">Kết quả (Nếu đã kết thúc)</label>
                                 <select id="qs-outcome" class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500">
+                                    <option value="treating">Đang điều trị</option>
                                     <option value="discharged">Đã xuất viện về trung tâm</option>
                                     <option value="deceased">Tử vong tại tuyến trên</option>
                                 </select>
                             </div>
                             <div class="flex flex-col gap-0.5">
-                                <label class="text-[10px] font-bold text-slate-500">Ghi chú diễn biến / Lộ trình chuyển tuyến</label>
-                                <textarea id="qs-notes" rows="2" placeholder="Lưu ý lộ trình điều trị, xe cộ, thuốc men..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500"></textarea>
+                                <label class="text-[10px] font-bold text-slate-500">Ghi chú diễn biến / Lộ trình</label>
+                                <textarea id="qs-notes" rows="2" placeholder="Lưu ý lộ trình điều trị, thuốc men..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500"></textarea>
                             </div>
                             <div class="flex gap-2 pt-1.5">
                                 <button type="submit" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl shadow-sm">Lưu đợt mới</button>
-                                <button type="button" onclick="triggerAddSessionBox()" class="bg-slate-100 text-slate-600 text-xs font-semibold py-2 px-3 rounded-xl border">Đóng</button>
+                                <button type="button" id="btn-close-qs-box" class="bg-slate-100 text-slate-600 text-xs font-semibold py-2 px-3 rounded-xl border">Đóng</button>
                             </div>
                         </form>
                     </div>
 
-                    <!-- Mốc các đợt bệnh nhân (Timeline Container) -->
                     <div id="sheet-sessions-timeline" class="space-y-3 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200">
-                        <!-- Sinh bằng JS động -->
-                    </div>
+                        </div>
                 </div>
             </div>
 
             <div class="bg-slate-100 p-4 border-t flex gap-2">
-                <button id="btn-sheet-delete-p" onclick="deletePatientAction()" class="hidden bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-all">
+                <button id="btn-sheet-delete-p" class="hidden bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-all">
                     ⚠️ Xoá hồ sơ gốc
                 </button>
-                <button onclick="closeModal('modal-detail-sheet')" class="flex-grow bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition-all">
+                <button id="btn-close-detail-bottom" class="flex-grow bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition-all">
                     Đóng lại
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== MODAL GIAO DIỆN PHỤ SỬA THÔNG TIN BỆNH NHÂN GỐC ==================== -->
-    <div id="modal-edit-patient-root" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
+    <div id="modal-edit-patient-root" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-5 space-y-4">
             <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-user-pen text-blue-600"></i> Đính chính hồ sơ gốc</h3>
-            <form id="form-edit-patient-root" onsubmit="saveEditPatientRoot(event)" class="space-y-3">
+            <form id="form-edit-patient-root" class="space-y-3">
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-bold text-slate-500">Họ và Tên bệnh nhân *</label>
                     <input type="text" id="ep-name" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
@@ -286,17 +264,16 @@
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button type="submit" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs">Cập nhật</button>
-                    <button type="button" onclick="closeModal('modal-edit-patient-root')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs">Hủy</button>
+                    <button type="button" id="btn-close-edit-root" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs">Hủy</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ==================== MODAL GIAO DIỆN PHỤ SỬA THÔNG TIN ĐỢT ĐIỀU TRỊ ==================== -->
-    <div id="modal-edit-session-root" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
+    <div id="modal-edit-session-root" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-5 space-y-4">
             <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-rectangle-list text-teal-600"></i> Sửa thông tin đợt bệnh</h3>
-            <form id="form-edit-session-root" onsubmit="saveEditSessionRoot(event)" class="space-y-3">
+            <form id="form-edit-session-root" class="space-y-3">
                 <input type="hidden" id="es-id">
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-bold text-slate-500">Bệnh viện tiếp nhận *</label>
@@ -323,6 +300,7 @@
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-bold text-slate-500">Kết quả đợt điều trị</label>
                     <select id="es-outcome" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
+                        <option value="treating">Đang điều trị</option>
                         <option value="discharged">Xuất viện về trung tâm</option>
                         <option value="deceased">Tử vong tại tuyến trên</option>
                     </select>
@@ -333,20 +311,19 @@
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button type="submit" class="flex-grow bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-xl text-xs">Cập nhật đợt</button>
-                    <button type="button" onclick="closeModal('modal-edit-session-root')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs">Hủy</button>
+                    <button type="button" id="btn-close-edit-session" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs">Hủy</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ==================== MODAL THÊM MỚI BỆNH NHÂN (ĐỢT ĐẦU) ==================== -->
-    <div id="modal-patient" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+    <div id="modal-patient" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-5 py-3 bg-blue-800 text-white flex justify-between items-center">
                 <h2 class="font-bold text-sm"><i class="fa-solid fa-user-plus"></i> Khai hồ sơ mới đợt 1</h2>
-                <button onclick="closeModal('modal-patient')" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button type="button" onclick="document.getElementById('modal-patient').classList.add('hidden')" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="form-new-patient" onsubmit="saveNewPatient(event)" class="overflow-y-auto p-5 space-y-3.5 no-scrollbar flex-grow bg-slate-50">
+            <form id="form-new-patient" class="overflow-y-auto p-5 space-y-3.5 no-scrollbar flex-grow bg-slate-50">
                 <div class="flex flex-col gap-0.5">
                     <label class="text-[10px] font-bold text-slate-500">Họ và Tên bệnh nhân *</label>
                     <input type="text" id="p-name" required placeholder="Trần Văn C" class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-blue-500 bg-white">
@@ -391,7 +368,7 @@
                             <input type="date" id="s-chuyenvien" required class="border border-slate-200 rounded-xl p-1 text-xs outline-none focus:border-blue-500 bg-white">
                         </div>
                         <div class="flex flex-col gap-0.5">
-                            <label class="text-[9px] font-bold text-slate-500">Xuất viện / Từ trần</label>
+                            <label class="text-[9px] font-bold text-slate-500">Xuất viện / Mất</label>
                             <input type="date" id="s-xuatvien" class="border border-slate-200 rounded-xl p-1 text-xs outline-none focus:border-blue-500 bg-white">
                         </div>
                     </div>
@@ -402,193 +379,139 @@
                 </div>
 
                 <div class="pt-3 border-t flex justify-end gap-2">
-                    <button type="button" onclick="closeModal('modal-patient')" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-semibold text-xs">Hủy</button>
+                    <button type="button" onclick="document.getElementById('modal-patient').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-semibold text-xs">Hủy</button>
                     <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow">Đồng ý</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ==================== GIAO DIỆN PHỤ SỔ GIAO CA ĐIỆN TỬ (TỐI ƯU MOBILE TAB) ==================== -->
-    <div id="modal-handover" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
+    <div id="modal-handover" class="fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
         <div class="bg-white w-full max-w-lg rounded-t-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] animate-slide-up">
             <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2.5"></div>
             <div class="px-5 pb-2 pt-1 border-b border-slate-100 flex justify-between items-center">
                 <h2 class="font-black text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-book-medical text-amber-500"></i> Sổ Giao Ca Trực</h2>
-                <button onclick="closeModal('modal-handover')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button id="btn-close-handover" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <!-- Phân tab sổ giao ca trực -->
             <div class="flex border-b border-slate-100 text-xs font-bold">
-                <button onclick="switchHandoverTab('write')" id="tab-write-btn" class="flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600 transition-all">🖊️ Biên bản trực mới</button>
-                <button onclick="switchHandoverTab('history')" id="tab-history-btn" class="flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500 transition-all">📕 Lịch sử trực</button>
+                <button id="tab-write-btn" class="flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600">🖊️ Biên bản trực mới</button>
+                <button id="tab-history-btn" class="flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500">📕 Lịch sử trực</button>
             </div>
 
-            <!-- Tab 1: Biên bản trực mới -->
             <div id="handover-tab-write" class="p-5 overflow-y-auto flex-grow space-y-3.5 no-scrollbar bg-slate-50">
-                <div class="flex justify-between items-center border-b pb-1">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Lập ca giao trực mới</span>
-                    <button type="button" onclick="autoGenerateActiveHandover()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 shadow-sm">
-                        <i class="fa-solid fa-magic"></i> Trích xuất live
-                    </button>
-                </div>
-                <form id="form-handover" onsubmit="saveHandover(event)" class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="flex flex-col gap-0.5">
-                            <label class="text-[10px] font-bold text-slate-500">Ngày trực ban *</label>
-                            <input type="date" id="h-date" required class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-amber-500">
-                        </div>
-                        <div class="flex flex-col gap-0.5">
-                            <label class="text-[10px] font-bold text-slate-500">Người trực bàn giao *</label>
-                            <input type="text" id="h-staff" required placeholder="Họ và Tên" class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-amber-500 bg-white">
-                        </div>
+                <form id="form-handover" class="space-y-3">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500">Người trực giao ca *</label>
+                        <input type="text" id="ho-staff" required placeholder="Nhập tên người giao..." class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-white">
                     </div>
-                    <div class="flex flex-col gap-0.5">
-                        <label class="text-[10px] font-bold text-slate-500">Ca giao trực ban *</label>
-                        <select id="h-shift" required class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-amber-500 bg-white">
-                            <option value="Ca Sáng (06:00 - 14:00)">Ca Sáng (06:00 - 14:00)</option>
-                            <option value="Ca Chiều (14:00 - 22:00)">Ca Chiều (14:00 - 22:00)</option>
-                            <option value="Ca Đêm (22:00 - 06:00 sáng mai)">Ca Đêm (22:00 - 06:00 sáng mai)</option>
-                        </select>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500">Nội dung diễn biến ca trực *</label>
+                        <textarea id="ho-content" required rows="4" placeholder="Nhập các diễn biến quan trọng trong ca trực..." class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-white"></textarea>
                     </div>
-                    <div class="flex flex-col gap-0.5">
-                        <label class="text-[10px] font-bold text-slate-500">Nội dung chi tiết tình hình bàn giao *</label>
-                        <textarea id="h-content" required placeholder="Nhập diễn biến sức khỏe, xe cộ, hồ sơ bàn giao..." class="border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-amber-500 h-32 bg-white"></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-xl text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-signature"></i> Xác nhận bàn giao ca trực
-                    </button>
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow">Lưu biên bản trực</button>
                 </form>
             </div>
 
-            <!-- Tab 2: Lịch sử bàn giao trực -->
             <div id="handover-tab-history" class="p-5 overflow-y-auto flex-grow space-y-3.5 no-scrollbar bg-slate-50 hidden">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block border-b pb-1">Nhật ký trực ca trước đây</span>
-                <div id="handover-logs-container" class="space-y-3">
-                    <!-- Sinh bằng JS động -->
-                </div>
-            </div>
-
-            <div class="bg-slate-100 p-4 border-t flex">
-                <button onclick="closeModal('modal-handover')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 rounded-xl text-xs transition-all">Đóng sổ giao ca</button>
+                <div id="handover-history-list" class="space-y-3">
+                    </div>
             </div>
         </div>
     </div>
 
-    <!-- ==================== MODAL BÁO XUẤT VIỆN / TỬ VONG NHANH TRỰC TIẾP TỪ THẺ GỌN ==================== -->
-    <div id="modal-discharge-quick" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-xs rounded-2xl shadow-xl p-5 space-y-3">
-            <h3 class="font-bold text-slate-900 text-sm">🩺 Báo kết thúc đợt ĐT</h3>
-            <div class="p-2.5 bg-indigo-50 rounded-xl border border-indigo-200 text-[11px] text-indigo-800">
-                <p id="dq-label-name" class="font-bold"></p>
-                <p id="dq-label-info" class="mt-0.5 opacity-90"></p>
-            </div>
-            <div class="flex flex-col gap-1">
-                <label class="text-[10px] font-bold text-slate-500">Kết quả đợt điều trị *</label>
-                <select id="dq-outcome" class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-blue-500 bg-white">
-                    <option value="discharged">Xuất viện về trung tâm</option>
-                    <option value="deceased">Tử vong tại tuyến trên</option>
-                </select>
-            </div>
-            <div class="flex flex-col gap-1">
-                <label class="text-[10px] font-bold text-slate-500">Chọn ngày kết thúc thực tế *</label>
-                <input type="date" id="dq-date" required class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-blue-500">
-            </div>
-            <div class="flex gap-2 pt-1.5">
-                <button onclick="closeModal('modal-discharge-quick')" class="flex-grow bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-[10px]">Hủy</button>
-                <button onclick="saveQuickDischarge()" class="flex-grow bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-xl text-[10px]">Xác nhận</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== HỆ THỐNG CUSTOM NOTIFICATION / CONFIRM DIALOG ==================== -->
-    <div id="custom-notification" class="fixed top-4 right-4 z-[9999] transform translate-y-[-150%] transition-all duration-300 pointer-events-none">
-        <div id="notify-box" class="bg-indigo-950 text-white font-bold py-2.5 px-4 rounded-xl shadow-2xl border border-indigo-800 flex items-center gap-2.5">
-            <span id="notify-icon"></span>
-            <span id="notify-text" class="text-xs"></span>
-        </div>
-    </div>
-
-    <div id="custom-confirm-modal" class="modal-overlay fixed inset-0 bg-black/60 z-[9998] flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-xs rounded-2xl shadow-xl p-5 space-y-4">
-            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5 text-rose-600">
-                <i class="fa-solid fa-circle-exclamation"></i> Xác nhận yêu cầu
-            </h3>
-            <p id="confirm-text" class="text-xs text-slate-600 leading-relaxed"></p>
-            <div class="flex gap-2 pt-1.5">
-                <button id="btn-confirm-cancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">Hủy</button>
-                <button id="btn-confirm-agree" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl text-xs">Đồng ý</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== JAVASCRIPT XỬ LÝ LOGIC CHUYÊN SÂU ==================== -->
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, remove, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
-        authDomain: "ql-benhnhantuyentren.firebaseapp.com",
-        databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app", 
-        projectId: "ql-benhnhantuyentren",
-        storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
-        messagingSenderId: "127051253047",
-        appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
-        measurementId: "G-0JPKGYLJK0"
-    };
+        // Cấu hình Firebase chuẩn xác gốc của bạn
+        const firebaseConfig = {
+            apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+            authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+            databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app", 
+            projectId: "ql-benhnhantuyentren",
+            storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+            messagingSenderId: "127051253047",
+            appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+            measurementId: "G-0JPKGYLJK0"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    // Kết nối các ô nhập liệu từ giao diện cũ của bạn
-    const inputId = document.getElementById('txtPatientId');       
-    const inputName = document.getElementById('txtPatientName');   
-    const buttonRegister = document.getElementById('btnRegister'); 
-    const uiList = document.getElementById('livePatientList');     
+        // Biến toàn cục lưu trữ trạng thái ứng dụng
+        let globalPatients = {};
+        let currentPatientId = null;
+        let currentRole = "staff";
 
-    if (buttonRegister) {
-        buttonRegister.addEventListener('click', () => {
-            const patientId = inputId ? inputId.value.trim() : "";
-            const patientName = inputName ? inputName.value.trim() : "";
-
-            if (patientId === "" || patientName === "") {
-                alert("Vui lòng nhập đầy đủ Mã số và Tên bệnh nhân!");
-                return;
-            }
-
-            const currentTime = new Date().toLocaleString('vi-VN');
-
-            set(ref(db, 'danh_sach_benh_nhan/' + patientId), {
-                ho_ten: patientName,
-                ngay_cap_nhat: currentTime
-            })
-            .then(() => {
-                alert("Đã đồng bộ dữ liệu thành công!");
-                if (inputId) inputId.value = "";
-                if (inputName) inputName.value = "";
-            })
-            .catch((error) => {
-                alert("Lỗi kết nối: " + error.message);
-            });
-        });
-    }
-
-    onValue(ref(db, 'danh_sach_benh_nhan'), (snapshot) => {
-        if (!uiList) return;
-        uiList.innerHTML = ""; 
-        if (snapshot.exists()) {
-            const allPatients = snapshot.val();
-            for (let id in allPatients) {
-                const item = allPatients[id];
-                const liElement = document.createElement('li');
-                liElement.innerHTML = `<strong>[${id}]</strong> - ${item.ho_ten} <small>(${item.ngay_cap_nhat || ''})</small>`;
-                uiList.appendChild(liElement);
-            }
-        } else {
-            uiList.innerHTML = "<li>Chưa có dữ liệu bệnh nhân nào được đồng bộ.</li>";
+        // --- CÁC HÀM TIỆN ÍCH GIAO DIỆN ---
+        window.openModal = function(id) {
+            document.getElementById(id).classList.remove('hidden');
         }
-    });
-</script>
-</body>
-</html>
+        window.closeModal = function(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Thay đổi quyền hạn (Staff / Admin)
+        document.getElementById('role-select').addEventListener('change', (e) => {
+            currentRole = e.target.value;
+            renderList();
+            const delBtn = document.getElementById('btn-sheet-delete-p');
+            if(currentRole === 'admin') delBtn.classList.remove('hidden');
+            else delBtn.classList.add('hidden');
+        });
+
+        // Điều khiển đóng mở nhanh các ô chức năng
+        document.getElementById('btn-open-add-modal').addEventListener('click', () => openModal('modal-patient'));
+        document.getElementById('btn-open-handover').addEventListener('click', () => openModal('modal-handover'));
+        document.getElementById('btn-close-detail').addEventListener('click', () => closeModal('modal-detail-sheet'));
+        document.getElementById('btn-close-detail-bottom').addEventListener('click', () => closeModal('modal-detail-sheet'));
+        document.getElementById('btn-close-edit-root').addEventListener('click', () => closeModal('modal-edit-patient-root'));
+        document.getElementById('btn-close-edit-session').addEventListener('click', () => closeModal('modal-edit-session-root'));
+        document.getElementById('btn-close-qs-box').addEventListener('click', () => document.getElementById('quick-add-session-box').classList.add('hidden'));
+        document.getElementById('btn-trigger-add-session').addEventListener('click', () => document.getElementById('quick-add-session-box').classList.remove('hidden'));
+
+        // Điều khiển các Tab trong Sổ Giao Ca
+        const tabWriteBtn = document.getElementById('tab-write-btn');
+        const tabHistoryBtn = document.getElementById('tab-history-btn');
+        const tabWriteDiv = document.getElementById('handover-tab-write');
+        const tabHistoryDiv = document.getElementById('handover-tab-history');
+
+        tabWriteBtn.addEventListener('click', () => {
+            tabWriteBtn.className = "flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600";
+            tabHistoryBtn.className = "flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500";
+            tabWriteDiv.classList.remove('hidden');
+            tabHistoryDiv.classList.add('hidden');
+        });
+        tabHistoryBtn.addEventListener('click', () => {
+            tabHistoryBtn.className = "flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600";
+            tabWriteBtn.className = "flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500";
+            tabHistoryDiv.classList.remove('hidden');
+            tabWriteDiv.classList.add('hidden');
+        });
+
+        // Các bộ lọc thống kê nhanh
+        window.filterByStat = function(status) {
+            document.getElementById('filter-status').value = status;
+            renderList();
+        }
+
+        // --- ĐỒNG BỘ DỮ LIỆU TỰ ĐỘNG TỪ FIREBASE (REALTIME) ---
+        onValue(ref(db, 'he_thong_benh_nhan'), (snapshot) => {
+            globalPatients = snapshot.val() || {};
+            updateStatistics();
+            buildFilterOptions();
+            renderList();
+            if (currentPatientId) {
+                showPatientDetail(currentPatientId);
+            }
+        });
+
+        // --- HÀM THỐNG KÊ SỐ LIỆU ---
+        function updateStatistics() {
+            let total = 0, treating = 0, discharged = 0, deceased = 0;
+            for (let id in globalPatients) {
+                total++;
+                const sessions = globalPatients[id].dot_dieu_tri;
+                if (sessions) {
+                    const
