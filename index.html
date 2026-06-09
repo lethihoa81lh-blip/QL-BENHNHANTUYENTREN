@@ -487,8 +487,9 @@
     </div>
 
     <script>
-        // Mảng chứa dữ liệu chính (Tự động nạp từ LocalStorage)
+        // Mảng chứa dữ liệu chính (Tự động nạp từ LocalStorage của người dùng)
         let patients = [];
+        let sessions = [];
         let handovers = [];
         let currentRole = "staff"; 
         let selectedPatientId = null;
@@ -503,7 +504,7 @@
             return `${parts[2]}/${parts[1]}/${parts[0]}`;
         }
 
-        // Tạo chuỗi mã ID ngẫu nhiên
+        // Tạo chuỗi mã ID ngẫu nhiên bằng Số / Chữ an toàn
         function generateId() {
             return 'id_' + Math.random().toString(36).substr(2, 9);
         }
@@ -559,7 +560,7 @@
             renderList();
         }
 
-        // Xây dựng tùy chọn Năm và Bệnh viện động trong bộ lọc
+        // Xây dựng tùy chọn Năm và Bệnh viện động trong bộ lọc công cụ
         function buildFilterOptions() {
             const filterYear = document.getElementById("filter-year");
             const filterHospital = document.getElementById("filter-hospital");
@@ -570,13 +571,12 @@
             let years = new Set();
             let hospitals = new Set();
 
-            patients.forEach(p => {
-                if(p.sessions) {
-                    p.sessions.forEach(s => {
-                        if(s.chuyenvien) years.add(s.chuyenvien.split("-")[0]);
-                        if(s.hospital) hospitals.add(s.hospital.trim());
-                    });
+            sessions.forEach(s => {
+                if(s.chuyenVien || s.chuyenvien) {
+                    const dateStr = s.chuyenVien || s.chuyenvien;
+                    years.add(dateStr.split("-")[0]);
                 }
+                if(s.hospital) hospitals.add(s.hospital.trim());
             });
 
             filterYear.innerHTML = '<option value="">Năm</option>';
@@ -593,13 +593,15 @@
             filterHospital.value = currentHospValue;
         }
 
-        // LẤY TRẠNG THÁI HIỆN TẠI CỦA BỆNH NHÂN (Đợt mới nhất)
-        function getLatestSession(p) {
-            if(!p.sessions || p.sessions.length === 0) return null;
-            return p.sessions[p.sessions.length - 1];
+        // LẤY ĐỢT ĐIỀU TRỊ MỚI NHẤT CỦA BỆNH NHÂN ĐỂ HIỂN THỊ LÊN BẢNG
+        function getLatestSession(pId) {
+            const pSessions = sessions.filter(s => s.patientId === pId);
+            if(pSessions.length === 0) return null;
+            // Sắp xếp theo ngày chuyển viện hoặc ID đợt tăng dần
+            return pSessions[pSessions.length - 1];
         }
 
-        // KẾT XUẤT DANH SÁCH BỆNH NHÂN RA BẢNG CHÍNH
+        // KẾT XUẤT DANH SÁCH BỆNH NHÂN RA BẢNG CHÍNH KÈM THỐNG KÊ LỌC
         function renderList() {
             const tbody = document.getElementById("patient-table-body");
             const searchKeyword = document.getElementById("search-box").value.toLowerCase().trim();
@@ -610,7 +612,7 @@
             tbody.innerHTML = "";
 
             let filtered = patients.filter(p => {
-                const latest = getLatestSession(p);
+                const latest = getLatestSession(p.id);
                 
                 // 1. Lọc theo từ khóa tìm kiếm
                 const matchSearch = p.name.toLowerCase().includes(searchKeyword) || 
@@ -620,8 +622,9 @@
                 
                 // 2. Lọc theo Năm chuyển viện
                 let matchYear = true;
-                if(fYear && latest && latest.chuyenvien) {
-                    matchYear = latest.chuyenvien.startsWith(fYear);
+                if(fYear && latest) {
+                    const cVien = latest.chuyenVien || latest.chuyenvien || "";
+                    matchYear = cVien.startsWith(fYear);
                 }
 
                 // 3. Lọc theo Tên bệnh viện
@@ -630,22 +633,22 @@
                     matchHosp = latest.hospital.trim() === fHosp;
                 }
 
-                // 4. Lọc theo trạng thái 2x2
+                // 4. Lọc theo trạng thái khối 2x2
                 let matchStatus = true;
                 if(fStatus) {
-                    const outcome = (latest && latest.outcome) ? latest.outcome : "treating";
+                    const outcome = (latest && (latest.ketQua || latest.outcome)) ? (latest.ketQua || latest.outcome) : "treating";
                     matchStatus = (outcome === fStatus);
                 }
 
                 return matchSearch && matchYear && matchHosp && matchStatus;
             });
 
-            // Cập nhật số liệu thống kê nhanh trên khối 2x2
+            // Tính toán nhanh số liệu thực tế trên khối thống kê 2x2
             let total = patients.length;
             let treating = 0, discharged = 0, deceased = 0;
             patients.forEach(p => {
-                const latest = getLatestSession(p);
-                const out = (latest && latest.outcome) ? latest.outcome : "treating";
+                const latest = getLatestSession(p.id);
+                const out = (latest && (latest.ketQua || latest.outcome)) ? (latest.ketQua || latest.outcome) : "treating";
                 if(out === "treating") treating++;
                 else if(out === "discharged") discharged++;
                 else if(out === "deceased") deceased++;
@@ -662,13 +665,13 @@
             }
             document.getElementById("empty-state").classList.add("hidden");
 
-            // Xuất từng dòng dữ liệu ra bảng kẻ ô
+            // Xuất dữ liệu từng dòng
             filtered.forEach((p, idx) => {
-                const latest = getLatestSession(p);
+                const latest = getLatestSession(p.id);
                 let statusBadge = "";
                 let actionBtns = "";
 
-                const outcome = (latest && latest.outcome) ? latest.outcome : "treating";
+                const outcome = (latest && (latest.ketQua || latest.outcome)) ? (latest.ketQua || latest.outcome) : "treating";
 
                 if (outcome === "treating") {
                     statusBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-full"><span class="h-1.5 w-1.5 bg-amber-500 rounded-full pulse-orange"></span>Đang ĐT</span>`;
@@ -680,7 +683,7 @@
                 }
 
                 const tr = document.createElement("tr");
-                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.className = "hover:bg-slate-50 transition-colors group";
                 tr.innerHTML = `
                     <td class="p-2 border border-slate-200 text-center font-bold text-slate-500 sticky left-0 bg-white group-hover:bg-slate-50 z-10">${idx + 1}</td>
                     <td onclick="openPatientDetailSheet('${p.id}')" class="p-2 border border-slate-200 font-bold text-blue-700 sticky left-[40px] bg-white group-hover:bg-slate-50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)] cursor-pointer hover:underline">
@@ -700,9 +703,10 @@
             });
         }
 
-        // HÀM KHAI BÁO THÊM HỒ SƠ MỚI ĐỢT 1
+        // KHAI BÁO THÊM HỒ SƠ MỚI ĐỢT 1
         function saveNewPatient(e) {
             e.preventDefault();
+            const pId = generateId();
             const name = document.getElementById("p-name").value.trim();
             const year = parseInt(document.getElementById("p-year").value);
             const gender = document.getElementById("p-gender").value;
@@ -710,25 +714,25 @@
 
             const hospital = document.getElementById("s-hospital").value.trim();
             const chuanDoan = document.getElementById("s-chuanDoan").value.trim();
-            const nhaptram = document.getElementById("s-nhaptram").value;
-            const chuyenvien = document.getElementById("s-chuyenvien").value;
-            const xuatvien = document.getElementById("s-xuatvien").value;
+            const nhapTram = document.getElementById("s-nhaptram").value;
+            const chuyenVien = document.getElementById("s-chuyenvien").value;
+            const xuatVien = document.getElementById("s-xuatvien").value;
 
-            let outcome = "treating";
-            if(xuatvien) {
-                outcome = "discharged"; 
+            let ketQua = "treating";
+            if(xuatVien) {
+                ketQua = "discharged"; 
             }
 
-            const newPatient = {
-                id: generateId(),
-                name, year, gender, bhyt,
-                sessions: [{
-                    id: generateId(),
-                    hospital, chuanDoan, nhaptram, chuyenvien, xuatvien, outcome, notes: document.getElementById("s-notes").value.trim()
-                }]
+            const newPatient = { id: pId, name, year, gender, bhyt };
+            const newSession = {
+                id: generateId(), patientId: pId, sessionNum: 1,
+                hospital, chuanDoan, nhapTram, chuyenVien, xuatVien, ketQua, 
+                notes: document.getElementById("s-notes").value.trim()
             };
 
             patients.push(newPatient);
+            sessions.push(newSession);
+
             saveToLocalStorage();
             buildFilterOptions();
             renderList();
@@ -737,7 +741,7 @@
             showNotification(`Đã lập hồ sơ mới cho bệnh nhân: ${name}`);
         }
 
-        // MỞ TẤM SLIDE SHEET CHI TIẾT BỆNH NHÂN
+        // MỞ TẤM SLIDE SHEET CHI TIẾT BỆNH NHÂN TRƯỢT LÊN
         function openPatientDetailSheet(pId) {
             const p = patients.find(item => item.id === pId);
             if(!p) return;
@@ -751,33 +755,37 @@
             document.getElementById("quick-add-session-box").classList.add("hidden");
             document.getElementById("form-quick-session").reset();
 
-            renderTimeline(p);
+            renderTimeline(pId);
             openModal("modal-detail-sheet");
         }
 
-        // IN LỊCH SỬ DÒNG THỜI GIAN CÁC ĐỢT ĐIỀU TRỊ KHÁM BỆNH
-        function renderTimeline(p) {
+        // KẾT XUẤT TIMELINE DÒNG THỜI GIAN CÁC ĐỢT ĐIỀU TRỊ KHÁM BỆNH
+        function renderTimeline(pId) {
             const container = document.getElementById("sheet-sessions-timeline");
             container.innerHTML = "";
 
-            if(!p.sessions || p.sessions.length === 0) {
+            const pSessions = sessions.filter(s => s.patientId === pId);
+
+            if(pSessions.length === 0) {
                 container.innerHTML = `<p class="text-[11px] text-slate-400 italic font-medium pl-6">Chưa có lịch sử đợt khám bệnh nào.</p>`;
                 return;
             }
 
-            p.sessions.forEach((s, idx) => {
+            pSessions.forEach((s, idx) => {
                 const div = document.createElement("div");
                 div.className = "relative pl-8 pb-1";
 
                 let iconDot = `<div class="absolute left-1.5 top-1 h-[24px] w-[24px] bg-slate-200 border-2 border-slate-400 rounded-full flex items-center justify-center text-[10px] text-slate-600 font-bold z-10">${idx+1}</div>`;
                 let badgeOutcome = "";
 
-                if (s.outcome === "treating") {
+                const outcome = s.ketQua || s.outcome || "treating";
+
+                if (outcome === "treating") {
                     iconDot = `<div class="absolute left-1.5 top-1 h-[24px] w-[24px] bg-amber-500 border-2 border-amber-300 rounded-full flex items-center justify-center text-[10px] text-white font-bold z-10 pulse-orange">${idx+1}</div>`;
                     badgeOutcome = `<span class="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-black uppercase">Đang điều trị</span>`;
-                } else if (s.outcome === "discharged") {
+                } else if (outcome === "discharged") {
                     badgeOutcome = `<span class="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.5 rounded font-black uppercase">Đã xuất viện</span>`;
-                } else if (s.outcome === "deceased") {
+                } else if (outcome === "deceased") {
                     badgeOutcome = `<span class="bg-rose-100 text-rose-800 text-[9px] px-1.5 py-0.5 rounded font-black uppercase">Tử vong</span>`;
                 }
 
@@ -791,16 +799,16 @@
                         <p class="text-xs text-slate-600 font-semibold"><i class="fa-solid fa-stethoscope text-slate-400"></i> Chẩn đoán: <span class="text-slate-800">${s.chuanDoan}</span></p>
                         
                         <div class="grid grid-cols-3 gap-1 text-[10px] text-slate-500 font-medium pt-0.5">
-                            <div>📅 Nhập trạm: <span class="font-bold text-slate-700 block">${formatDate(s.nhaptram)}</span></div>
-                            <div>🚀 Chuyển viện: <span class="font-bold text-indigo-700 block">${formatDate(s.chuyenvien)}</span></div>
-                            <div>🏁 Kết thúc: <span class="font-bold text-slate-700 block">${formatDate(s.xuatvien)}</span></div>
+                            <div>📅 Nhập trạm: <span class="font-bold text-slate-700 block">${formatDate(s.nhapTram || s.nhaptram)}</span></div>
+                            <div>🚀 Chuyển viện: <span class="font-bold text-indigo-700 block">${formatDate(s.chuyenVien || s.chuyenvien)}</span></div>
+                            <div>🏁 Kết thúc: <span class="font-bold text-slate-700 block">${formatDate(s.xuatVien || s.xuatvien)}</span></div>
                         </div>
                         
                         ${s.notes ? `<div class="text-[10px] bg-slate-50 border p-1.5 rounded-lg text-slate-600 mt-1 italic leading-tight"><i class="fa-solid fa-comment-dots"></i> Ghi chú: ${s.notes}</div>` : ""}
                         
                         <div class="pt-2 flex justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
                             <button onclick="triggerEditSession('${s.id}')" class="text-teal-600 font-bold text-[10px] flex items-center gap-0.5 hover:underline"><i class="fa-solid fa-pen-to-square"></i> Sửa đợt</button>
-                            ${p.sessions.length > 1 ? `<button onclick="deleteSessionAction('${s.id}')" class="text-rose-500 font-bold text-[10px] flex items-center gap-0.5 hover:underline pl-1.5 border-l"><i class="fa-solid fa-trash"></i> Xóa đợt</button>` : ""}
+                            ${pSessions.length > 1 ? `<button onclick="deleteSessionAction('${s.id}')" class="text-rose-500 font-bold text-[10px] flex items-center gap-0.5 hover:underline pl-1.5 border-l"><i class="fa-solid fa-trash"></i> Xóa đợt</button>` : ""}
                         </div>
                     </div>
                 `;
@@ -808,7 +816,7 @@
             });
         }
 
-        // BẬT TẮT KHUNG NHẬP NHANH ĐỢT ĐIỀU TRỊ MỚI TẠI TIMELINE
+        // BẬT TẮT KHUNG NHẬP NHANH ĐỢT ĐIỀU TRỊ MỚI
         function triggerAddSessionBox() {
             const box = document.getElementById("quick-add-session-box");
             box.classList.toggle("hidden");
@@ -818,33 +826,36 @@
             }
         }
 
-        // LƯU ĐỢT ĐIỀU TRỊ MỚI
+        // LƯU THÊM ĐỢT ĐIỀU TRỊ MỚI TẠI TIMELINE CHI TIẾT
         function saveQuickSession(e) {
             e.preventDefault();
-            const p = patients.find(item => item.id === selectedPatientId);
-            if(!p) return;
+            if(!selectedPatientId) return;
 
             const hospital = document.getElementById("qs-hospital").value.trim();
             const chuanDoan = document.getElementById("qs-chuanDoan").value.trim();
-            const nhaptram = document.getElementById("qs-nhaptram").value;
-            const chuyenvien = document.getElementById("qs-chuyenvien").value;
-            const xuatvien = document.getElementById("qs-xuatvien").value;
-            let outcome = "treating";
+            const nhapTram = document.getElementById("qs-nhaptram").value;
+            const chuyenVien = document.getElementById("qs-chuyenvien").value;
+            const xuatVien = document.getElementById("qs-xuatvien").value;
+            let ketQua = "treating";
 
-            if(xuatvien) {
-                outcome = document.getElementById("qs-outcome").value;
+            if(xuatVien) {
+                ketQua = document.getElementById("qs-outcome").value;
             }
 
-            p.sessions.push({
+            const pSessions = sessions.filter(s => s.patientId === selectedPatientId);
+
+            sessions.push({
                 id: generateId(),
-                hospital, chuanDoan, nhaptram, chuyenvien, xuatvien, outcome,
+                patientId: selectedPatientId,
+                sessionNum: pSessions.length + 1,
+                hospital, chuanDoan, nhapTram, chuyenVien, xuatVien, ketQua,
                 notes: document.getElementById("qs-notes").value.trim()
             });
 
             saveToLocalStorage();
             buildFilterOptions();
             renderList();
-            renderTimeline(p);
+            renderTimeline(selectedPatientId);
             document.getElementById("quick-add-session-box").classList.add("hidden");
             document.getElementById("form-quick-session").reset();
             showNotification("Đã ghi nhận thêm một đợt điều trị mới thành công.");
@@ -873,7 +884,6 @@
             saveToLocalStorage();
             renderList();
             
-            // Cập nhật lại giao diện Slide Sheet
             document.getElementById("sheet-p-name").innerText = p.name;
             document.getElementById("sheet-p-meta").innerText = `${p.gender} - Sinh năm ${p.year}`;
             document.getElementById("sheet-p-bhyt").innerText = p.bhyt || "Chưa có thẻ BHYT";
@@ -885,71 +895,66 @@
 
         // SỬA THÔNG TIN ĐỢT ĐIỀU TRỊ CHUYÊN BIỆT
         function triggerEditSession(sId) {
-            const p = patients.find(item => item.id === selectedPatientId);
-            if(!p) return;
-            const s = p.sessions.find(item => item.id === sId);
+            const s = sessions.find(item => item.id === sId);
             if(!s) return;
 
             selectedSessionId = sId;
             document.getElementById("es-id").value = sId;
             document.getElementById("es-hospital").value = s.hospital;
             document.getElementById("es-chuanDoan").value = s.chuanDoan;
-            document.getElementById("es-nhaptram").value = s.nhaptram || "";
-            document.getElementById("es-chuyenvien").value = s.chuyenvien || "";
-            document.getElementById("es-xuatvien").value = s.xuatvien || "";
-            document.getElementById("es-outcome").value = s.outcome || "treating";
+            document.getElementById("es-nhaptram").value = s.nhapTram || s.nhaptram || "";
+            document.getElementById("es-chuyenvien").value = s.chuyenVien || s.chuyenvien || "";
+            document.getElementById("es-xuatvien").value = s.xuatVien || s.xuatvien || "";
+            document.getElementById("es-outcome").value = s.ketQua || s.outcome || "treating";
             document.getElementById("es-notes").value = s.notes || "";
 
             openModal("modal-edit-session-root");
         }
         function saveEditSessionRoot(e) {
             e.preventDefault();
-            const p = patients.find(item => item.id === selectedPatientId);
-            if(!p) return;
-            const s = p.sessions.find(item => item.id === selectedSessionId);
+            const s = sessions.find(item => item.id === selectedSessionId);
             if(!s) return;
 
             s.hospital = document.getElementById("es-hospital").value.trim();
             s.chuanDoan = document.getElementById("es-chuanDoan").value.trim();
-            s.nhaptram = document.getElementById("es-nhaptram").value;
-            s.chuyenvien = document.getElementById("es-chuyenvien").value;
-            s.xuatvien = document.getElementById("es-xuatvien").value;
-            s.outcome = document.getElementById("es-outcome").value;
+            s.nhapTram = document.getElementById("es-nhaptram").value;
+            s.chuyenVien = document.getElementById("es-chuyenvien").value;
+            s.xuatVien = document.getElementById("es-xuatvien").value;
+            s.ketQua = document.getElementById("es-outcome").value;
             s.notes = document.getElementById("es-notes").value.trim();
 
-            if(!s.xuatvien && s.outcome !== "treating") {
-                s.outcome = "treating";
-            } else if(s.xuatvien && s.outcome === "treating") {
-                s.outcome = "discharged";
+            if(!s.xuatVien && s.ketQua !== "treating") {
+                s.ketQua = "treating";
+            } else if(s.xuatVien && s.ketQua === "treating") {
+                s.ketQua = "discharged";
             }
 
             saveToLocalStorage();
             buildFilterOptions();
             renderList();
-            renderTimeline(p);
+            if(selectedPatientId) renderTimeline(selectedPatientId);
             closeModal("modal-edit-session-root");
             showNotification("Đã đính chính dữ liệu đợt điều trị thành công.");
         }
 
-        // XÓA ĐỢT ĐIỀU TRỊ TẠI TIMELINE
+        // XÓA ĐỢT ĐIỀU TRỊ
         function deleteSessionAction(sId) {
             showConfirm("Bạn có chắc muốn xóa vĩnh viễn dữ liệu đợt bệnh này?", function() {
-                const p = patients.find(item => item.id === selectedPatientId);
-                if(!p) return;
-                p.sessions = p.sessions.filter(s => s.id !== sId);
+                sessions = sessions.filter(s => s.id !== sId);
                 saveToLocalStorage();
                 buildFilterOptions();
                 renderList();
-                renderTimeline(p);
+                if(selectedPatientId) renderTimeline(selectedPatientId);
                 showNotification("Đã xóa bỏ đợt điều trị được chọn.");
             });
         }
 
-        // XÓA TOÀN BỘ HỒ SƠ GỐC BỆNH NHÂN (QUYỀN ADMIN)
+        // XÓA TOÀN BỘ HỒ SƠ GỐC BỆNH NHÂN KÈM ĐỢT BỆNH (QUYỀN ADMIN)
         function deletePatientAction() {
             if(currentRole !== "admin") return;
             showConfirm("CẢNH BÁO: Hành động này sẽ xóa vĩnh viễn hồ sơ và toàn bộ lịch sử đợt khám của bệnh nhân này. Bạn chắc chắn muốn xóa?", function() {
                 patients = patients.filter(p => p.id !== selectedPatientId);
+                sessions = sessions.filter(s => s.patientId !== selectedPatientId);
                 saveToLocalStorage();
                 buildFilterOptions();
                 renderList();
@@ -964,7 +969,7 @@
             if(!p) return;
             selectedPatientId = pId;
 
-            const latest = getLatestSession(p);
+            const latest = getLatestSession(pId);
             document.getElementById("dq-label-name").innerText = p.name;
             document.getElementById("dq-label-info").innerText = `Đang nằm ĐT tại: ${latest ? latest.hospital : "---"}`;
             document.getElementById("dq-date").value = new Date().toISOString().split('T')[0];
@@ -973,9 +978,7 @@
             openModal("modal-discharge-quick");
         }
         function saveQuickDischarge() {
-            const p = patients.find(item => item.id === selectedPatientId);
-            if(!p) return;
-            const latest = getLatestSession(p);
+            const latest = getLatestSession(selectedPatientId);
             if(!latest) return;
 
             const qDate = document.getElementById("dq-date").value;
@@ -984,16 +987,16 @@
                 return;
             }
 
-            latest.xuatvien = qDate;
-            latest.outcome = document.getElementById("dq-outcome").value;
+            latest.xuatVien = qDate;
+            latest.ketQua = document.getElementById("dq-outcome").value;
 
             saveToLocalStorage();
             renderList();
             closeModal("modal-discharge-quick");
-            showNotification(`Bệnh nhân ${p.name} đã kết thúc đợt điều trị.`);
+            showNotification(`Bệnh nhân đã kết thúc đợt điều trị ngoài viện.`);
         }
 
-        // ==================== QUAN LÝ SỔ GIAO CA TRỰC BAN ====================
+        // ==================== QUẢN LÝ SỔ GIAO CA TRỰC BAN ====================
         function openHandoverModal() {
             document.getElementById("h-date").value = new Date().toISOString().split('T')[0];
             switchHandoverTab("write");
@@ -1020,13 +1023,13 @@
             }
         }
 
-        // TỰ ĐỘNG TRÍCH XUẤT NHANH DANH SÁCH "LIVE" ĐANG NẰM ĐIỀU TRỊ ĐỂ LẬP CA TRỰC
+        // TỰ ĐỘNG TRÍCH XUẤT NHANH DANH SÁCH "LIVE" ĐANG NẰM ĐIỀU TRỊ ĐỂ LẬP BAN TRỰC
         function autoGenerateActiveHandover() {
             let activeList = [];
             patients.forEach(p => {
-                const latest = getLatestSession(p);
-                if(latest && (!latest.outcome || latest.outcome === "treating")) {
-                    activeList.push(`- BN: ${p.name} (${p.year}), điều trị tại ${latest.hospital}, chẩn đoán: ${latest.chuanDoan}.`);
+                const latest = getLatestSession(p.id);
+                if(latest && (!latest.ketQua || latest.ketQua === "treating" || latest.outcome === "treating")) {
+                    activeList.push(`- BN: ${p.name} (${p.year}), ĐT tại ${latest.hospital}, CĐ: ${latest.chuanDoan}.`);
                 }
             });
 
@@ -1049,7 +1052,7 @@
             const content = document.getElementById("h-content").value.trim();
 
             const newLog = { id: generateId(), date, staffName, shift, content };
-            handovers.unshift(newLog); // Thêm lên đầu danh sách nhật ký
+            handovers.unshift(newLog);
 
             saveToLocalStorage();
             document.getElementById("form-handover").reset();
@@ -1104,46 +1107,47 @@
             });
         }
 
-        // --- KHỞI CHẠY LẦN ĐẦU HỆ THỐNG ---
-        window.addEventListener("DOMContentLoaded", () => {
-            // 1. Kiểm tra nạp mảng bệnh nhân từ bộ nhớ trình duyệt LocalStorage
+        // --- KHỞI CHẠY LẦN ĐẦU HỆ THỐNG BAN ĐẦU ---
+        window.onload = function() {
+            // 1. Kiểm tra nạp mảng bệnh nhân từ bộ nhớ LocalStorage
             if (localStorage.getItem("qlbn_patients")) {
-                try { 
-                    patients = JSON.parse(localStorage.getItem("qlbn_patients")); 
-                } catch(e) { 
-                    patients = []; 
-                }
+                try { patients = JSON.parse(localStorage.getItem("qlbn_patients")); } catch(e) { patients = []; }
             } else {
                 patients = [];
                 localStorage.setItem("qlbn_patients", JSON.stringify(patients));
             }
 
-            // 2. Kiểm tra nạp mảng nhật ký giao ca
+            // 2. Kiểm tra nạp mảng đợt điều trị (LÀM SẠCH VÀ LIÊN KẾT)
+            if (localStorage.getItem("qlbn_sessions")) {
+                try { sessions = JSON.parse(localStorage.getItem("qlbn_sessions")); } catch(e) { sessions = []; }
+            } else {
+                sessions = [];
+                localStorage.setItem("qlbn_sessions", JSON.stringify(sessions));
+            }
+
+            // 3. Kiểm tra nạp mảng sổ giao ca
             if (localStorage.getItem("qlbn_handovers")) {
-                try { 
-                    handovers = JSON.parse(localStorage.getItem("qlbn_handovers")); 
-                } catch(e) { 
-                    handovers = []; 
-                }
+                try { handovers = JSON.parse(localStorage.getItem("qlbn_handovers")); } catch(e) { handovers = []; }
             } else {
                 handovers = [];
                 localStorage.setItem("qlbn_handovers", JSON.stringify(handovers));
             }
 
-            // 3. Thiết lập ngày mặc định
+            // 4. Thiết lập ngày mặc định
             const homNay = new Date().toISOString().split('T')[0];
             if(document.getElementById("h-date")) document.getElementById("h-date").value = homNay;
             if(document.getElementById("dq-date")) document.getElementById("dq-date").value = homNay;
 
-            // 4. Đồng bộ dữ liệu hiển thị
+            // 5. Đồng bộ giao diện kết xuất ra bảng
             buildFilterOptions();
-            switchRole("staff"); // Mặc định vào phòng với quyền Nhân viên
+            switchRole("staff"); 
             renderList();
-        });
+        };
 
-        // Hàm hỗ trợ lưu tự động khi có bất kỳ thay đổi nào
+        // Hàm lưu trữ an toàn tự động
         function saveToLocalStorage() {
             localStorage.setItem("qlbn_patients", JSON.stringify(patients));
+            localStorage.setItem("qlbn_sessions", JSON.stringify(sessions));
             localStorage.setItem("qlbn_handovers", JSON.stringify(handovers));
         }
     </script>
