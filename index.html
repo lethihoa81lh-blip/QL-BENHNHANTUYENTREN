@@ -50,10 +50,18 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const patientsRef = db.ref("patients");
 let patients = [];
+
 patientsRef.on("value", (snapshot) => {
     const data = snapshot.val();
 
-    patients = data ? Object.values(data) : [];
+    console.log("🔥 RAW DATA:", data);
+
+    patients = data
+        ? Object.entries(data).map(([key, value]) => ({
+            id: key,
+            ...value
+        }))
+        : [];
 
     console.log("📌 TOTAL:", patients.length);
 
