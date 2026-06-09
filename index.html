@@ -50,7 +50,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const patientsRef = db.ref("patients");
 let patients = [];
-
+let sessions = [];
 patientsRef.on("value", (snapshot) => {
     const data = snapshot.val();
 
@@ -1393,9 +1393,8 @@ patientsRef.on("value", (snapshot) => {
 
         // --- KHỞI TRẠT LẦN ĐẦU ---
         window.onload = function() {
-            initFilterDropdowns();
-            renderList();
-        };
+    renderList();
+}
     </script>
 </body>
 </html>
