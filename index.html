@@ -1411,74 +1411,27 @@
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
 
-            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Thời gian thực)
-            db.ref("patients").on("value", function(snapshot) {
-                const data = snapshot.val();
-                if (data) {
-                    // Chuyển đổi dữ liệu dạng cặp Khóa-Giá trị trực tuyến thành mảng hiển thị của phần mềm
-                    patients = Object.keys(data).map(key => ({
-                        id: key,
-                        ...data[key]
-                    }));
-                } else {
-                    patients = [];
-                }
-                // Làm mới giao diện ngay lập tức
-                if (typeof updateStats === 'function') updateStats();
-                if (typeof initFilterDropdowns === 'function') initFilterDropdowns();
-                if (typeof renderList === 'function') renderList();
-            });
-
-            // LẮNG NGHE DỮ LIỆU NHẬT KÝ GIAO BAN CA TRỰC TRỰC TUYẾN
-            db.ref("handovers").on("value", function(snapshot) {
-                const data = snapshot.val();
-                if (data) {
-                    handovers = Object.keys(data).map(key => ({
-                        id: key,
-                        ...data[key]
-                    }));
-                } else {
-                    handovers = [];
-                }
-                if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
-            });
-
-            window.saveToLocalStorage = function() {
-    // 1. Cập nhật danh mục sổ ca trực (giữ nguyên cách cũ)
-    const handoversObject = {};
-    handovers.forEach(h => { if(h.id) handoversObject[h.id] = h; });
-    db.ref("handovers").set(handoversObject);
-
-    // 2. CẬP NHẬT DANH SÁCH BỆNH NHÂN (Tối ưu)
-    // Thay vì gửi cả cục 'patientsObject', chúng ta chỉ gửi những gì đã thay đổi
-    const patientsObject = {};
-    patients.forEach(p => {
-        if (p.id) {
-            const { id, ...data } = p;
-            patientsObject[id] = data;
+            <script>
+    // 1. Cập nhật dữ liệu từ Firebase về máy khi có thay đổi
+    db.ref("patients").on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            patients = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        } else {
+            patients = [];
         }
+        // Gọi hàm vẽ lại bảng hiện có trong file của bạn
+        if (typeof renderList === 'function') renderList();
     });
-    
-    // Ghi đè lên nhánh patients
-    db.ref("patients").update(patientsObject)
-      .then(() => console.log("Đồng bộ thành công!"))
-      .catch((error) => console.error("Lỗi đồng bộ: ", error));
-};
-                // Biến đổi mảng sổ ca trực handovers thành định dạng Object để lưu trữ
-                const handoversObject = {};
-                handovers.forEach(h => {
-                    if (h.id) {
-                        const { id, ...handoverData } = h;
-                        handoversObject[id] = handoverData;
-                    }
-                });
 
-                // Đồng bộ đồng thời cả 2 danh mục lên đám mây trực tuyến công cộng
-                db.ref("patients").set(patientsObject);
-                db.ref("handovers").set(handoversObject);
-            };
-        });
-    </script>
-</body>
-</html>
+    // 2. Hàm lưu dữ liệu lên Firebase (Dùng để thay thế saveToLocalStorage cũ)
+    window.saveToLocalStorage = function() {
+        // Cập nhật lên Firebase thay vì LocalStorage
+        const patientsObject = {};
+        patients.forEach(p => { if(p.id) patientsObject[p.id] = p; });
         
+        db.ref("patients").set(patientsObject).then(() => {
+            console.log("Đã đồng bộ lên mây!");
+        });
+    };
+</script>
