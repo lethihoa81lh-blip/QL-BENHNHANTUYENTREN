@@ -725,9 +725,12 @@
             const hospitalFilter = filterHospital ? filterHospital.value : "";
             const statusFilter = filterStatus ? filterStatus.value : "";
 
+            // --- ĐOẠN SỬA LỖI GỐC: ÉP BUỘC DÙNG DỮ LIỆU ĐỒNG BỘ FIREBASE ĐỂ LỌC ---
+            const currentPatients = (window.patients && window.patients.length > 0) ? window.patients : (typeof patients !== 'undefined' ? patients : []);
+
             // --- HÀM PHỤ TRỢ CẢI TIẾN: Sửa lỗi cấu trúc dữ liệu Firebase & Chữ hoa/thường ---
             const CẢI_TIẾN_getLatestSession = (patientId) => {
-                const p = (window.patients || []).find(pt => pt.id === patientId);
+                const p = currentPatients.find(pt => pt.id === patientId);
                 if (!p || !p.sessions) return null;
                 
                 let formatted = [];
@@ -739,10 +742,7 @@
                 
                 if (formatted.length === 0) return null;
                 
-                // Lấy đợt điều trị cuối cùng
                 let s = formatted[formatted.length - 1];
-                
-                // Ép hệ thống đọc được cả chữ hoa lẫn chữ thường trên Firebase
                 return {
                     ...s,
                     id: s.id || "",
@@ -753,14 +753,14 @@
                 };
             };
 
-            // Tính toán số liệu thống kê chuẩn xác dựa trên TRẠNG THÁI CUỐI CÙNG của từng bệnh nhân
-            let countTotal = patients.length;
+            // Tính toán số liệu thống kê chuẩn xác dựa trên dữ liệu Firebase vừa ép vào
+            let countTotal = currentPatients.length;
             let countTreating = 0;
             let countDischarged = 0;
             let countDeceased = 0;
-            let countNoSession = 0; // Đếm số ca chưa có đợt điều trị (Chưa đi ĐT)
+            let countNoSession = 0;
 
-            patients.forEach(p => {
+            currentPatients.forEach(p => {
                 const latest = CẢI_TIẾN_getLatestSession(p.id);
                 if (latest) {
                     const isDischarged = latest.xuatVien !== "";
@@ -795,10 +795,10 @@
             if (statDeceased) statDeceased.textContent = countDeceased;
 
             let visibleCount = 0;
-            let displayIndex = 1; // RESET số thứ tự về 1 khi bắt đầu render bảng
+            let displayIndex = 1;
 
-            // Sắp xếp bệnh nhân có ngày chuyển viện mới nhất lên đầu
-            const patientsWithLatest = patients.map(p => {
+            // Sắp xếp bệnh nhân dựa trên dữ liệu chuẩn Firebase
+            const patientsWithLatest = currentPatients.map(p => {
                 return {
                     patient: p,
                     latestSession: CẢI_TIẾN_getLatestSession(p.id)
@@ -810,7 +810,6 @@
             });
 
             patientsWithLatest.forEach(({ patient, latestSession }) => {
-                // Nếu bệnh nhân chưa có bất kỳ đợt điều trị nào, gán một object trống để hiển thị cơ bản
                 const currentSession = latestSession || {
                     id: "", hospital: "-", chuyenVien: "", chuanDoan: "-", xuatVien: "", ketQua: "", notes: ""
                 };
@@ -834,10 +833,9 @@
                     else if (statusFilter === 'no_session') matchStatus = currentSession.id === "";
                 }
 
-                // CHỈ khi bản ghi khớp hoàn toàn các bộ lọc và chuẩn bị đưa lên giao diện, chúng ta mới gán STT và tăng dần displayIndex
                 if (matchSearch && matchYear && matchHospital && matchStatus) {
                     visibleCount++;
-                    const currentSTT = displayIndex++; // Số thứ tự chuẩn xác liên tục 1, 2, 3...
+                    const currentSTT = displayIndex++;
                     const tr = document.createElement('tr');
                     
                     let bgClass = "bg-white hover:bg-slate-50 transition-all";
@@ -864,7 +862,6 @@
 
                     tr.className = `${bgClass} text-slate-800 border-b border-slate-200`;
                     
-                    // Nút thao tác tương ứng với đợt bệnh mới nhất
                     let actionBtnHtml = "";
                     const currentRole = document.getElementById('role-select') ? document.getElementById('role-select').value : "staff";
                     if (currentSession.id !== "" && !isDischarged) {
