@@ -725,6 +725,34 @@
             const hospitalFilter = filterHospital ? filterHospital.value : "";
             const statusFilter = filterStatus ? filterStatus.value : "";
 
+            // --- HÀM PHỤ TRỢ CẢI TIẾN: Sửa lỗi cấu trúc dữ liệu Firebase & Chữ hoa/thường ---
+            const CẢI_TIẾN_getLatestSession = (patientId) => {
+                const p = (window.patients || []).find(pt => pt.id === patientId);
+                if (!p || !p.sessions) return null;
+                
+                let formatted = [];
+                if (Array.isArray(p.sessions)) {
+                    formatted = p.sessions.filter(s => s !== null);
+                } else if (typeof p.sessions === 'object') {
+                    formatted = Object.keys(p.sessions).map(k => p.sessions[k]);
+                }
+                
+                if (formatted.length === 0) return null;
+                
+                // Lấy đợt điều trị cuối cùng
+                let s = formatted[formatted.length - 1];
+                
+                // Ép hệ thống đọc được cả chữ hoa lẫn chữ thường trên Firebase
+                return {
+                    ...s,
+                    id: s.id || "",
+                    hospital: s.hospital || s.Hospital || s.benhvien || "-",
+                    chuyenVien: s.chuyenVien || s.chuyenvien || s.date || s.Date || "",
+                    chuanDoan: s.chuanDoan || s.chuandoan || s.chanDoan || s.chandoan || "-",
+                    xuatVien: s.xuatVien || s.xuatvien || ""
+                };
+            };
+
             // Tính toán số liệu thống kê chuẩn xác dựa trên TRẠNG THÁI CUỐI CÙNG của từng bệnh nhân
             let countTotal = patients.length;
             let countTreating = 0;
@@ -733,10 +761,10 @@
             let countNoSession = 0; // Đếm số ca chưa có đợt điều trị (Chưa đi ĐT)
 
             patients.forEach(p => {
-                const latest = getLatestSession(p.id);
+                const latest = CẢI_TIẾN_getLatestSession(p.id);
                 if (latest) {
                     const isDischarged = latest.xuatVien !== "";
-                    const isDeceased = isDischarged && latest.ketQua === 'deceased';
+                    const isDeceased = isDischarged && (latest.ketQua === 'deceased' || latest.ketqua === 'deceased');
                     if (!isDischarged) countTreating++;
                     else if (isDeceased) countDeceased++;
                     else countDischarged++;
@@ -773,7 +801,7 @@
             const patientsWithLatest = patients.map(p => {
                 return {
                     patient: p,
-                    latestSession: getLatestSession(p.id)
+                    latestSession: CẢI_TIẾN_getLatestSession(p.id)
                 };
             }).sort((a, b) => {
                 const dateA = (a.latestSession && a.latestSession.chuyenVien) ? a.latestSession.chuyenVien : "";
@@ -795,8 +823,8 @@
                 const matchHospital = !hospitalFilter || (currentSession.hospital.trim() === hospitalFilter.trim());
                 
                 const isDischarged = currentSession.xuatVien !== "";
-                const isDeceased = isDischarged && currentSession.ketQua === 'deceased';
-                const isNormalDischarged = isDischarged && currentSession.ketQua !== 'deceased';
+                const isDeceased = isDischarged && (currentSession.ketQua === 'deceased' || currentSession.ketqua === 'deceased');
+                const isNormalDischarged = isDischarged && !isDeceased;
 
                 let matchStatus = true;
                 if (statusFilter) {
@@ -838,6 +866,7 @@
                     
                     // Nút thao tác tương ứng với đợt bệnh mới nhất
                     let actionBtnHtml = "";
+                    const currentRole = document.getElementById('role-select') ? document.getElementById('role-select').value : "staff";
                     if (currentSession.id !== "" && !isDischarged) {
                         actionBtnHtml = `
                             <button onclick="openDischargeQuick('${currentSession.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[9px] py-1 px-1.5 rounded-lg shadow-sm transition-all flex items-center gap-0.5">
@@ -859,10 +888,10 @@
                     tr.innerHTML = `
                         <td class="py-2.5 px-1.5 text-center font-bold text-slate-500 border border-slate-300 sticky left-0 ${stickyBg} z-10">${currentSTT}</td>
                         <td class="py-2.5 px-2 font-black text-blue-950 border border-slate-300 whitespace-nowrap sticky left-[40px] ${stickyBg} z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">${patient.name}</td>
-                        <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.birthYear}</td>
-                        <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.gender}</td>
+                        <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.birthYear || '---'}</td>
+                        <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.gender || '---'}</td>
                         <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300 bg-inherit">${currentSession.hospital}</td>
-                        <td class="py-2.5 px-2 border border-slate-300 text-slate-700 bg-inherit">${currentSession.chuanDoan || '-'}</td>
+                        <td class="py-2.5 px-2 border border-slate-300 text-slate-700 bg-inherit">${currentSession.chuanDoan}</td>
                         <td class="py-2.5 px-1.5 text-center border border-slate-300 bg-inherit">${badgeHtml}</td>
                         <td class="py-2.5 px-1.5 border border-slate-300 bg-inherit">
                             <div class="flex items-center justify-center gap-1">
@@ -882,7 +911,6 @@
                 else emptyState.classList.add('hidden');
             }
         }
-
         // --- XEM CHI TIẾT BỆNH NHÂN (TRƯỢT LÊN SHEET) ---
         function openPatientDetailSheet(patientId) {
             activePatientId = patientId;
@@ -1378,19 +1406,15 @@
         // KHỞI CHẠY ĐỒNG BỘ CHUẨN HOÁ GIỮA FIREBASE VÀ GIAO DIỆN CHUYỂN TUYẾN
         // =========================================================================
 
-        // 1. Tự động nạp trực tiếp thư viện ứng dụng Firebase phiên bản script thông thường
         const fbAppScript = document.createElement('script');
         fbAppScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js";
         document.head.appendChild(fbAppScript);
 
-        // 2. Nạp thư viện cơ sở dữ liệu Realtime Database
         const fbDbScript = document.createElement('script');
         fbDbScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js";
         document.head.appendChild(fbDbScript);
 
-        // 3. Tiến hành cấu hình kết nối khi thư viện tải xong
         fbDbScript.onload = function() {
-            // Cấu hình tài khoản đám mây Firebase của bạn
             const firebaseConfig = {
                 apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
                 authDomain: "ql-benhnhantuyentren.firebaseapp.com",
@@ -1402,78 +1426,25 @@
                 measurementId: "G-0JPKGYLJK0"
             };
 
-            // Khởi tạo Firebase
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
 
-            // LẮNG NGHE & CHUẨN HÓA ID (Sửa lỗi lệch ID giữa p1,p2 và 1,2,3)
+            // Lắng nghe dữ liệu chuẩn, không can thiệp sâu vào bộ lọc gốc của bạn
             db.ref("patients").on("value", function(snapshot) {
                 const data = snapshot.val();
                 if (data) {
-                    window.patients = Object.keys(data).map(key => {
-                        const patientData = data[key];
-                        
-                        // SỬA LỖI ID: Nếu ID trên Firebase là số (1, 2, 3...) hoặc chưa có chữ 'p', tự động thêm 'p' vào đầu
-                        let chuẩnID = key;
-                        if (!chuẩnID.startsWith('p')) {
-                            chuẩnID = 'p' + chuẩnID;
-                        }
-                        
-                        // CHUẨN HÓA SESSIONS: Chuyển Object về dạng Mảng (Array)
-                        let formattedSessions = [];
-                        if (patientData.sessions) {
-                            if (Array.isArray(patientData.sessions)) {
-                                formattedSessions = patientData.sessions.filter(s => s !== null);
-                            } else if (typeof patientData.sessions === 'object') {
-                                formattedSessions = Object.keys(patientData.sessions).map(sKey => ({
-                                    ...patientData.sessions[sKey]
-                                }));
-                            }
-                        }
-                        
-                        // TỰ ĐỘNG SỬA LỖI TÊN BIẾN (Chữ hoa - Chữ thường)
-                        formattedSessions = formattedSessions.map(s => {
-                            let ghiChuChuanDoan = s.chuanDoan || s.chuandoan || s.chanDoan || s.chandoan || "---";
-                            let tenBenhVien = s.hospital || s.Hospital || s.benhvien || "---";
-                            let ngayKham = s.date || s.Date || s.ngay || "2026-01-01";
-                            
-                            return {
-                                ...s,
-                                date: ngayKham,
-                                chuanDoan: ghiChuChuanDoan,
-                                hospital: tenBenhVien
-                            };
-                        });
-                        
-                        return {
-                            ...patientData,
-                            id: chuẩnID, // Ép ID về dạng chuẩn p1, p2, p3... để giao diện gốc xử lý được
-                            sessions: formattedSessions
-                        };
-                    });
+                    window.patients = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
                 } else {
                     window.patients = [];
                 }
-                
-                // Reset bộ lọc năm về trống để hiện toàn bộ danh sách
-                const yearFilterEl = document.getElementById('yearFilter') || document.querySelector('select[id*="year"]');
-                if (yearFilterEl) {
-                    if (![...yearFilterEl.options].some(o => o.value === "")) {
-                        const opt = document.createElement('option');
-                        opt.value = "";
-                        opt.innerHTML = "Tất cả các năm";
-                        yearFilterEl.insertBefore(opt, yearFilterEl.firstChild);
-                    }
-                    yearFilterEl.value = ""; // Chọn sẵn "Tất cả các năm"
-                }
-
-                // Cập nhật lại toàn bộ giao diện và bộ lọc dropdown
                 if (typeof updateStats === 'function') updateStats();
                 if (typeof initFilterDropdowns === 'function') initFilterDropdowns();
                 if (typeof renderList === 'function') renderList();
             });
 
-            // LẮNG NGHE & TỰ ĐỘNG ĐỒNG BỘ SỔ GIAO CA ĐIỆN TỬ
             db.ref("handovers").on("value", function(snapshot) {
                 const data = snapshot.val();
                 if (data) {
@@ -1484,19 +1455,15 @@
                 } else {
                     window.handovers = [];
                 }
-                
                 if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
             });
 
-            // VIẾT ĐÈ HÀM LƯU TRỮ CŨ: Đồng bộ ngược lại Firebase khi Thêm/Sửa/Xóa
             window.saveToLocalStorage = function() {
                 const patientsObject = {};
                 window.patients.forEach(p => {
                     if (p.id) {
-                        // Khi lưu lên Firebase, loại bỏ chữ 'p' ở đầu nếu muốn giữ nguyên định dạng gốc trên Firebase (1, 2, 3...)
-                        const firebaseKey = p.id.startsWith('p') ? p.id.substring(1) : p.id;
                         const { id, ...patientData } = p;
-                        patientsObject[firebaseKey] = patientData;
+                        patientsObject[id] = patientData;
                     }
                 });
 
