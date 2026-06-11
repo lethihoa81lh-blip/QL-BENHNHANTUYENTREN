@@ -1406,14 +1406,14 @@
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
 
-            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Đã sửa lỗi cấu trúc sessions)
+            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Sửa lỗi lệch tên biến hoa/thường)
             db.ref("patients").on("value", function(snapshot) {
                 const data = snapshot.val();
                 if (data) {
                     window.patients = Object.keys(data).map(key => {
                         const patientData = data[key];
                         
-                        // CHUẨN HÓA SESSIONS: Nếu đợt bệnh từ Firebase trả về dạng Đối tượng (Object), chuyển ngay sang định dạng Mảng (Array)
+                        // CHUẨN HÓA SESSIONS: Chuyển Object về dạng Mảng (Array)
                         let formattedSessions = [];
                         if (patientData.sessions) {
                             if (Array.isArray(patientData.sessions)) {
@@ -1425,10 +1425,23 @@
                             }
                         }
                         
+                        // TỰ ĐỘNG SỬA LỖI TÊN BIẾN (Chữ hoa - Chữ thường)
+                        formattedSessions = formattedSessions.map(s => {
+                            // Nếu trên Firebase viết thường 'chuandoan' hoặc 'chandoan', ép về 'chuanDoan' cho giao diện đọc
+                            let ghiChuChuanDoan = s.chuanDoan || s.chuandoan || s.chanDoan || s.chandoan || "---";
+                            let tenBenhVien = s.hospital || s.Hospital || s.benhvien || "---";
+                            
+                            return {
+                                ...s,
+                                chuanDoan: ghiChuChuanDoan,
+                                hospital: tenBenhVien
+                            };
+                        });
+                        
                         return {
                             id: key,
                             ...patientData,
-                            sessions: formattedSessions // Trả lại cấu trúc mảng chuẩn để giao diện đọc được .length
+                            sessions: formattedSessions
                         };
                     });
                 } else {
@@ -1453,11 +1466,10 @@
                     window.handovers = [];
                 }
                 
-                // Cập nhật lại nhật ký sổ giao ca
                 if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
             });
 
-            // VIẾT ĐÈ HÀM LƯU TRỮ CŨ: Đẩy dữ liệu Thêm/Sửa/Xóa trực tiếp lên Firebase
+            // VIẾT ĐÈ HÀM LƯU TRỮ CŨ
             window.saveToLocalStorage = function() {
                 const patientsObject = {};
                 window.patients.forEach(p => {
@@ -1476,7 +1488,7 @@
                 });
 
                 db.ref("patients").set(patientsObject);
-                db.ref("handovers").set(handoversObject);
+                db.ref("handovers").set(oversObject);
             };
         };
     </script>
