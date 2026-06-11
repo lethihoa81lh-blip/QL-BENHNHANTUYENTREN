@@ -1375,8 +1375,35 @@
         }
 
         // --- KHỞI TRẠT LẦN ĐẦU ---
+    <script>
+        function renderList() {
+            const db = firebase.database();
+            db.ref("patients").once("value").then((snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.querySelector('tbody');
+                
+                if (!data || !tbody) return;
+
+                // Xóa dữ liệu mẫu cũ
+                tbody.innerHTML = ''; 
+
+                // Đổ dữ liệu từ Firebase vào bảng
+                Object.values(data).forEach((p, index) => {
+                    const row = `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${p.hoTen || p.name || '---'}</td>
+                            <td>${p.namSinh || p.namsinh || p.year || '---'}</td>
+                            <td>${p.trangThai || p.outcome || p.status || 'Đang điều trị'}</td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            });
+        }
+
         window.onload = function() {
-            initFilterDropdowns();
+            // initFilterDropdowns(); // Bạn cứ giữ lại dòng này nếu cần
             renderList();
         };
     </script>
