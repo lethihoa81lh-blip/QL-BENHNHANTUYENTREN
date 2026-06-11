@@ -1406,7 +1406,7 @@
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
 
-            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Sửa lỗi lệch tên biến hoa/thường)
+            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Sửa lỗi định dạng Ngày tháng & Năm)
             db.ref("patients").on("value", function(snapshot) {
                 const data = snapshot.val();
                 if (data) {
@@ -1425,14 +1425,20 @@
                             }
                         }
                         
-                        // TỰ ĐỘNG SỬA LỖI TÊN BIẾN (Chữ hoa - Chữ thường)
+                        // CHUẨN HÓA NGÀY THÁNG & TÊN BIẾN
                         formattedSessions = formattedSessions.map(s => {
-                            // Nếu trên Firebase viết thường 'chuandoan' hoặc 'chandoan', ép về 'chuanDoan' cho giao diện đọc
                             let ghiChuChuanDoan = s.chuanDoan || s.chuandoan || s.chanDoan || s.chandoan || "---";
                             let tenBenhVien = s.hospital || s.Hospital || s.benhvien || "---";
                             
+                            // Sửa lỗi ngày tháng: Nếu date bị lỗi hoặc để trống, tự động bù ngày mặc định để hệ thống không bị crash bộ lọc năm
+                            let ngayKham = s.date || s.Date || s.ngay || "";
+                            if (!ngayKham || ngayKham === "---") {
+                                ngayKham = "2026-01-01"; // Ép về năm hiện tại hoặc ngày chuẩn để giữ bệnh nhân lại danh sách hiển thị
+                            }
+                            
                             return {
                                 ...s,
+                                date: ngayKham,
                                 chuanDoan: ghiChuChuanDoan,
                                 hospital: tenBenhVien
                             };
@@ -1448,7 +1454,19 @@
                     window.patients = [];
                 }
                 
-                // Cập nhật lại giao diện, bộ lọc và số liệu thống kê
+                // Ép hệ thống nhận diện lại toàn bộ các năm cũ và mới
+                const yearFilterEl = document.getElementById('yearFilter') || document.querySelector('select[id*="year"]');
+                if (yearFilterEl) {
+                    // Tạo thêm lựa chọn rỗng (Tất cả) nếu giao diện cũ ép chọn cứng năm
+                    if (![...yearFilterEl.options].some(o => o.value === "")) {
+                        const opt = document.createElement('option');
+                        opt.value = "";
+                        opt.innerHTML = "Tất cả các năm";
+                        yearFilterEl.insertBefore(opt, yearFilterEl.firstChild);
+                    }
+                }
+
+                // Cập nhật lại toàn bộ giao diện
                 if (typeof updateStats === 'function') updateStats();
                 if (typeof initFilterDropdowns === 'function') initFilterDropdowns();
                 if (typeof renderList === 'function') renderList();
@@ -1488,7 +1506,7 @@
                 });
 
                 db.ref("patients").set(patientsObject);
-                db.ref("handovers").set(oversObject);
+                db.ref("handovers").set(handoversObject);
             };
         };
     </script>
