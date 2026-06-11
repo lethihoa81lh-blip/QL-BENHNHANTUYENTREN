@@ -1373,29 +1373,24 @@
                 showNotification("Đã xóa nhật ký giao ban trực thành công.");
             });
         }
-// =========================================================================
-        // --- HỆ THỐNG ĐỒNG BỘ CƠ SỞ DỮ LIỆU ĐÁM MÂY FIREBASE TRỰC TIẾP (COMPAT) ---
+
+        // =========================================================================
+        // KHỞI CHẠY ĐỒNG BỘ CHUẨN HOÁ GIỮA FIREBASE VÀ GIAO DIỆN CHUYỂN TUYẾN
         // =========================================================================
 
-        // 1. Tự động nạp các thư viện kết nối cốt lõi của Firebase đám mây vào Header
-        const loadFirebaseLibraries = () => {
-            return new Promise((resolve) => {
-                const appScript = document.createElement('script');
-                appScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js";
-                document.head.appendChild(appScript);
+        // 1. Tự động nạp trực tiếp thư viện ứng dụng Firebase phiên bản script thông thường
+        const fbAppScript = document.createElement('script');
+        fbAppScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js";
+        document.head.appendChild(fbAppScript);
 
-                appScript.onload = () => {
-                    const dbScript = document.createElement('script');
-                    dbScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js";
-                    document.head.appendChild(dbScript);
-                    dbScript.onload = () => resolve();
-                };
-            });
-        };
+        // 2. Nạp thư viện cơ sở dữ liệu Realtime Database
+        const fbDbScript = document.createElement('script');
+        fbDbScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js";
+        document.head.appendChild(fbDbScript);
 
-        // 2. Tiến hành cấu hình, kết nối và viết đè các hàm lưu trữ cũ sang Firebase
-        loadFirebaseLibraries().then(() => {
-            // Chìa khóa kết nối bảo mật tới dự án Firebase của bạn
+        // 3. Tiến hành cấu hình kết nối khi thư viện tải xong
+        fbDbScript.onload = function() {
+            // Cấu hình tài khoản đám mây Firebase của bạn
             const firebaseConfig = {
                 apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
                 authDomain: "ql-benhnhantuyentren.firebaseapp.com",
@@ -1407,68 +1402,83 @@
                 measurementId: "G-0JPKGYLJK0"
             };
 
-            // Khởi tạo ứng dụng trực tuyến
+            // Khởi tạo Firebase
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
 
-            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Thời gian thực)
+            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Đã sửa lỗi cấu trúc sessions)
             db.ref("patients").on("value", function(snapshot) {
                 const data = snapshot.val();
                 if (data) {
-                    // Chuyển đổi dữ liệu dạng cặp Khóa-Giá trị trực tuyến thành mảng hiển thị của phần mềm
-                    patients = Object.keys(data).map(key => ({
-                        id: key,
-                        ...data[key]
-                    }));
+                    window.patients = Object.keys(data).map(key => {
+                        const patientData = data[key];
+                        
+                        // CHUẨN HÓA SESSIONS: Nếu đợt bệnh từ Firebase trả về dạng Đối tượng (Object), chuyển ngay sang định dạng Mảng (Array)
+                        let formattedSessions = [];
+                        if (patientData.sessions) {
+                            if (Array.isArray(patientData.sessions)) {
+                                formattedSessions = patientData.sessions.filter(s => s !== null);
+                            } else if (typeof patientData.sessions === 'object') {
+                                formattedSessions = Object.keys(patientData.sessions).map(sKey => ({
+                                    ...patientData.sessions[sKey]
+                                }));
+                            }
+                        }
+                        
+                        return {
+                            id: key,
+                            ...patientData,
+                            sessions: formattedSessions // Trả lại cấu trúc mảng chuẩn để giao diện đọc được .length
+                        };
+                    });
                 } else {
-                    patients = [];
+                    window.patients = [];
                 }
-                // Làm mới giao diện ngay lập tức
+                
+                // Cập nhật lại giao diện, bộ lọc và số liệu thống kê
                 if (typeof updateStats === 'function') updateStats();
                 if (typeof initFilterDropdowns === 'function') initFilterDropdowns();
                 if (typeof renderList === 'function') renderList();
             });
 
-            // LẮNG NGHE DỮ LIỆU NHẬT KÝ GIAO BAN CA TRỰC TRỰC TUYẾN
+            // LẮNG NGHE & TỰ ĐỘNG ĐỒNG BỘ SỔ GIAO CA ĐIỆN TỬ
             db.ref("handovers").on("value", function(snapshot) {
                 const data = snapshot.val();
                 if (data) {
-                    handovers = Object.keys(data).map(key => ({
+                    window.handovers = Object.keys(data).map(key => ({
                         id: key,
                         ...data[key]
                     }));
                 } else {
-                    handovers = [];
+                    window.handovers = [];
                 }
+                
+                // Cập nhật lại nhật ký sổ giao ca
                 if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
             });
 
-            // VIẾT ĐÈ HÀM LƯU TRỮ CŨ: Chuyển toàn bộ hành động Thêm/Sửa/Xóa lên thẳng mây Firebase
+            // VIẾT ĐÈ HÀM LƯU TRỮ CŨ: Đẩy dữ liệu Thêm/Sửa/Xóa trực tiếp lên Firebase
             window.saveToLocalStorage = function() {
-                // Biến đổi mảng patients hiện tại thành định dạng Object để lưu trữ đồng nhất trên Firebase
                 const patientsObject = {};
-                patients.forEach(p => {
+                window.patients.forEach(p => {
                     if (p.id) {
                         const { id, ...patientData } = p;
                         patientsObject[id] = patientData;
                     }
                 });
 
-                // Biến đổi mảng sổ ca trực handovers thành định dạng Object để lưu trữ
                 const handoversObject = {};
-                handovers.forEach(h => {
+                window.handovers.forEach(h => {
                     if (h.id) {
                         const { id, ...handoverData } = h;
                         handoversObject[id] = handoverData;
                     }
                 });
 
-                // Đồng bộ đồng thời cả 2 danh mục lên đám mây trực tuyến công cộng
                 db.ref("patients").set(patientsObject);
                 db.ref("handovers").set(handoversObject);
             };
-        });
+        };
     </script>
 </body>
 </html>
-        
