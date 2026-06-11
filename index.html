@@ -613,101 +613,51 @@
         }
 
         // Helper tìm đợt điều trị mới nhất của một bệnh nhân
+        // --- HÀM LẤY ĐỢT ĐIỀU TRỊ MỚI NHẤT CHUẨN HÓA DỮ LIỆU FIREBASE ---
         function getLatestSession(patientId) {
-            const patientSessions = sessions.filter(s => s.patientId === patientId);
-            if (patientSessions.length === 0) return null;
-            // Sắp xếp giảm dần theo sessionNum để lấy số lớn nhất
-            return [...patientSessions].sort((a, b) => b.sessionNum - a.sessionNum)[0];
-        }
-
-        // --- ĐỊNH DẠNG NGÀY THÁNG ---
-        function formatDate(dateStr) {
-            if (!dateStr) return "-";
-            const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return dateStr;
-            const d = String(date.getDate()).padStart(2, '0');
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}/${m}/${y}`;
-        }
-
-        // --- ĐÓNG MỞ CỬA SỔ MODAL ---
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        // --- ĐÓNG MỞ CỬA SỔ MODAL THÔNG THƯỜNG ---
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('hidden');
-        }
-
-        // --- LỌC NHANH THEO THẺ THỐNG KÊ ---
-        function filterByStat(status) {
-            const filterInput = document.getElementById('filter-status');
-            if (filterInput) {
-                filterInput.value = status;
-                renderList();
+            const currentPatients = (window.patients && window.patients.length > 0) ? window.patients : (typeof patients !== 'undefined' ? patients : []);
+            const p = currentPatients.find(pt => pt.id === patientId);
+            if (!p) return null;
+            
+            // Nếu bệnh nhân có trường dữ liệu viết sẵn ở cấp ngoài (Firebase phẳng)
+            if (p.hospital || p.chuanDoan) {
+                return {
+                    id: p.lastSessionId || "FB",
+                    hospital: p.hospital || p.Hospital || p.benhvien || p.currentHospital || "-",
+                    chuyenVien: p.chuyenVien || p.chuyenvien || p.date || p.chuyenVienDate || "",
+                    chuanDoan: p.chuanDoan || p.chuandoan || p.chanDoan || p.currentChuanDoan || "-",
+                    xuatVien: p.xuatVien || p.xuatvien || "",
+                    ketQua: p.ketQua || p.ketqua || ""
+                };
             }
-        }
-
-        // --- PHÂN QUYỀN VAI TRÒ HỆ THỐNG ---
-        function switchRole(val) {
-            if (val === 'admin') {
-                const pass = prompt("Nhập mật khẩu Admin để lấy quyền xóa:");
-                if (pass === ADMIN_PASSWORD) {
-                    currentRole = "admin";
-                    showNotification("Quyền quản trị viên được kích hoạt thành công!");
-                } else {
-                    showNotification("Mật khẩu không chính xác!", true);
-                    const selector = document.getElementById('role-select');
-                    if (selector) selector.value = "staff";
-                    currentRole = "staff";
-                }
-            } else {
-                currentRole = "staff";
-                showNotification("Đã trả quyền hạn về Nhân Viên.");
+            
+            if (!p.sessions) return null;
+            
+            let formatted = [];
+            if (Array.isArray(p.sessions)) {
+                formatted = p.sessions.filter(s => s !== null);
+            } else if (typeof p.sessions === 'object') {
+                formatted = Object.keys(p.sessions).map(k => {
+                    return { id: k, ...p.sessions[k] };
+                });
             }
-            renderList();
+            
+            if (formatted.length === 0) return null;
+            
+            // Sắp xếp theo ngày chuyển viện hoặc lấy phần tử cuối cùng
+            let s = formatted[formatted.length - 1];
+            return {
+                ...s,
+                id: s.id || "",
+                hospital: s.hospital || s.Hospital || s.benhvien || "-",
+                chuyenVien: s.chuyenVien || s.chuyenvien || s.date || "",
+                chuanDoan: s.chuanDoan || s.chuandoan || s.chanDoan || "-",
+                xuatVien: s.xuatVien || s.xuatvien || "",
+                ketQua: s.ketQua || s.ketqua || ""
+            };
         }
 
-        // --- KHỞI TẠO BỘ LỌC ĐỘNG CHO TRANG WEB ---
-        function initFilterDropdowns() {
-            const yearSelect = document.getElementById('filter-year');
-            const hospitalSelect = document.getElementById('filter-hospital');
-
-            if (!yearSelect || !hospitalSelect) return;
-
-            const currentYear = yearSelect.value;
-            const currentHospital = hospitalSelect.value;
-
-            const years = new Set();
-            const hospitals = new Set();
-
-            sessions.forEach(s => {
-                if (s.chuyenVien) {
-                    years.add(s.chuyenVien.substring(0, 4));
-                }
-                if (s.hospital) {
-                    hospitals.add(s.hospital.trim());
-                }
-            });
-
-            yearSelect.innerHTML = '<option value="">Năm</option>';
-            Array.from(years).sort((a,b) => b-a).forEach(y => {
-                yearSelect.innerHTML += `<option value="${y}">Năm ${y}</option>`;
-            });
-
-            hospitalSelect.innerHTML = '<option value="">B.Viện</option>';
-            Array.from(hospitals).sort().forEach(h => {
-                hospitalSelect.innerHTML += `<option value="${h}">${h}</option>`;
-            });
-
-            yearSelect.value = currentYear;
-            hospitalSelect.value = currentHospital;
-        }
-
+        // --- HÀM RENDER DANH SÁCH BỆNH NHÂN KHỚP 100% MOBILE & WEB ---
         function renderList() {
             const tbody = document.getElementById('patient-table-body');
             const emptyState = document.getElementById('empty-state');
@@ -725,35 +675,8 @@
             const hospitalFilter = filterHospital ? filterHospital.value : "";
             const statusFilter = filterStatus ? filterStatus.value : "";
 
-            // --- ĐOẠN SỬA LỖI GỐC: ÉP BUỘC DÙNG DỮ LIỆU ĐỒNG BỘ FIREBASE ĐỂ LỌC ---
             const currentPatients = (window.patients && window.patients.length > 0) ? window.patients : (typeof patients !== 'undefined' ? patients : []);
 
-            // --- HÀM PHỤ TRỢ CẢI TIẾN: Sửa lỗi cấu trúc dữ liệu Firebase & Chữ hoa/thường ---
-            const CẢI_TIẾN_getLatestSession = (patientId) => {
-                const p = currentPatients.find(pt => pt.id === patientId);
-                if (!p || !p.sessions) return null;
-                
-                let formatted = [];
-                if (Array.isArray(p.sessions)) {
-                    formatted = p.sessions.filter(s => s !== null);
-                } else if (typeof p.sessions === 'object') {
-                    formatted = Object.keys(p.sessions).map(k => p.sessions[k]);
-                }
-                
-                if (formatted.length === 0) return null;
-                
-                let s = formatted[formatted.length - 1];
-                return {
-                    ...s,
-                    id: s.id || "",
-                    hospital: s.hospital || s.Hospital || s.benhvien || "-",
-                    chuyenVien: s.chuyenVien || s.chuyenvien || s.date || s.Date || "",
-                    chuanDoan: s.chuanDoan || s.chuandoan || s.chanDoan || s.chandoan || "-",
-                    xuatVien: s.xuatVien || s.xuatvien || ""
-                };
-            };
-
-            // Tính toán số liệu thống kê chuẩn xác dựa trên dữ liệu Firebase vừa ép vào
             let countTotal = currentPatients.length;
             let countTreating = 0;
             let countDischarged = 0;
@@ -761,7 +684,7 @@
             let countNoSession = 0;
 
             currentPatients.forEach(p => {
-                const latest = CẢI_TIẾN_getLatestSession(p.id);
+                const latest = getLatestSession(p.id);
                 if (latest) {
                     const isDischarged = latest.xuatVien !== "";
                     const isDeceased = isDischarged && (latest.ketQua === 'deceased' || latest.ketqua === 'deceased');
@@ -797,11 +720,10 @@
             let visibleCount = 0;
             let displayIndex = 1;
 
-            // Sắp xếp bệnh nhân dựa trên dữ liệu chuẩn Firebase
             const patientsWithLatest = currentPatients.map(p => {
                 return {
                     patient: p,
-                    latestSession: CẢI_TIẾN_getLatestSession(p.id)
+                    latestSession: getLatestSession(p.id)
                 };
             }).sort((a, b) => {
                 const dateA = (a.latestSession && a.latestSession.chuyenVien) ? a.latestSession.chuyenVien : "";
@@ -863,7 +785,7 @@
                     tr.className = `${bgClass} text-slate-800 border-b border-slate-200`;
                     
                     let actionBtnHtml = "";
-                    const currentRole = document.getElementById('role-select') ? document.getElementById('role-select').value : "staff";
+                    const currentRole = typeof window.currentRole !== 'undefined' ? window.currentRole : "staff";
                     if (currentSession.id !== "" && !isDischarged) {
                         actionBtnHtml = `
                             <button onclick="openDischargeQuick('${currentSession.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[9px] py-1 px-1.5 rounded-lg shadow-sm transition-all flex items-center gap-0.5">
@@ -1399,18 +1321,19 @@
             });
         }
 
-        // =========================================================================
-        // KHỞI CHẠY ĐỒNG BỘ CHUẨN HOÁ GIỮA FIREBASE VÀ GIAO DIỆN CHUYỂN TUYẾN
-        // =========================================================================
-
+      // --- KHỞI TRẠT LẦN ĐẦU ---
+        
+        // Tạo và tải thư viện Firebase App Script
         const fbAppScript = document.createElement('script');
         fbAppScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js";
         document.head.appendChild(fbAppScript);
 
+        // Tạo và tải thư viện Firebase Database Script
         const fbDbScript = document.createElement('script');
         fbDbScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js";
         document.head.appendChild(fbDbScript);
 
+        // Khi thư viện tải xong sẽ tự động kích hoạt kết nối dữ liệu mạng
         fbDbScript.onload = function() {
             const firebaseConfig = {
                 apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
@@ -1426,51 +1349,64 @@
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
 
-            // Lắng nghe dữ liệu chuẩn, không can thiệp sâu vào bộ lọc gốc của bạn
+            // Lắng nghe dữ liệu bệnh nhân chuẩn hóa Realtime Firebase
             db.ref("patients").on("value", function(snapshot) {
                 const data = snapshot.val();
+                window.patients = [];
                 if (data) {
-                    window.patients = Object.keys(data).map(key => ({
-                        id: key,
-                        ...data[key]
-                    }));
-                } else {
-                    window.patients = [];
+                    Object.keys(data).forEach(key => {
+                        if (data[key]) {
+                            window.patients.push({
+                                id: key,
+                                ...data[key]
+                            });
+                        }
+                    });
                 }
+                // Đồng bộ cập nhật các bộ lọc và vẽ lại bảng biểu tức thì
                 if (typeof updateStats === 'function') updateStats();
                 if (typeof initFilterDropdowns === 'function') initFilterDropdowns();
                 if (typeof renderList === 'function') renderList();
             });
 
+            // Lắng nghe dữ liệu nhật ký giao ca
             db.ref("handovers").on("value", function(snapshot) {
                 const data = snapshot.val();
+                window.handovers = [];
                 if (data) {
-                    window.handovers = Object.keys(data).map(key => ({
-                        id: key,
-                        ...data[key]
-                    }));
-                } else {
-                    window.handovers = [];
+                    Object.keys(data).forEach(key => {
+                        if (data[key]) {
+                            window.handovers.push({
+                                id: key,
+                                ...data[key]
+                            });
+                        }
+                    });
                 }
                 if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
             });
 
+            // Hàm lưu ngược dữ liệu lên Firebase khi cần đồng bộ thủ công
             window.saveToLocalStorage = function() {
                 const patientsObject = {};
-                window.patients.forEach(p => {
-                    if (p.id) {
-                        const { id, ...patientData } = p;
-                        patientsObject[id] = patientData;
-                    }
-                });
+                if (window.patients) {
+                    window.patients.forEach(p => {
+                        if (p.id) {
+                            const { id, ...patientData } = p;
+                            patientsObject[id] = patientData;
+                        }
+                    });
+                }
 
                 const handoversObject = {};
-                window.handovers.forEach(h => {
-                    if (h.id) {
-                        const { id, ...handoverData } = h;
-                        handoversObject[h.id] = handoverData;
-                    }
-                });
+                if (window.handovers) {
+                    window.handovers.forEach(h => {
+                        if (h.id) {
+                            const { id, ...handoverData } = h;
+                            handoversObject[h.id] = handoverData;
+                        }
+                    });
+                }
 
                 db.ref("patients").set(patientsObject);
                 db.ref("handovers").set(handoversObject);
