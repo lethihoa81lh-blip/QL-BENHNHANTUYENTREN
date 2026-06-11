@@ -1407,5 +1407,43 @@
             renderList();
         };
     </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+    // 1. Khởi tạo Firebase (sử dụng cấu hình từ file firebase.txt của bạn)
+    const firebaseConfig = {
+        apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+        databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ql-benhnhantuyentren"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 2. Lắng nghe dữ liệu thời gian thực
+    db.ref("patients").on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        // Tìm bảng hoặc danh sách trong file của bạn
+        // Nếu trang của bạn dùng <tbody> để chứa danh sách, hãy để nguyên là 'tbody'
+        const container = document.querySelector('tbody') || document.getElementById('list-container');
+        
+        if (container) {
+            container.innerHTML = ''; // Xóa sạch 5 bệnh nhân mẫu cũ
+            
+            // Đổ 66 bệnh nhân mới vào
+            Object.values(data).forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2 border">${index + 1}</td>
+                    <td class="p-2 border">${p.hoTen || p.name || '---'}</td>
+                    <td class="p-2 border">${p.namSinh || p.namsinh || p.year || '---'}</td>
+                    <td class="p-2 border">${p.trangThai || p.status || 'Đang ĐT'}</td>
+                `;
+                container.appendChild(tr);
+            });
+        }
+    });
+</script>
 </body>
 </html>
