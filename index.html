@@ -1373,77 +1373,112 @@
                 showNotification("Đã xóa nhật ký giao ban trực thành công.");
             });
         }
+// =========================================================================
+        // --- HỆ THỐNG ĐỒNG BỘ CƠ SỞ DỮ LIỆU ĐÁM MÂY FIREBASE TRỰC TIẾP (COMPAT) ---
+        // =========================================================================
 
-        // --- KHỞI TRẠT LẦN ĐẦU ---
-    <script>
-        function renderList() {
-            const db = firebase.database();
-            db.ref("patients").once("value").then((snapshot) => {
-                const data = snapshot.val();
-                const tbody = document.querySelector('tbody');
-                
-                if (!data || !tbody) return;
+        // 1. Tự động nạp các thư viện kết nối cốt lõi của Firebase đám mây vào Header
+        const loadFirebaseLibraries = () => {
+            return new Promise((resolve) => {
+                const appScript = document.createElement('script');
+                appScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js";
+                document.head.appendChild(appScript);
 
-                // Xóa dữ liệu mẫu cũ
-                tbody.innerHTML = ''; 
-
-                // Đổ dữ liệu từ Firebase vào bảng
-                Object.values(data).forEach((p, index) => {
-                    const row = `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${p.hoTen || p.name || '---'}</td>
-                            <td>${p.namSinh || p.namsinh || p.year || '---'}</td>
-                            <td>${p.trangThai || p.outcome || p.status || 'Đang điều trị'}</td>
-                        </tr>
-                    `;
-                    tbody.insertAdjacentHTML('beforeend', row);
-                });
+                appScript.onload = () => {
+                    const dbScript = document.createElement('script');
+                    dbScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js";
+                    document.head.appendChild(dbScript);
+                    dbScript.onload = () => resolve();
+                };
             });
-        }
-
-        window.onload = function() {
-            // initFilterDropdowns(); // Bạn cứ giữ lại dòng này nếu cần
-            renderList();
         };
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script>
-    // 1. Khởi tạo Firebase (sử dụng cấu hình từ file firebase.txt của bạn)
-    const firebaseConfig = {
-        apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
-        databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "ql-benhnhantuyentren"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
 
-    // 2. Lắng nghe dữ liệu thời gian thực
-    db.ref("patients").on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
+        // 2. Tiến hành cấu hình, kết nối và viết đè các hàm lưu trữ cũ sang Firebase
+        loadFirebaseLibraries().then(() => {
+            // Chìa khóa kết nối bảo mật tới dự án Firebase của bạn
+            const firebaseConfig = {
+                apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+                authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+                databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "ql-benhnhantuyentren",
+                storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+                messagingSenderId: "127051253047",
+                appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+                measurementId: "G-0JPKGYLJK0"
+            };
 
-        // Tìm bảng hoặc danh sách trong file của bạn
-        // Nếu trang của bạn dùng <tbody> để chứa danh sách, hãy để nguyên là 'tbody'
-        const container = document.querySelector('tbody') || document.getElementById('list-container');
-        
-        if (container) {
-            container.innerHTML = ''; // Xóa sạch 5 bệnh nhân mẫu cũ
-            
-            // Đổ 66 bệnh nhân mới vào
-            Object.values(data).forEach((p, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="p-2 border">${index + 1}</td>
-                    <td class="p-2 border">${p.hoTen || p.name || '---'}</td>
-                    <td class="p-2 border">${p.namSinh || p.namsinh || p.year || '---'}</td>
-                    <td class="p-2 border">${p.trangThai || p.status || 'Đang ĐT'}</td>
-                `;
-                container.appendChild(tr);
+            // Khởi tạo ứng dụng trực tuyến
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
+
+            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Thời gian thực)
+            db.ref("patients").on("value", function(snapshot) {
+                const data = snapshot.val();
+                if (data) {
+                    // Chuyển đổi dữ liệu dạng cặp Khóa-Giá trị trực tuyến thành mảng hiển thị của phần mềm
+                    patients = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                } else {
+                    patients = [];
+                }
+                // Làm mới giao diện ngay lập tức
+                if (typeof updateStats === 'function') updateStats();
+                if (typeof initFilterDropdowns === 'function') initFilterDropdowns();
+                if (typeof renderList === 'function') renderList();
             });
+
+            // LẮNG NGHE DỮ LIỆU NHẬT KÝ GIAO BAN CA TRỰC TRỰC TUYẾN
+            db.ref("handovers").on("value", function(snapshot) {
+                const data = snapshot.val();
+                if (data) {
+                    handovers = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                } else {
+                    handovers = [];
+                }
+                if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
+            });
+
+            window.saveToLocalStorage = function() {
+    // 1. Cập nhật danh mục sổ ca trực (giữ nguyên cách cũ)
+    const handoversObject = {};
+    handovers.forEach(h => { if(h.id) handoversObject[h.id] = h; });
+    db.ref("handovers").set(handoversObject);
+
+    // 2. CẬP NHẬT DANH SÁCH BỆNH NHÂN (Tối ưu)
+    // Thay vì gửi cả cục 'patientsObject', chúng ta chỉ gửi những gì đã thay đổi
+    const patientsObject = {};
+    patients.forEach(p => {
+        if (p.id) {
+            const { id, ...data } = p;
+            patientsObject[id] = data;
         }
     });
-</script>
+    
+    // Ghi đè lên nhánh patients
+    db.ref("patients").update(patientsObject)
+      .then(() => console.log("Đồng bộ thành công!"))
+      .catch((error) => console.error("Lỗi đồng bộ: ", error));
+};
+                // Biến đổi mảng sổ ca trực handovers thành định dạng Object để lưu trữ
+                const handoversObject = {};
+                handovers.forEach(h => {
+                    if (h.id) {
+                        const { id, ...handoverData } = h;
+                        handoversObject[id] = handoverData;
+                    }
+                });
+
+                // Đồng bộ đồng thời cả 2 danh mục lên đám mây trực tuyến công cộng
+                db.ref("patients").set(patientsObject);
+                db.ref("handovers").set(handoversObject);
+            };
+        });
+    </script>
 </body>
 </html>
+        
