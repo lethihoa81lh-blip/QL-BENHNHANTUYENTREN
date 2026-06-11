@@ -1373,73 +1373,102 @@
                 showNotification("Đã xóa nhật ký giao ban trực thành công.");
             });
         }
+// =========================================================================
+        // --- HỆ THỐNG ĐỒNG BỘ CƠ SỞ DỮ LIỆU ĐÁM MÂY FIREBASE TRỰC TIẾP (COMPAT) ---
+        // =========================================================================
 
-        // --- KHỞI TRẠT LẦN ĐẦU VÀ KẾT NỐI REALTIME FIREBASE đám mây ---
-        // Biến lưu trữ dữ liệu rỗng ban đầu
-        let patients = [];
-        let handovers = [];
+        // 1. Tự động nạp các thư viện kết nối cốt lõi của Firebase đám mây vào Header
+        const loadFirebaseLibraries = () => {
+            return new Promise((resolve) => {
+                const appScript = document.createElement('script');
+                appScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js";
+                document.head.appendChild(appScript);
 
-        // Khởi chạy đồng bộ Firebase khi cửa sổ trình duyệt tải xong
-        window.onload = function() {
-            // Kiểm tra xem các thư viện Firebase đã được nhập chưa (Cần thiết)
-            if (typeof firebase !== 'undefined' || window.location.href) {
-                // Nhập các hàm cần thiết từ Firebase Realtime Database thông qua CDN trực tiếp
-                import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js")
-                    .then((FirebaseDB) => {
-                        const getDatabase = FirebaseDB.getDatabase;
-                        const ref = FirebaseDB.ref;
-                        const onValue = FirebaseDB.onValue;
-
-                        const db = getDatabase();
-                        
-                        // Lắng nghe danh sách bệnh nhân từ Firebase Realtime
-                        const patientsRef = ref(db, "patients");
-                        onValue(patientsRef, (snapshot) => {
-                            const data = snapshot.val();
-                            if (data) {
-                                // Tự động lấy cấu trúc của 66 bệnh nhân từ đám mây về chuyển đổi thành mảng
-                                patients = Object.keys(data).map(key => ({
-                                    id: key,
-                                    ...data[key]
-                                }));
-                            } else {
-                                patients = [];
-                            }
-                            
-                            // Tự động làm mới bộ lọc và danh sách màn hình ngay khi dữ liệu kéo về thành công
-                            initFilterDropdowns(); 
-                            renderList();
-                        });
-
-                        // Lắng nghe danh sách sổ giao ca trực từ Firebase Realtime
-                        const handoversRef = ref(db, "handovers");
-                        onValue(handoversRef, (snapshot) => {
-                            const data = snapshot.val();
-                            if (data) {
-                                handovers = Object.keys(data).map(key => ({
-                                    id: key,
-                                    ...data[key]
-                                }));
-                            } else {
-                                handovers = [];
-                            }
-                            // Làm mới nhật ký ca trực nếu có hàm render
-                            if (typeof renderHandoverLogs === 'function') {
-                                renderHandoverLogs();
-                            }
-                        });
-                    })
-                    .catch((err) => {
-                        console.error("Lỗi kết nối SDK Firebase: ", err);
-                        // Nếu lỗi mạng, hệ thống chạy dự phòng bằng việc giữ giao diện ổn định
-                        initFilterDropdowns();
-                        renderList();
-                    });
-            } else {
-                initFilterDropdowns();
-                renderList();
-            }
+                appScript.onload = () => {
+                    const dbScript = document.createElement('script');
+                    dbScript.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js";
+                    document.head.appendChild(dbScript);
+                    dbScript.onload = () => resolve();
+                };
+            });
         };
+
+        // 2. Tiến hành cấu hình, kết nối và viết đè các hàm lưu trữ cũ sang Firebase
+        loadFirebaseLibraries().then(() => {
+            // Chìa khóa kết nối bảo mật tới dự án Firebase của bạn
+            const firebaseConfig = {
+                apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+                authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+                databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "ql-benhnhantuyentren",
+                storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+                messagingSenderId: "127051253047",
+                appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+                measurementId: "G-0JPKGYLJK0"
+            };
+
+            // Khởi tạo ứng dụng trực tuyến
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
+
+            // LẮNG NGHE & TỰ ĐỘNG ĐỔ 66 BỆNH NHÂN CŨ LÊN MÀN HÌNH (Thời gian thực)
+            db.ref("patients").on("value", function(snapshot) {
+                const data = snapshot.val();
+                if (data) {
+                    // Chuyển đổi dữ liệu dạng cặp Khóa-Giá trị trực tuyến thành mảng hiển thị của phần mềm
+                    patients = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                } else {
+                    patients = [];
+                }
+                // Làm mới giao diện ngay lập tức
+                if (typeof updateStats === 'function') updateStats();
+                if (typeof initFilterDropdowns === 'function') initFilterDropdowns();
+                if (typeof renderList === 'function') renderList();
+            });
+
+            // LẮNG NGHE DỮ LIỆU NHẬT KÝ GIAO BAN CA TRỰC TRỰC TUYẾN
+            db.ref("handovers").on("value", function(snapshot) {
+                const data = snapshot.val();
+                if (data) {
+                    handovers = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                } else {
+                    handovers = [];
+                }
+                if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
+            });
+
+            // VIẾT ĐÈ HÀM LƯU TRỮ CŨ: Chuyển toàn bộ hành động Thêm/Sửa/Xóa lên thẳng mây Firebase
+            window.saveToLocalStorage = function() {
+                // Biến đổi mảng patients hiện tại thành định dạng Object để lưu trữ đồng nhất trên Firebase
+                const patientsObject = {};
+                patients.forEach(p => {
+                    if (p.id) {
+                        const { id, ...patientData } = p;
+                        patientsObject[id] = patientData;
+                    }
+                });
+
+                // Biến đổi mảng sổ ca trực handovers thành định dạng Object để lưu trữ
+                const handoversObject = {};
+                handovers.forEach(h => {
+                    if (h.id) {
+                        const { id, ...handoverData } = h;
+                        handoversObject[id] = handoverData;
+                    }
+                });
+
+                // Đồng bộ đồng thời cả 2 danh mục lên đám mây trực tuyến công cộng
+                db.ref("patients").set(patientsObject);
+                db.ref("handovers").set(handoversObject);
+            };
+        });
     </script>
 </body>
 </html>
+        
