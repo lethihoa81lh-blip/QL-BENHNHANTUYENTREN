@@ -1410,28 +1410,58 @@
             // Khởi tạo ứng dụng trực tuyến
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
-
-            <script>
-    // 1. Cập nhật dữ liệu từ Firebase về máy khi có thay đổi
-    db.ref("patients").on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            patients = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-        } else {
-            patients = [];
-        }
-        // Gọi hàm vẽ lại bảng hiện có trong file của bạn
-        if (typeof renderList === 'function') renderList();
-    });
-
-    // 2. Hàm lưu dữ liệu lên Firebase (Dùng để thay thế saveToLocalStorage cũ)
-    window.saveToLocalStorage = function() {
-        // Cập nhật lên Firebase thay vì LocalStorage
-        const patientsObject = {};
-        patients.forEach(p => { if(p.id) patientsObject[p.id] = p; });
-        
-        db.ref("patients").set(patientsObject).then(() => {
-            console.log("Đã đồng bộ lên mây!");
+            
+   <script>
+        // Lắng nghe dữ liệu bệnh nhân thời gian thực
+        db.ref("patients").on("value", function(snapshot) {
+            const data = snapshot.val();
+            if (data) {
+                patients = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+            } else {
+                patients = [];
+            }
+            if (typeof renderPatients === 'function') renderPatients();
         });
-    };
-</script>
+
+        // Lắng nghe dữ liệu sổ ca trực thời gian thực
+        db.ref("handovers").on("value", function(snapshot) {
+            const data = snapshot.val();
+            if (data) {
+                handovers = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+            } else {
+                handovers = [];
+            }
+            if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
+        });
+
+        // Hàm lưu trữ an toàn - Dùng .set để đồng bộ lên Firebase
+        window.saveToLocalStorage = function() {
+            const patientsObject = {};
+            patients.forEach(p => {
+                if (p.id) {
+                    const { id, ...patientData } = p;
+                    patientsObject[id] = patientData;
+                }
+            });
+
+            const handoversObject = {};
+            handovers.forEach(h => {
+                if (h.id) {
+                    const { id, ...handoverData } = h;
+                    handoversObject[id] = handoverData;
+                }
+            });
+
+            db.ref("patients").set(patientsObject);
+            db.ref("handovers").set(handoversObject);
+            console.log("Đã đồng bộ lên Firebase thành công!");
+        };
+    </script>
+</body>
+</html>
