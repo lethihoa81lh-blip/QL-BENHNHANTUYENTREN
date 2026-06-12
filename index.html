@@ -1407,60 +1407,35 @@
                 measurementId: "G-0JPKGYLJK0"
             };
 
-            // Khởi tạo ứng dụng trực tuyến
-            firebase.initializeApp(firebaseConfig);
-            const db = firebase.database();
-            
-   <script>
-        // Lắng nghe dữ liệu bệnh nhân thời gian thực
-        db.ref("patients").on("value", function(snapshot) {
+           <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+        // 1. Cấu hình kết nối
+        const firebaseConfig = {
+            apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+            authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+            databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ql-benhnhantuyentren",
+            storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+            messagingSenderId: "127051253047",
+            appId: "1:127051253047:web:12899a0b0f28d0addd86b2"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // 2. Lắng nghe dữ liệu thời gian thực
+        db.ref("patients").on("value", (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                patients = Object.keys(data).map(key => ({
-                    id: key,
-                    ...data[key]
-                }));
-            } else {
-                patients = [];
-            }
-            if (typeof renderPatients === 'function') renderPatients();
+            patients = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            // Gọi lại hàm vẽ danh sách của bạn
+            if (typeof renderList === 'function') renderList();
         });
 
-        // Lắng nghe dữ liệu sổ ca trực thời gian thực
-        db.ref("handovers").on("value", function(snapshot) {
-            const data = snapshot.val();
-            if (data) {
-                handovers = Object.keys(data).map(key => ({
-                    id: key,
-                    ...data[key]
-                }));
-            } else {
-                handovers = [];
-            }
-            if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
-        });
-
-        // Hàm lưu trữ an toàn - Dùng .set để đồng bộ lên Firebase
+        // 3. Hàm lưu trữ chủ động
         window.saveToLocalStorage = function() {
             const patientsObject = {};
-            patients.forEach(p => {
-                if (p.id) {
-                    const { id, ...patientData } = p;
-                    patientsObject[id] = patientData;
-                }
-            });
-
-            const handoversObject = {};
-            handovers.forEach(h => {
-                if (h.id) {
-                    const { id, ...handoverData } = h;
-                    handoversObject[id] = handoverData;
-                }
-            });
-
-            db.ref("patients").set(patientsObject);
-            db.ref("handovers").set(handoversObject);
-            console.log("Đã đồng bộ lên Firebase thành công!");
+            patients.forEach(p => { if (p.id) { const { id, ...data } = p; patientsObject[id] = data; }});
+            db.ref("patients").set(patientsObject).then(() => console.log("Đồng bộ thành công!"));
         };
     </script>
 </body>
