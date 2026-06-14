@@ -10,22 +10,46 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col pb-6">
+
     <script>
-        // CẤU HÌNH FIREBASE
+        // 1. CẤU HÌNH FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+            authDomain: "ql-benhnhantuyentren.firebaseapp.com",
             databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "ql-benhnhantuyentren"
+            projectId: "ql-benhnhantuyentren",
+            storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+            messagingSenderId: "127051253047",
+            appId: "1:127051253047:web:12899a0b0f28d0addd86b2"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // HÀM LƯU ĐỒNG BỘ
+        // 2. KHỞI TẠO BIẾN DỮ LIỆU RỖNG (Để đợi Firebase tải về)
+        let patients = [];
+        let sessions = [];
+        let handovers = [];
+
+        // 3. ĐỒNG BỘ DỮ LIỆU TỪ FIREBASE (Thay thế logic cũ)
+        db.ref('data').once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                patients = data.patients || [];
+                sessions = data.sessions || [];
+                handovers = data.handovers || [];
+            }
+            // Sau khi có dữ liệu mới render
+            renderList();
+            if (typeof renderHandoverLogs === 'function') renderHandoverLogs();
+        });
+
+        // 4. HÀM LƯU ĐỒNG BỘ (Ghi đè lên database Firebase)
         function saveToLocalStorage() {
+            // Lưu local
             localStorage.setItem('qlbn_patients', JSON.stringify(patients));
             localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
             localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
-            
+
             // Đẩy lên Firebase
             db.ref('data').set({
                 patients: patients,
@@ -34,18 +58,7 @@
             });
         }
 
-        // TỰ ĐỘNG TẢI DỮ LIỆU KHI MỞ TRANG
-        db.ref('data').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                patients = data.patients || [];
-                sessions = data.sessions || [];
-                handovers = data.handovers || [];
-                renderList(); // Hàm vẽ lại giao diện của bạn
-            }
-        });
-
-        // (Phần còn lại là code cũ của bạn, dán tiếp vào đây)
+        // [Dán các hàm function cũ của bạn (renderList, deletePatient, ...) vào dưới này]
     </script>
 </body>
 </html>
