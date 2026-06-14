@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <title>QLBN Tuyến Trên - Bản Di Động Tối Giản</title>
     <!-- Sử dụng Tailwind CSS CDN để thiết kế giao diện di động cực đẹp và gọn gàng -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -609,11 +609,17 @@
         ];
 
         function saveToLocalStorage() {
-            localStorage.setItem('qlbn_patients', JSON.stringify(patients));
-            localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
-            localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
-        }
+    // 1. Lưu vào máy cá nhân (để chạy offline)
+    localStorage.setItem('qlbn_patients', JSON.stringify(patients));
+    localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
+    localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
 
+    // 2. Đẩy lên Firebase (để đồng bộ với máy khác)
+    // Dùng .set() để ghi đè toàn bộ dữ liệu hiện tại lên server
+    firebase.database().ref('patients').set(patients);
+    firebase.database().ref('sessions').set(sessions);
+    firebase.database().ref('handovers').set(handovers);
+}
         // Helper tìm đợt điều trị mới nhất của một bệnh nhân
         function getLatestSession(patientId) {
             const patientSessions = sessions.filter(s => s.patientId === patientId);
@@ -715,7 +721,6 @@
             const emptyState = document.getElementById('empty-state');
             if (!tbody) return;
 
-            tbody.innerHTML = '';
 
             const searchBox = document.getElementById('search-box');
             const filterYear = document.getElementById('filter-year');
@@ -727,6 +732,7 @@
             const hospitalFilter = filterHospital ? filterHospital.value : "";
             const statusFilter = filterStatus ? filterStatus.value : "";
 
+            tbody.innerHTML = '';
             // Tính toán số liệu thống kê chuẩn xác dựa trên TRẠNG THÁI CUỐI CÙNG của từng bệnh nhân
             let countTotal = patients.length;
             let countTreating = 0;
@@ -1355,8 +1361,7 @@
 
                 div.innerHTML = `
                     <div class="flex justify-between items-center border-b border-slate-100 pb-1.5 pr-8">
-                        <span class="text-[9px] text-slate-400 font-bold">📅 Ngày trực: ${formatDat
-                                                                                         e(log.date)}</span>
+                        <span class="text-[9px] text-slate-400 font-bold">📅 Ngày trực: ${formatDate(log.date)}</span>
                         <span class="text-indigo-800 font-bold text-[10px]"><i class="fa-solid fa-signature"></i> ${log.staffName}</span>
                     </div>
                     <span class="inline-block text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold uppercase">${log.shift}</span>
@@ -1377,7 +1382,8 @@
             });
         }
 
-    // 1. Cấu hình kết nối Firebase
+        <script>
+    // 1. Khởi tạo Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
         databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -1386,48 +1392,34 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 2. Biến chứa dữ liệu đồng bộ
-    let patients = [];
+    // 2. Lắng nghe dữ liệu (Đây là chìa khóa để đồng bộ)
+    db.ref('patients').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // Cập nhật biến patients của bạn bằng dữ liệu mới nhất
+            patients = Object.values(data);
+            renderList(); // Tự động vẽ lại bảng
+        }
+    });
 
-    // 3. Khởi chạy và đồng bộ Realtime
+    // 3. Hàm lưu dữ liệu
+    function saveToLocalStorage() {
+        // Lưu vào máy cá nhân
+        localStorage.setItem('qlbn_patients', JSON.stringify(patients));
+        localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
+        localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
+
+        // Đẩy lên Firebase đồng bộ
+        db.ref('patients').set(patients);
+        db.ref('sessions').set(sessions);
+        db.ref('handovers').set(handovers);
+    }
+
+    // 4. Khởi chạy
     window.onload = function() {
         initFilterDropdowns();
-        
-        // Lệnh này giúp dữ liệu trên mọi thiết bị tự khớp nhau
-        db.ref('patients').on('value', (snapshot) => {
-            const data = snapshot.val();
-            // Chuyển dữ liệu từ Firebase về mảng để render
-            patients = data ? Object.values(data) : [];
-            renderList(); 
-        });
+        // Không cần gọi renderList() ở đây vì đoạn "Lắng nghe" ở trên đã làm việc đó rồi
     };
-
-    // 4. Hàm lưu (Tự đẩy lên Firebase)
-    function saveNewPatient(event) {
-        event.preventDefault();
-        const pName = document.getElementById('p-name').value;
-        const pYear = document.getElementById('p-year').value;
-        
-        // Push lên Firebase sẽ tự tạo ID duy nhất, không lo trùng
-        db.ref('patients').push({
-            name: pName,
-            year: pYear,
-            dateAdded: Date.now()
-        }).then(() => {
-            alert("Đã lưu thành công!");
-            closeModal('modal-patient');
-        });
-    }
-
-    // 5. Hàm xóa
-    function deletePatientAction(id) {
-        // Kiểm tra quyền Admin từ localStorage
-        if (localStorage.getItem('userRole') !== 'admin') {
-            alert("Chỉ Admin mới được xóa!");
-            return;
-        }
-        db.ref('patients/' + id).remove();
-    }
 </script>
 </body>
 </html>
