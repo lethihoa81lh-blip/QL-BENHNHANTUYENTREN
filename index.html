@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <title>QLBN Tuyến Trên - Bản Di Động Tối Giản</title>
     <!-- Sử dụng Tailwind CSS CDN để thiết kế giao diện di động cực đẹp và gọn gàng -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -523,7 +525,7 @@
     </div>
 
     <!-- ==================== JAVASCRIPT XỬ LÝ LOGIC CHUYÊN SÂU ==================== -->
-    <script type="module">
+    <script>
         let currentRole = "staff"; 
         const ADMIN_PASSWORD = "admin";
         let activePatientId = null; // ID bệnh nhân đang mở xem chi tiết
@@ -586,68 +588,26 @@
         }
 
         // --- CƠ SỞ DỮ LIỆU ĐỒNG BỘ LOCALSTORAGE ---
-        let patients = [];
-let sessions = [];
+        let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [
+            { id: "p1", name: "Trần Chính", birthYear: "1970", gender: "Nam", bhyt: "-" },
+            { id: "p2", name: "Nguyễn Bá Trọng", birthYear: "1965", gender: "Nam", bhyt: "BT2797930434436" },
+            { id: "p3", name: "Nguyễn Văn Thông", birthYear: "1965", gender: "Nam", bhyt: "BT2797912305952" },
+            { id: "p4", name: "Trương Lệ Vân", birthYear: "1954", gender: "Nữ", bhyt: "BT2797930460725" },
+            { id: "p5", name: "Phạm Văn Đức", birthYear: "1948", gender: "Nam", bhyt: "BT2797930411223" }
+        ];
 
-window.patients = patients;
-window.sessions = sessions;
-// --- KẾT NỐI FIREBASE ---
-import { initializeApp } 
-from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        let sessions = JSON.parse(localStorage.getItem('qlbn_sessions')) || [
+            { id: "s1", patientId: "p1", sessionNum: 1, nhapTram: "2026-06-01", chuyenVien: "2026-06-01", chuanDoan: "Viêm Phế Quản/ Động kinh", hospital: "Nhân Ái", xuatVien: "", ketQua: "", notes: "Đã chuyển từ trạm xá lên bệnh viện Nhân Ái bằng xe chuyên dụng trung tâm." },
+            { id: "s2", patientId: "p2", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-05", chuanDoan: "U thực quản", hospital: "Chợ Rẫy", xuatVien: "2026-01-07", ketQua: "discharged", notes: "Người nhà chăm nuôi chính, đã chuyển viện an toàn." },
+            { id: "s3", patientId: "p3", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-03", chuanDoan: "TD TBMMN/THA", hospital: "Bình Dương", xuatVien: "2026-05-12", ketQua: "discharged", notes: "Chuyển từ tuyến huyện lên tỉnh ngày 03/01." },
+            { id: "s4", patientId: "p4", sessionNum: 1, nhapTram: "2026-01-01", chuyenVien: "2026-01-01", chuanDoan: "Tăng huyết áp/Sốt CRNN", hospital: "BÌNH LONG", xuatVien: "2026-05-09", ketQua: "discharged", notes: "Bệnh nhân điều trị bình thường và đã xuất viện an toàn về trung tâm bảo trợ." },
+            { id: "s5", patientId: "p5", sessionNum: 1, nhapTram: "2026-02-10", chuyenVien: "2026-02-12", chuanDoan: "Suy kiệt tuổi già / Tai biến", hospital: "Chợ Rẫy", xuatVien: "2026-02-15", ketQua: "deceased", notes: "Bệnh nhân chuyển nặng nhanh, tử vong tại bệnh viện Chợ Rẫy ngày 15/02/2026. Đã bàn giao thi hài về gia đình lo hậu sự." }
+        ];
 
-import { 
-getDatabase, 
-ref, 
-onValue 
-} 
-from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+        let handovers = JSON.parse(localStorage.getItem('qlbn_handovers')) || [
+            { id: "h1", date: "2026-06-02", shift: "Ca Sáng (06:00 - 14:00)", staffName: "Nguyễn Thị Hoa", content: "Đã chuyển viện an toàn bệnh nhân Trần Chính lên bệnh viện Nhân Ái vào sáng nay do có cơn co giật đột xuất liên tục. Đã bàn giao đầy đủ hồ sơ bệnh án kèm thẻ BHYT cho điều dưỡng tuyến trên trực tiếp đón nhận." }
+        ];
 
-
-const firebaseConfig = {
-  apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
-  authDomain: "ql-benhnhantuyentren.firebaseapp.com",
-  databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ql-benhnhantuyentren",
-  storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
-  messagingSenderId: "127051253047",
-  appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
-  measurementId: "G-0JPKGYLJK0"
-};
-
-
-const app = initializeApp(firebaseConfig);
-
-const db = getDatabase(app);
-
-
-
-onValue(ref(db,"patients"),(snapshot)=>{
-
-    const data = snapshot.val();
-
-    patients = data ? Object.values(data) : [];
-
-window.patients = patients;
-
-console.log("Firebase patients:", patients);
-
-});
-
-
-
-onValue(ref(db,"sessions"),(snapshot)=>{
-
-    const data = snapshot.val();
-
-    sessions = data ? Object.values(data) : [];
-
-window.sessions = sessions;
-
-console.log("Firebase sessions:", sessions);
-
-renderList();
-
-});
         function saveToLocalStorage() {
             localStorage.setItem('qlbn_patients', JSON.stringify(patients));
             localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
@@ -1100,27 +1060,25 @@ renderList();
             openModal('modal-edit-patient-root');
         }
 
-       function saveEditPatientRoot(event) {
-    event.preventDefault();
-    if (!activePatientId) return;
+        function saveEditPatientRoot(event) {
+            event.preventDefault();
+            if (!activePatientId) return;
 
-    const updatedPatient = {
-        id: activePatientId,
-        name: document.getElementById('ep-name').value.trim(),
-        birthYear: document.getElementById('ep-year').value,
-        gender: document.getElementById('ep-gender').value,
-        bhyt: document.getElementById('ep-bhyt').value.trim() || "-"
-    };
+            const idx = patients.findIndex(p => p.id === activePatientId);
+            if (idx !== -1) {
+                patients[idx].name = document.getElementById('ep-name').value.trim();
+                patients[idx].birthYear = document.getElementById('ep-year').value;
+                patients[idx].gender = document.getElementById('ep-gender').value;
+                patients[idx].bhyt = document.getElementById('ep-bhyt').value.trim() || "-";
 
-    // 🔥 GHI THẲNG LÊN FIREBASE (KHÔNG DÙNG MẢNG + LOCALSTORAGE NỮA)
-    set(ref(db, "patients/" + activePatientId), updatedPatient);
+                saveToLocalStorage();
+                renderList();
+                openPatientDetailSheet(activePatientId); // Refresh sheet
+                closeModal('modal-edit-patient-root');
+                showNotification("Đã cập nhật hồ sơ hành chính gốc!");
+            }
+        }
 
-    // UI cập nhật lại
-    renderList();
-    openPatientDetailSheet(activePatientId);
-    closeModal('modal-edit-patient-root');
-    showNotification("Đã cập nhật hồ sơ hành chính gốc!");
-}
         // --- SỬA ĐỢT ĐIỀU TRỊ CỦA BỆNH NHÂN ---
         function triggerEditSession(sessionId) {
             const s = sessions.find(x => x.id === sessionId);
@@ -1217,7 +1175,6 @@ renderList();
             const hospital = document.getElementById('s-hospital').value.trim();
             const xuatVien = document.getElementById('s-xuatvien').value;
             const chuanDoan = document.getElementById('s-chuanDoan').value.trim();
-            
             const notes = document.getElementById('s-notes').value.trim();
 
             const newPatientId = "p_" + Date.now();
@@ -1231,22 +1188,18 @@ renderList();
                 bhyt: bhyt
             });
 
-           const newSession = {
-    id: "s_" + Date.now(),
-    patientId: activePatientId,
-    sessionNum: nextSessionNum,
-    nhapTram,
-    chuyenVien,
-    chuanDoan,
-    hospital,
-    xuatVien,
-    ketQua: xuatVien ? outcome : "",
-    notes
-};
-
-const sessionsRef = ref(db, "sessions");
-const newRef = push(sessionsRef);
-set(newRef, newSession);
+            sessions.push({
+                id: newSessionId,
+                patientId: newPatientId,
+                sessionNum: 1,
+                nhapTram: nhapTram,
+                chuyenVien: chuyenVien,
+                chuanDoan: chuanDoan,
+                hospital: hospital,
+                xuatVien: xuatVien,
+                ketQua: xuatVien ? "discharged" : "", 
+                notes: notes
+            });
 
             saveToLocalStorage();
             initFilterDropdowns();
@@ -1402,7 +1355,8 @@ set(newRef, newSession);
 
                 div.innerHTML = `
                     <div class="flex justify-between items-center border-b border-slate-100 pb-1.5 pr-8">
-                        <span class="text-[9px] text-slate-400 font-bold">📅 Ngày trực: ${formatDate(log.date)}</span>
+                        <span class="text-[9px] text-slate-400 font-bold">📅 Ngày trực: ${formatDat
+                                                                                         e(log.date)}</span>
                         <span class="text-indigo-800 font-bold text-[10px]"><i class="fa-solid fa-signature"></i> ${log.staffName}</span>
                     </div>
                     <span class="inline-block text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold uppercase">${log.shift}</span>
@@ -1423,114 +1377,58 @@ set(newRef, newSession);
             });
         }
 
-        // --- KHỞI TRẠT LẦN ĐẦU ---
-        window.onload = function() {
-            initFilterDropdowns();
-            renderList();
-        };
+     <script>
+    // 1. Cấu hình kết nối Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+        databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ql-benhnhantuyentren"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        window.openPatientDetailSheet = openPatientDetailSheet;
-window.openDischargeQuick = openDischargeQuick;
-window.deleteSession = deleteSession;
-window.filterByStat = filterByStat;
+    // 2. Biến chứa dữ liệu đồng bộ
+    let patients = [];
 
-window.showNotification = showNotification;
-window.showConfirm = showConfirm;
+    // 3. Khởi chạy và đồng bộ Realtime
+    window.onload = function() {
+        initFilterDropdowns();
+        
+        // Lệnh này giúp dữ liệu trên mọi thiết bị tự khớp nhau
+        db.ref('patients').on('value', (snapshot) => {
+            const data = snapshot.val();
+            // Chuyển dữ liệu từ Firebase về mảng để render
+            patients = data ? Object.values(data) : [];
+            renderList(); 
+        });
+    };
 
-window.closeModal = closeModal;
-        window.triggerAddSessionBox = triggerAddSessionBox;
-window.saveQuickSession = saveQuickSession;
-        window.openModal = openModal;
-window.openHandoverModal = openHandoverModal;
-        window.saveNewPatient = saveNewPatient;
-
-  <script>
-    // --- 1. KHỞI TẠO DỮ LIỆU ---
-    let patients = JSON.parse(localStorage.getItem('patients') || '[]');
-    let handovers = JSON.parse(localStorage.getItem('handovers') || '[]');
-    let currentRole = 'staff'; // Quyền mặc định
-
-    // --- 2. CÁC HÀM QUẢN LÝ ---
-    function switchRole(role) {
-        currentRole = role;
-        showNotification("Đã chuyển sang chế độ: " + role.toUpperCase());
-    }
-
-    // --- 3. LƯU BỆNH NHÂN (CÓ CHỐNG TRÙNG LẶP) ---
+    // 4. Hàm lưu (Tự đẩy lên Firebase)
     function saveNewPatient(event) {
         event.preventDefault();
-        const pName = document.getElementById('p-name').value.trim();
+        const pName = document.getElementById('p-name').value;
+        const pYear = document.getElementById('p-year').value;
         
-        // Kiểm tra trùng
-        const isExist = patients.find(p => p.name.toLowerCase() === pName.toLowerCase());
-        if (isExist) {
-            showNotification("Lỗi: Bệnh nhân " + pName + " đã tồn tại!");
-            return;
-        }
-
-        const newPatient = {
-            id: Date.now(),
+        // Push lên Firebase sẽ tự tạo ID duy nhất, không lo trùng
+        db.ref('patients').push({
             name: pName,
-            year: document.getElementById('p-year').value,
-            gender: document.getElementById('p-gender').value,
-            bhyt: document.getElementById('p-bhyt').value,
-            hospital: document.getElementById('s-hospital').value,
-            chuanDoan: document.getElementById('s-chuanDoan').value,
-            status: 'treating'
-        };
-
-        patients.push(newPatient);
-        localStorage.setItem('patients', JSON.stringify(patients));
-        showNotification("Thêm bệnh nhân thành công!");
-        closeModal('modal-patient');
-        renderList();
+            year: pYear,
+            dateAdded: Date.now()
+        }).then(() => {
+            alert("Đã lưu thành công!");
+            closeModal('modal-patient');
+        });
     }
 
-    // --- 4. XOÁ (CHỈ ADMIN MỚI ĐƯỢC) ---
-    function deletePatientAction() {
-        if (currentRole !== 'admin') {
-            showNotification("CẢNH BÁO: Chỉ Quản trị viên mới được xóa!");
+    // 5. Hàm xóa
+    function deletePatientAction(id) {
+        // Kiểm tra quyền Admin từ localStorage
+        if (localStorage.getItem('userRole') !== 'admin') {
+            alert("Chỉ Admin mới được xóa!");
             return;
         }
-        // Giả sử có ID đang được lưu tạm vào một biến nào đó
-        showNotification("Đã xoá bệnh nhân!");
-        renderList();
+        db.ref('patients/' + id).remove();
     }
-
-    // --- 5. HÀM HIỂN THỊ (GẮN DỮ LIỆU VÀO BẢNG) ---
-    function renderList() {
-        const tbody = document.getElementById('patient-table-body');
-        const total = document.getElementById('stat-total');
-        if(!tbody) return;
-
-        tbody.innerHTML = '';
-        patients.forEach((p, index) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td class="py-2 text-center border">${index + 1}</td>
-                    <td class="py-2 px-2 border font-bold">${p.name}</td>
-                    <td class="text-center border">${p.year}</td>
-                    <td class="text-center border">${p.gender}</td>
-                    <td class="border px-2">${p.hospital}</td>
-                    <td class="border px-2">${p.chuanDoan}</td>
-                    <td class="text-center border">ĐT</td>
-                    <td class="text-center border">
-                        <button onclick="deletePatientAction()" class="bg-red-500 text-white px-2 py-1 rounded">Xoá</button>
-                    </td>
-                </tr>
-            `;
-        });
-        total.querySelector('h3').innerText = patients.length;
-    }
-
-    // Hàm cần thiết khác
-    function showNotification(msg) { alert(msg); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function openHandoverModal() { openModal('modal-handover'); }
-    function triggerAddSessionBox() { document.getElementById('quick-add-session-box').classList.toggle('hidden'); }
-
-    window.onload = renderList;
 </script>
 </body>
 </html>
