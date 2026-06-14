@@ -1445,6 +1445,53 @@ window.openHandoverModal = openHandoverModal;
         window.saveNewPatient = saveNewPatient;
 
 </script>
-    </script>
+   <script>
+    // 1. Khởi tạo dữ liệu từ trình duyệt
+    let patients = JSON.parse(localStorage.getItem('patients') || '[]');
+    let currentRole = 'staff';
+
+    // 2. Chức năng đổi quyền Admin
+    function switchRole(role) {
+        currentRole = role;
+        alert("Đã chuyển sang chế độ: " + role.toUpperCase());
+    }
+
+    // 3. Hàm lưu bệnh nhân mới (Có chống trùng lặp)
+    function saveNewPatient(event) {
+        event.preventDefault();
+        const name = document.getElementById('p-name').value;
+        
+        // Kiểm tra trùng lặp
+        if(patients.find(p => p.name === name)) {
+            alert("Bệnh nhân đã tồn tại!");
+            return;
+        }
+
+        const newPatient = {
+            id: Date.now(),
+            name: name,
+            year: document.getElementById('p-year').value,
+            gender: document.getElementById('p-gender').value
+        };
+
+        patients.push(newPatient);
+        localStorage.setItem('patients', JSON.stringify(patients));
+        alert("Đã lưu thành công!");
+        renderList(); // Hàm này bạn cần viết để hiển thị bảng
+    }
+
+    // 4. Hàm xóa (Chỉ Admin)
+    function deletePatientAction(id) {
+        if(currentRole !== 'admin') {
+            alert("Bạn không có quyền Admin để xóa!");
+            return;
+        }
+        patients = patients.filter(p => p.id !== id);
+        localStorage.setItem('patients', JSON.stringify(patients));
+        renderList();
+    }
+    
+    // Các hàm khác bạn cũng làm tương tự...
+</script>
 </body>
 </html>
