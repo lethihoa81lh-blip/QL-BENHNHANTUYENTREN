@@ -640,6 +640,8 @@ onValue(ref(db,"sessions"),(snapshot)=>{
 
     console.log("Firebase sessions:", sessions);
 
+    renderList();
+
 });
         function saveToLocalStorage() {
             localStorage.setItem('qlbn_patients', JSON.stringify(patients));
