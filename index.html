@@ -523,7 +523,7 @@
     </div>
 
     <!-- ==================== JAVASCRIPT XỬ LÝ LOGIC CHUYÊN SÂU ==================== -->
-    <script>
+    <script type="module">
         let currentRole = "staff"; 
         const ADMIN_PASSWORD = "admin";
         let activePatientId = null; // ID bệnh nhân đang mở xem chi tiết
@@ -588,7 +588,59 @@
         // --- CƠ SỞ DỮ LIỆU ĐỒNG BỘ LOCALSTORAGE ---
         let patients = [];
 let sessions = [];
+// --- KẾT NỐI FIREBASE ---
+import { initializeApp } 
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
+import { 
+getDatabase, 
+ref, 
+onValue 
+} 
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+  authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+  databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ql-benhnhantuyentren",
+  storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+  messagingSenderId: "127051253047",
+  appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+  measurementId: "G-0JPKGYLJK0"
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+
+
+onValue(ref(db,"patients"),(snapshot)=>{
+
+    const data = snapshot.val();
+
+    patients = data ? Object.values(data) : [];
+
+    console.log("Firebase patients:", patients);
+
+    renderList();
+
+});
+
+
+
+onValue(ref(db,"sessions"),(snapshot)=>{
+
+    const data = snapshot.val();
+
+    sessions = data ? Object.values(data) : [];
+
+    console.log("Firebase sessions:", sessions);
+
+});
         function saveToLocalStorage() {
             localStorage.setItem('qlbn_patients', JSON.stringify(patients));
             localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
