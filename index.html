@@ -588,6 +588,9 @@
         // --- CƠ SỞ DỮ LIỆU ĐỒNG BỘ LOCALSTORAGE ---
         let patients = [];
 let sessions = [];
+
+window.patients = patients;
+window.sessions = sessions;
 // --- KẾT NỐI FIREBASE ---
 import { initializeApp } 
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -624,9 +627,9 @@ onValue(ref(db,"patients"),(snapshot)=>{
 
     patients = data ? Object.values(data) : [];
 
-    console.log("Firebase patients:", patients);
+window.patients = patients;
 
-    renderList();
+console.log("Firebase patients:", patients);
 
 });
 
@@ -638,9 +641,11 @@ onValue(ref(db,"sessions"),(snapshot)=>{
 
     sessions = data ? Object.values(data) : [];
 
-    console.log("Firebase sessions:", sessions);
+window.sessions = sessions;
 
-    renderList();
+console.log("Firebase sessions:", sessions);
+
+renderList();
 
 });
         function saveToLocalStorage() {
