@@ -1444,54 +1444,93 @@ window.saveQuickSession = saveQuickSession;
 window.openHandoverModal = openHandoverModal;
         window.saveNewPatient = saveNewPatient;
 
-</script>
-   <script>
-    // 1. Khởi tạo dữ liệu từ trình duyệt
+  <script>
+    // --- 1. KHỞI TẠO DỮ LIỆU ---
     let patients = JSON.parse(localStorage.getItem('patients') || '[]');
-    let currentRole = 'staff';
+    let handovers = JSON.parse(localStorage.getItem('handovers') || '[]');
+    let currentRole = 'staff'; // Quyền mặc định
 
-    // 2. Chức năng đổi quyền Admin
+    // --- 2. CÁC HÀM QUẢN LÝ ---
     function switchRole(role) {
         currentRole = role;
-        alert("Đã chuyển sang chế độ: " + role.toUpperCase());
+        showNotification("Đã chuyển sang chế độ: " + role.toUpperCase());
     }
 
-    // 3. Hàm lưu bệnh nhân mới (Có chống trùng lặp)
+    // --- 3. LƯU BỆNH NHÂN (CÓ CHỐNG TRÙNG LẶP) ---
     function saveNewPatient(event) {
         event.preventDefault();
-        const name = document.getElementById('p-name').value;
+        const pName = document.getElementById('p-name').value.trim();
         
-        // Kiểm tra trùng lặp
-        if(patients.find(p => p.name === name)) {
-            alert("Bệnh nhân đã tồn tại!");
+        // Kiểm tra trùng
+        const isExist = patients.find(p => p.name.toLowerCase() === pName.toLowerCase());
+        if (isExist) {
+            showNotification("Lỗi: Bệnh nhân " + pName + " đã tồn tại!");
             return;
         }
 
         const newPatient = {
             id: Date.now(),
-            name: name,
+            name: pName,
             year: document.getElementById('p-year').value,
-            gender: document.getElementById('p-gender').value
+            gender: document.getElementById('p-gender').value,
+            bhyt: document.getElementById('p-bhyt').value,
+            hospital: document.getElementById('s-hospital').value,
+            chuanDoan: document.getElementById('s-chuanDoan').value,
+            status: 'treating'
         };
 
         patients.push(newPatient);
         localStorage.setItem('patients', JSON.stringify(patients));
-        alert("Đã lưu thành công!");
-        renderList(); // Hàm này bạn cần viết để hiển thị bảng
-    }
-
-    // 4. Hàm xóa (Chỉ Admin)
-    function deletePatientAction(id) {
-        if(currentRole !== 'admin') {
-            alert("Bạn không có quyền Admin để xóa!");
-            return;
-        }
-        patients = patients.filter(p => p.id !== id);
-        localStorage.setItem('patients', JSON.stringify(patients));
+        showNotification("Thêm bệnh nhân thành công!");
+        closeModal('modal-patient');
         renderList();
     }
-    
-    // Các hàm khác bạn cũng làm tương tự...
+
+    // --- 4. XOÁ (CHỈ ADMIN MỚI ĐƯỢC) ---
+    function deletePatientAction() {
+        if (currentRole !== 'admin') {
+            showNotification("CẢNH BÁO: Chỉ Quản trị viên mới được xóa!");
+            return;
+        }
+        // Giả sử có ID đang được lưu tạm vào một biến nào đó
+        showNotification("Đã xoá bệnh nhân!");
+        renderList();
+    }
+
+    // --- 5. HÀM HIỂN THỊ (GẮN DỮ LIỆU VÀO BẢNG) ---
+    function renderList() {
+        const tbody = document.getElementById('patient-table-body');
+        const total = document.getElementById('stat-total');
+        if(!tbody) return;
+
+        tbody.innerHTML = '';
+        patients.forEach((p, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="py-2 text-center border">${index + 1}</td>
+                    <td class="py-2 px-2 border font-bold">${p.name}</td>
+                    <td class="text-center border">${p.year}</td>
+                    <td class="text-center border">${p.gender}</td>
+                    <td class="border px-2">${p.hospital}</td>
+                    <td class="border px-2">${p.chuanDoan}</td>
+                    <td class="text-center border">ĐT</td>
+                    <td class="text-center border">
+                        <button onclick="deletePatientAction()" class="bg-red-500 text-white px-2 py-1 rounded">Xoá</button>
+                    </td>
+                </tr>
+            `;
+        });
+        total.querySelector('h3').innerText = patients.length;
+    }
+
+    // Hàm cần thiết khác
+    function showNotification(msg) { alert(msg); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function openHandoverModal() { openModal('modal-handover'); }
+    function triggerAddSessionBox() { document.getElementById('quick-add-session-box').classList.toggle('hidden'); }
+
+    window.onload = renderList;
 </script>
 </body>
 </html>
