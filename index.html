@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <title>QLBN Tuyến Trên - Bản Di Động Tối Giản</title>
     <!-- Sử dụng Tailwind CSS CDN để thiết kế giao diện di động cực đẹp và gọn gàng -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1377,31 +1375,10 @@
         }
 
         // --- KHỞI TRẠT LẦN ĐẦU ---
-        // Cấu hình Firebase
-const firebaseConfig = {
-    databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app"
-};
-firebase.initializeApp(firebaseConfig);
-
-// Lấy dữ liệu 67 bệnh nhân từ server về đè lên biến patients hiện tại
-firebase.database().ref('patients').once('value', (snapshot) => {
-    if(snapshot.val()) {
-        patients = snapshot.val();
-        renderList();
-    }
-});
-
-// Hàm lưu đồng bộ (Dán đè lên hàm saveToLocalStorage cũ của bạn)
-function saveToLocalStorage() {
-    localStorage.setItem('qlbn_patients', JSON.stringify(patients));
-    localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
-    localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
-    
-    // Đẩy dữ liệu lên Firebase
-    firebase.database().ref('patients').set(patients);
-    firebase.database().ref('sessions').set(sessions);
-    firebase.database().ref('handovers').set(handovers);
-}
+        window.onload = function() {
+            initFilterDropdowns();
+            renderList();
+        };
     </script>
 </body>
 </html>
