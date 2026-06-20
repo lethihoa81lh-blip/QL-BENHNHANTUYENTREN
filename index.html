@@ -4,9 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QLBN Tuyến Trên - Bản Di Động Tối Giản</title>
+    <!-- Sử dụng Tailwind CSS CDN để thiết kế giao diện di động cực đẹp và gọn gàng -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, child, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+            authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+            databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ql-benhnhantuyentren",
+            storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+            messagingSenderId: "127051253047",
+            appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+            measurementId: "G-0JPKGYLJK0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        // Gán các hàm và database vào biến toàn cục `window` để các đoạn code JS xử lý ở cuối trang có thể gọi tới
+        window.firebaseDB = database;
+        window.fbRef = ref;
+        window.fbSet = set;
+        window.fbGet = get;
+        window.fbChild = child;
+        window.fbOnValue = onValue;
+        window.fbRemove = remove;
+        window.fbUpdate = update;
+
+        console.log("Đã tích hợp module Firebase Realtime Database thành công!");
+    </script>
+
+    <style>
     <style>
         /* Đèn hiệu nhấp nháy cho bệnh nhân đang nằm điều trị tuyến trên */
         @keyframes pulse-orange {
@@ -33,95 +67,20 @@
             scrollbar-width: none;
         }
     </style>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
-            authDomain: "ql-benhnhantuyentren.firebaseapp.com",
-            databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "ql-benhnhantuyentren",
-            storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
-            messagingSenderId: "127051253047",
-            appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
-            measurementId: "G-0JPKGYLJK0"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        window.fbDatabase = database;
-
-        // Lắng nghe nhánh parents trên Realtime Database
-        const parentsRef = ref(database, 'parents');
-        onValue(parentsRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                let loadedPatients = [];
-                Object.keys(data).forEach(key => {
-                    let item = data[key];
-                    if (item && (item.name || item.hoTen)) {
-                        loadedPatients.push({
-                            id: "p" + key,
-                            name: item.name || item.hoTen || "",
-                            birthYear: item.birthYear || item.namSinh || "",
-                            gender: item.gender || item.gioiTinh || "Nam",
-                            bhyt: item.bhyt || "-"
-                        });
-                    }
-                });
-                window.patients = loadedPatients;
-                localStorage.setItem('qlbn_patients', JSON.stringify(window.patients));
-                if (typeof initFilterDropdowns === 'function') initFilterDropdowns();
-                if (typeof renderList === 'function') renderList();
-            } else {
-                window.patients = [];
-            }
-        });
-
-        // Lắng nghe nhánh sessions trên Realtime Database
-        const sessionsRef = ref(database, 'sessions');
-        onValue(sessionsRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                let loadedSessions = [];
-                Object.keys(data).forEach(key => {
-                    let item = data[key];
-                    if (item) {
-                        loadedSessions.push({
-                            id: item.id || "s_" + key,
-                            patientId: item.patientId || "",
-                            sessionNum: item.sessionNum || 1,
-                            nhapTram: item.nhapTram || "",
-                            chuyenVien: item.chuyenVien || "",
-                            chuanDoan: item.chuanDoan || "",
-                            hospital: item.hospital || "",
-                            xuatVien: item.xuatVien || "",
-                            ketQua: item.ketQua || "",
-                            notes: item.notes || ""
-                        });
-                    }
-                });
-                window.sessions = loadedSessions;
-                localStorage.setItem('qlbn_sessions', JSON.stringify(window.sessions));
-                if (typeof renderList === 'function') renderList();
-            } else {
-                window.sessions = [];
-            }
-        });
-    </script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col pb-6">
 
+    <!-- ==================== THANH ĐẦU TRANG & VAI TRÒ HỆ THỐNG ==================== -->
     <header class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white shadow-md sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
         <div>
             <h1 class="font-bold text-sm tracking-tight flex items-center gap-1.5">
-                <i class="fa-solid fa-hospital-user text-teal-300 text-base"></i>QL CHUYỂN TUYẾN
+                <i class="fa-solid fa-hospital-user text-teal-300 text-base"></i>
+                QL CHUYỂN TUYẾN
             </h1>
             <p class="text-[9px] opacity-80 mt-0.5">Trung tâm Bảo trợ Xã hội</p>
         </div>
         
+        <!-- Chọn quyền hạn gọn gàng -->
         <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg border border-white/20">
             <select id="role-select" onchange="switchRole(this.value)" class="bg-indigo-950 text-white font-bold text-[10px] rounded p-1 outline-none cursor-pointer">
                 <option value="staff">Nhân Viên</option>
@@ -130,6 +89,7 @@
         </div>
     </header>
 
+    <!-- ==================== KHỐI THỐNG KÊ NHANH (MỎNG NHẸ DẠNG TAB LỌC 2X2) ==================== -->
     <section class="p-3 grid grid-cols-2 gap-2">
         <div onclick="filterByStat('')" class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tổng bệnh nhân</span>
@@ -155,20 +115,25 @@
         </div>
     </section>
 
+    <!-- ==================== THANH CÔNG CỤ TÌM KIẾM & BỘ LỌC (GOM THÀNH 1 DÒNG TỐI ƯU MOBILE) ==================== -->
     <section class="px-3 mb-2 flex items-center gap-1.5">
+        <!-- Tìm kiếm từ khóa co giãn linh hoạt -->
         <div class="relative flex-grow min-w-[90px]">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-[10px]"></i>
             <input type="text" id="search-box" oninput="renderList()" placeholder="Tìm kiếm..." class="w-full pl-6 pr-2 py-1.5 rounded-xl border border-slate-200 text-[10px] outline-none bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition-all">
         </div>
 
+        <!-- Các bộ lọc thả xuống mỏng nhẹ -->
         <select id="filter-year" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[65px] shrink-0">
             <option value="">Năm</option>
         </select>
         <select id="filter-hospital" onchange="renderList()" class="bg-white border border-slate-200 rounded-xl p-1.5 text-[10px] font-semibold outline-none w-[75px] shrink-0">
             <option value="">B.Viện</option>
         </select>
+        <!-- Input ẩn giữ trạng thái lọc -->
         <input type="hidden" id="filter-status" value="">
 
+        <!-- Các nút tiện ích nhanh dạng Icon để tiết kiệm diện tích tối đa -->
         <button onclick="openModal('modal-patient')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-xl text-[10px] shadow flex items-center justify-center h-8 w-8 shrink-0 transition-all active:scale-95" title="Thêm bệnh nhân">
             <i class="fa-solid fa-user-plus"></i>
         </button>
@@ -177,8 +142,10 @@
         </button>
     </section>
 
+    <!-- ==================== DANH SÁCH BỆNH NHÂN DẠNG BẢNG CHIA CỘT RÕ RÀNG ==================== -->
     <main class="flex-grow px-3">
-        <div class="flex items-center gap-1.5 text-[10px] text-blue-800 bg-blue-50 border border-blue-200 rounded-xl p-2.5 mb-2 shadow-sm font-semibold">
+        <!-- Banner thông báo hỗ trợ định hướng vuốt ngang trên điện thoại -->
+        <div class="flex items-center gap-1.5 text-[10px] text-blue-800 bg-blue-50 border border-blue-200 rounded-xl p-2.5 mb-2 shadow-sm font-semibold animate-pulse">
             <i class="fa-solid fa-circle-info text-blue-600 text-xs"></i>
             <span>💡 Cố định 2 cột đầu. Vuốt bảng sang trái <i class="fa-solid fa-arrow-left"></i> để xem cột Chẩn đoán và Thao tác.</span>
         </div>
@@ -187,6 +154,7 @@
             <table class="w-full border-collapse border border-slate-300 text-[11px]">
                 <thead>
                     <tr class="bg-indigo-900 text-white text-[10px] font-bold uppercase tracking-wider">
+                        <!-- Cố định cột STT và Họ Tên trên thanh tiêu đề -->
                         <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[40px] sticky left-0 bg-indigo-900 z-20">STT</th>
                         <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[130px] sticky left-[40px] bg-indigo-900 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">Họ và Tên</th>
                         <th class="py-2.5 px-1 border border-slate-300 text-center w-[45px]">NS</th>
@@ -197,16 +165,214 @@
                         <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[150px]">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody id="patient-table-body" class="divide-y divide-slate-200"></tbody>
+                <tbody id="patient-table-body" class="divide-y divide-slate-200">
+                    <!-- Javascript tự động điền các dòng tr và td kẻ ô vào đây -->
+                </tbody>
             </table>
         </div>
 
+        <!-- Trạng thái trống -->
         <div id="empty-state" class="py-12 flex flex-col items-center justify-center text-slate-400 hidden bg-white rounded-2xl border border-slate-200 shadow-sm mx-1 mt-2">
             <i class="fa-solid fa-folder-open text-3xl mb-1.5 opacity-60"></i>
             <p class="text-xs font-semibold">Không tìm thấy bệnh nhân phù hợp bộ lọc.</p>
         </div>
     </main>
 
+    <!-- ==================== MODAL CHI TIẾT BỆNH NHÂN TRƯỢT LÊN (SLIDE-UP DETAILS) ==================== -->
+    <div id="modal-detail-sheet" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
+        <div class="bg-white w-full max-w-lg rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-slide-up">
+            <!-- Thanh kéo nhỏ giả lập mobile sheet -->
+            <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2.5"></div>
+            
+            <div class="px-5 pb-3 pt-1 border-b border-slate-100 flex justify-between items-start">
+                <div>
+                    <h2 id="sheet-p-name" class="font-black text-lg text-slate-900">Nguyễn Văn A</h2>
+                    <p id="sheet-p-meta" class="text-xs text-slate-500 font-semibold mt-0.5">Nam - Sinh năm 1965</p>
+                </div>
+                <button onclick="closeModal('modal-detail-sheet')" class="bg-slate-100 hover:bg-slate-200 text-slate-500 p-2 rounded-full transition-all">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Vùng nội dung cuộn -->
+            <div class="p-5 overflow-y-auto space-y-4 flex-grow no-scrollbar bg-slate-50">
+                <!-- Thông tin hành chính gốc -->
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Hồ sơ hành chính gốc</span>
+                        <button onclick="triggerEditPatient()" class="text-blue-600 text-[11px] font-bold flex items-center gap-1 hover:underline">
+                            <i class="fa-solid fa-user-pen text-[10px]"></i> Sửa thông tin
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <span class="text-slate-400 block font-semibold text-[10px]">Số thẻ BHYT</span>
+                            <span id="sheet-p-bhyt" class="font-mono font-bold text-slate-700">---</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block font-semibold text-[10px]">Giới tính / Năm sinh</span>
+                            <span id="sheet-p-gender-birth" class="font-bold text-slate-700">---</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lịch sử Đợt điều trị (Dòng thời gian - Timeline) -->
+                <div class="space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-black text-xs text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Lịch sử đợt khám chữa bệnh
+                        </h3>
+                        <button onclick="triggerAddSessionBox()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[9px]"></i> Thêm đợt mới
+                        </button>
+                    </div>
+
+                    <!-- Mẫu Form nhanh để thêm đợt điều trị mới ngay tại chỗ -->
+                    <div id="quick-add-session-box" class="hidden bg-white p-4 rounded-2xl border border-blue-100 shadow-sm space-y-3">
+                        <h4 class="font-bold text-xs text-blue-700 uppercase">Khai báo đợt điều trị mới</h4>
+                        <form id="form-quick-session" onsubmit="saveQuickSession(event)" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="flex flex-col gap-0.5">
+                                    <label class="text-[10px] font-bold text-slate-500">Bệnh viện tuyến trên *</label>
+                                    <input type="text" id="qs-hospital" required placeholder="Nhập tên bệnh viện..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500">
+                                </div>
+                                <div class="flex flex-col gap-0.5">
+                                    <label class="text-[10px] font-bold text-slate-500">Chẩn đoán khoa học *</label>
+                                    <input type="text" id="qs-chuanDoan" required placeholder="Nhập chẩn đoán..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-0.5">
+                                    <label class="text-[9px] font-bold text-slate-500">Nhập trạm</label>
+                                    <input type="date" id="qs-nhaptram" class="bg-slate-50 border border-slate-200 text-[10px] rounded-xl p-1.5 outline-none focus:border-blue-500">
+                                </div>
+                                <div class="flex flex-col gap-0.5">
+                                    <label class="text-[9px] font-bold text-slate-500">Chuyển đi *</label>
+                                    <input type="date" id="qs-chuyenvien" required class="bg-slate-50 border border-slate-200 text-[10px] rounded-xl p-1.5 outline-none focus:border-blue-500">
+                                </div>
+                                <div class="flex flex-col gap-0.5">
+                                    <label class="text-[9px] font-bold text-slate-500">Xuất viện / Từ trần</label>
+                                    <input type="date" id="qs-xuatvien" class="bg-slate-50 border border-slate-200 text-[10px] rounded-xl p-1.5 outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-0.5">
+                                <label class="text-[10px] font-bold text-slate-500">Kết quả (Nếu đã kết thúc)</label>
+                                <select id="qs-outcome" class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500">
+                                    <option value="discharged">Đã xuất viện về trung tâm</option>
+                                    <option value="deceased">Tử vong tại tuyến trên</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-0.5">
+                                <label class="text-[10px] font-bold text-slate-500">Ghi chú diễn biến / Lộ trình chuyển tuyến</label>
+                                <textarea id="qs-notes" rows="2" placeholder="Lưu ý lộ trình điều trị, xe cộ, thuốc men..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500"></textarea>
+                            </div>
+                            <div class="flex gap-2 pt-1.5">
+                                <button type="submit" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl shadow-sm">Lưu đợt mới</button>
+                                <button type="button" onclick="triggerAddSessionBox()" class="bg-slate-100 text-slate-600 text-xs font-semibold py-2 px-3 rounded-xl border">Đóng</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Mốc các đợt bệnh nhân (Timeline Container) -->
+                    <div id="sheet-sessions-timeline" class="space-y-3 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200">
+                        <!-- Sinh bằng JS động -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-100 p-4 border-t flex gap-2">
+                <button id="btn-sheet-delete-p" onclick="deletePatientAction()" class="hidden bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-all">
+                    ⚠️ Xoá hồ sơ gốc
+                </button>
+                <button onclick="closeModal('modal-detail-sheet')" class="flex-grow bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition-all">
+                    Đóng lại
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL GIAO DIỆN PHỤ SỬA THÔNG TIN BỆNH NHÂN GỐC ==================== -->
+    <div id="modal-edit-patient-root" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-5 space-y-4">
+            <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-user-pen text-blue-600"></i> Đính chính hồ sơ gốc</h3>
+            <form id="form-edit-patient-root" onsubmit="saveEditPatientRoot(event)" class="space-y-3">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Họ và Tên bệnh nhân *</label>
+                    <input type="text" id="ep-name" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500">Năm sinh *</label>
+                        <input type="number" id="ep-year" required min="1900" max="2026" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-slate-500">Giới tính *</label>
+                        <select id="ep-gender" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Số mã thẻ BHYT</label>
+                    <input type="text" id="ep-bhyt" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs">Cập nhật</button>
+                    <button type="button" onclick="closeModal('modal-edit-patient-root')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL GIAO DIỆN PHỤ SỬA THÔNG TIN ĐỢT ĐIỀU TRỊ ==================== -->
+    <div id="modal-edit-session-root" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-5 space-y-4">
+            <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-rectangle-list text-teal-600"></i> Sửa thông tin đợt bệnh</h3>
+            <form id="form-edit-session-root" onsubmit="saveEditSessionRoot(event)" class="space-y-3">
+                <input type="hidden" id="es-id">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Bệnh viện tiếp nhận *</label>
+                    <input type="text" id="es-hospital" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Chẩn đoán khoa học *</label>
+                    <input type="text" id="es-chuanDoan" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-bold text-slate-500">Nhập trạm</label>
+                        <input type="date" id="es-nhaptram" class="border border-slate-200 rounded-xl p-1 text-xs outline-none bg-slate-50 focus:bg-white">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-bold text-slate-500">Chuyển đi *</label>
+                        <input type="date" id="es-chuyenvien" required class="border border-slate-200 rounded-xl p-1 text-xs outline-none bg-slate-50 focus:bg-white">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-bold text-slate-500">Xuất viện / Mất</label>
+                        <input type="date" id="es-xuatvien" class="border border-slate-200 rounded-xl p-1 text-xs outline-none bg-slate-50 focus:bg-white">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Kết quả đợt điều trị</label>
+                    <select id="es-outcome" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
+                        <option value="discharged">Xuất viện về trung tâm</option>
+                        <option value="deceased">Tử vong tại tuyến trên</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-slate-500">Ghi chú diễn biến / Lộ trình</label>
+                    <textarea id="es-notes" rows="2" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white"></textarea>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" class="flex-grow bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-xl text-xs">Cập nhật đợt</button>
+                    <button type="button" onclick="closeModal('modal-edit-session-root')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL THÊM MỚI BỆNH NHÂN (ĐỢT ĐẦU) ==================== -->
     <div id="modal-patient" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-5 py-3 bg-blue-800 text-white flex justify-between items-center">
@@ -267,6 +433,7 @@
                         <textarea id="s-notes" rows="2" placeholder="Ví dụ: Người nhà tự chăm nuôi..." class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-blue-500 bg-white"></textarea>
                     </div>
                 </div>
+
                 <div class="pt-3 border-t flex justify-end gap-2">
                     <button type="button" onclick="closeModal('modal-patient')" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-semibold text-xs">Hủy</button>
                     <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow">Đồng ý</button>
@@ -275,181 +442,7 @@
         </div>
     </div>
 
-    <div id="modal-detail-sheet" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
-        <div class="bg-white w-full max-w-lg rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-slide-up">
-            <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2.5"></div>
-            <div class="px-5 pb-3 pt-1 border-b border-slate-100 flex justify-between items-start">
-                <div>
-                    <h2 id="sheet-p-name" class="font-black text-lg text-slate-900">Nguyễn Văn A</h2>
-                    <p id="sheet-p-meta" class="text-xs text-slate-500 font-semibold mt-0.5">Nam - Sinh năm 1965</p>
-                </div>
-                <button onclick="closeModal('modal-detail-sheet')" class="bg-slate-100 hover:bg-slate-200 text-slate-500 p-2 rounded-full transition-all">
-                    <i class="fa-solid fa-xmark text-sm"></i>
-                </button>
-            </div>
-            <div class="p-5 overflow-y-auto space-y-4 flex-grow no-scrollbar bg-slate-50">
-                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-1.5">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Hồ sơ hành chính gốc</span>
-                        <button onclick="triggerEditPatient()" class="text-blue-600 text-[11px] font-bold flex items-center gap-1 hover:underline">
-                            <i class="fa-solid fa-user-pen text-[10px]"></i> Sửa thông tin
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 text-xs">
-                        <div>
-                            <span class="text-slate-400 block font-semibold text-[10px]">Số thẻ BHYT</span>
-                            <span id="sheet-p-bhyt" class="font-mono font-bold text-slate-700">---</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block font-semibold text-[10px]">Giới tính / Năm sinh</span>
-                            <span id="sheet-p-gender-birth" class="font-bold text-slate-700">---</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-2.5">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-black text-xs text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Lịch sử đợt khám chữa bệnh
-                        </h3>
-                        <button onclick="triggerAddSessionBox()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
-                            <i class="fa-solid fa-plus text-[9px]"></i> Thêm đợt mới
-                        </button>
-                    </div>
-
-                    <div id="quick-add-session-box" class="hidden bg-white p-4 rounded-2xl border border-blue-100 shadow-sm space-y-3">
-                        <h4 class="font-bold text-xs text-blue-700 uppercase">Khai báo đợt điều trị mới</h4>
-                        <form id="form-quick-session" onsubmit="saveQuickSession(event)" class="space-y-3">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="flex flex-col gap-0.5">
-                                    <label class="text-[10px] font-bold text-slate-500">Bệnh viện tuyến trên *</label>
-                                    <input type="text" id="qs-hospital" required placeholder="Nhập tên bệnh viện..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500">
-                                </div>
-                                <div class="flex flex-col gap-0.5">
-                                    <label class="text-[10px] font-bold text-slate-500">Chẩn đoán khoa học *</label>
-                                    <input type="text" id="qs-chuanDoan" required placeholder="Nhập chẩn đoán..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-0.5">
-                                    <label class="text-[9px] font-bold text-slate-500">Nhập trạm</label>
-                                    <input type="date" id="qs-nhaptram" class="bg-slate-50 border border-slate-200 text-[10px] rounded-xl p-1.5 outline-none focus:border-blue-500">
-                                </div>
-                                <div class="flex flex-col gap-0.5">
-                                    <label class="text-[9px] font-bold text-slate-500">Chuyển đi *</label>
-                                    <input type="date" id="qs-chuyenvien" required class="bg-slate-50 border border-slate-200 text-[10px] rounded-xl p-1.5 outline-none focus:border-blue-500">
-                                </div>
-                                <div class="flex flex-col gap-0.5">
-                                    <label class="text-[9px] font-bold text-slate-500">Xuất viện / Từ trần</label>
-                                    <input type="date" id="qs-xuatvien" class="bg-slate-50 border border-slate-200 text-[10px] rounded-xl p-1.5 outline-none focus:border-blue-500">
-                                </div>
-                            </div>
-                            <div class="flex flex-col gap-0.5">
-                                <label class="text-[10px] font-bold text-slate-500">Kết quả (Nếu đã kết thúc)</label>
-                                <select id="qs-outcome" class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500">
-                                    <option value="discharged">Đã xuất viện về trung tâm</option>
-                                    <option value="deceased">Tử vong tại tuyến trên</option>
-                                </select>
-                            </div>
-                            <div class="flex flex-col gap-0.5">
-                                <label class="text-[10px] font-bold text-slate-500">Ghi chú diễn biến / Lộ trình chuyển tuyến</label>
-                                <textarea id="qs-notes" rows="2" placeholder="Lưu ý lộ trình điều trị, xe cộ, thuốc men..." class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500"></textarea>
-                            </div>
-                            <div class="flex gap-2 pt-1.5">
-                                <button type="submit" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl shadow-sm">Lưu đợt mới</button>
-                                <button type="button" onclick="triggerAddSessionBox()" class="bg-slate-100 text-slate-600 text-xs font-semibold py-2 px-3 rounded-xl border">Đóng</button>
-                            </div>
-                        </form>
-                    </div>
-                    <div id="sheet-sessions-timeline" class="space-y-3 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200"></div>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-4 border-t flex gap-2">
-                <button id="btn-sheet-delete-p" onclick="deletePatientAction()" class="hidden bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-all">⚠️ Xoá hồ sơ gốc</button>
-                <button onclick="closeModal('modal-detail-sheet')" class="flex-grow bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition-all">Đóng lại</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-edit-patient-root" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-5 space-y-4">
-            <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-user-pen text-blue-600"></i> Đính chính hồ sơ gốc</h3>
-            <form id="form-edit-patient-root" onsubmit="saveEditPatientRoot(event)" class="space-y-3">
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500">Họ và Tên bệnh nhân *</label>
-                    <input type="text" id="ep-name" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-bold text-slate-500">Năm sinh *</label>
-                        <input type="number" id="ep-year" required min="1900" max="2026" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-bold text-slate-500">Giới tính *</label>
-                        <select id="ep-gender" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500">Số mã thẻ BHYT</label>
-                    <input type="text" id="ep-bhyt" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="submit" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs">Cập nhật</button>
-                    <button type="button" onclick="closeModal('modal-edit-patient-root')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs">Hủy</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="modal-edit-session-root" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-5 space-y-4">
-            <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-rectangle-list text-teal-600"></i> Sửa thông tin đợt bệnh</h3>
-            <form id="form-edit-session-root" onsubmit="saveEditSessionRoot(event)" class="space-y-3">
-                <input type="hidden" id="es-id">
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500">Bệnh viện tiếp nhận *</label>
-                    <input type="text" id="es-hospital" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
-                </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500">Chẩn đoán khoa học *</label>
-                    <input type="text" id="es-chuanDoan" required class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-bold text-slate-500">Nhập trạm</label>
-                        <input type="date" id="es-nhaptram" class="border border-slate-200 rounded-xl p-1 text-xs outline-none bg-slate-50 focus:bg-white">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-bold text-slate-500">Chuyển đi *</label>
-                        <input type="date" id="es-chuyenvien" required class="border border-slate-200 rounded-xl p-1 text-xs outline-none bg-slate-50 focus:bg-white">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-bold text-slate-500">Xuất viện / Mất</label>
-                        <input type="date" id="es-xuatvien" class="border border-slate-200 rounded-xl p-1 text-xs outline-none bg-slate-50 focus:bg-white">
-                    </div>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500">Kết quả đợt điều trị</label>
-                    <select id="es-outcome" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white">
-                        <option value="discharged">Xuất viện về trung tâm</option>
-                        <option value="deceased">Tử vong tại tuyến trên</option>
-                    </select>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500">Ghi chú diễn biến / Lộ trình</label>
-                    <textarea id="es-notes" rows="2" class="border border-slate-200 rounded-xl p-2 text-sm outline-none bg-slate-50 focus:bg-white"></textarea>
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="submit" class="flex-grow bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-xl text-xs">Cập nhật đợt</button>
-                    <button type="button" onclick="closeModal('modal-edit-session-root')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs">Hủy</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
+    <!-- ==================== GIAO DIỆN PHỤ SỔ GIAO CA ĐIỆN TỬ (TỐI ƯU MOBILE TAB) ==================== -->
     <div id="modal-handover" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
         <div class="bg-white w-full max-w-lg rounded-t-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] animate-slide-up">
             <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2.5"></div>
@@ -457,13 +450,20 @@
                 <h2 class="font-black text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-book-medical text-amber-500"></i> Sổ Giao Ca Trực</h2>
                 <button onclick="closeModal('modal-handover')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
+
+            <!-- Phân tab sổ giao ca trực -->
             <div class="flex border-b border-slate-100 text-xs font-bold">
                 <button onclick="switchHandoverTab('write')" id="tab-write-btn" class="flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600 transition-all">🖊️ Biên bản trực mới</button>
                 <button onclick="switchHandoverTab('history')" id="tab-history-btn" class="flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500 transition-all">📕 Lịch sử trực</button>
             </div>
+
+            <!-- Tab 1: Biên bản trực mới -->
             <div id="handover-tab-write" class="p-5 overflow-y-auto flex-grow space-y-3.5 no-scrollbar bg-slate-50">
                 <div class="flex justify-between items-center border-b pb-1">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Lập ca giao trực mới</span>
+                    <button type="button" onclick="autoGenerateActiveHandover()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 shadow-sm">
+                        <i class="fa-solid fa-magic"></i> Trích xuất live
+                    </button>
                 </div>
                 <form id="form-handover" onsubmit="saveHandover(event)" class="space-y-3">
                     <div class="grid grid-cols-2 gap-3">
@@ -493,575 +493,734 @@
                     </button>
                 </form>
             </div>
+
+            <!-- Tab 2: Lịch sử bàn giao trực -->
             <div id="handover-tab-history" class="p-5 overflow-y-auto flex-grow space-y-3.5 no-scrollbar bg-slate-50 hidden">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block border-b pb-1">Nhật ký trực ca trước đây</span>
-                <div id="handover-logs-container" class="space-y-3"></div>
+                <div id="handover-logs-container" class="space-y-3">
+                    <!-- Sinh bằng JS động -->
+                </div>
             </div>
+
             <div class="bg-slate-100 p-4 border-t flex">
                 <button onclick="closeModal('modal-handover')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 rounded-xl text-xs transition-all">Đóng sổ giao ca</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-discharge-quick" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden"></div>
-
-    <div id="notification-toast" class="fixed top-4 left-1/2 -translate-x-1/2 bg-indigo-900 text-white px-4 py-2 rounded-xl shadow-lg font-bold text-[10px] tracking-wide z-[70] transition-all duration-300 scale-0 opacity-0 pointer-events-none"></div>
-
-    <div id="confirm-modal" class="fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-xs rounded-2xl p-5 space-y-3.5 shadow-xl">
-            <h4 id="confirm-title" class="text-xs font-bold text-slate-900 leading-relaxed">Bạn có chắc chắn không?</h4>
-            <div class="flex gap-2">
-                <button id="confirm-yes-btn" class="flex-grow bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl text-[11px]">Đồng ý</button>
-                <button onclick="closeModal('confirm-modal')" class="w-20 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-xl text-[11px]">Hủy</button>
+    <!-- ==================== MODAL BÁO XUẤT VIỆN / TỬ VONG NHANH TRỰC TIẾP TỪ THẺ GỌN ==================== -->
+    <div id="modal-discharge-quick" class="modal-overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-xs rounded-2xl shadow-xl p-5 space-y-3">
+            <h3 class="font-bold text-slate-900 text-sm">🩺 Báo kết thúc đợt ĐT</h3>
+            <div class="p-2.5 bg-indigo-50 rounded-xl border border-indigo-200 text-[11px] text-indigo-800">
+                <p id="dq-label-name" class="font-bold"></p>
+                <p id="dq-label-info" class="mt-0.5 opacity-90"></p>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-500">Kết quả đợt điều trị *</label>
+                <select id="dq-outcome" class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-blue-500 bg-white">
+                    <option value="discharged">Xuất viện về trung tâm</option>
+                    <option value="deceased">Tử vong tại tuyến trên</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-500">Chọn ngày kết thúc thực tế *</label>
+                <input type="date" id="dq-date" required class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-blue-500">
+            </div>
+            <div class="flex gap-2 pt-1.5">
+                <button onclick="closeModal('modal-discharge-quick')" class="flex-grow bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-[10px]">Hủy</button>
+                <button onclick="saveQuickDischarge()" class="flex-grow bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-xl text-[10px]">Xác nhận</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // Khởi tạo các mảng toàn cục
-        let patients = JSON.parse(localStorage.getItem('qlbn_patients')) || [];
-        let sessions = JSON.parse(localStorage.getItem('qlbn_sessions')) || [];
-        let handovers = JSON.parse(localStorage.getItem('qlbn_handovers')) || [];
+    <!-- ==================== HỆ THỐNG CUSTOM NOTIFICATION / CONFIRM DIALOG ==================== -->
+    <div id="custom-notification" class="fixed top-4 right-4 z-[9999] transform translate-y-[-150%] transition-all duration-300 pointer-events-none">
+        <div id="notify-box" class="bg-indigo-950 text-white font-bold py-2.5 px-4 rounded-xl shadow-2xl border border-indigo-800 flex items-center gap-2.5">
+            <span id="notify-icon"></span>
+            <span id="notify-text" class="text-xs"></span>
+        </div>
+    </div>
 
-        let currentRole = "staff";
+    <div id="custom-confirm-modal" class="modal-overlay fixed inset-0 bg-black/60 z-[9998] flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-xs rounded-2xl shadow-xl p-5 space-y-4">
+            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5 text-rose-600">
+                <i class="fa-solid fa-circle-exclamation"></i> Xác nhận yêu cầu
+            </h3>
+            <p id="confirm-text" class="text-xs text-slate-600 leading-relaxed"></p>
+            <div class="flex gap-2 pt-1.5">
+                <button id="btn-confirm-cancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">Hủy</button>
+                <button id="btn-confirm-agree" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl text-xs">Đồng ý</button>
+            </div>
+        </div>
+    </div>
 
-        function switchRole(role) {
-            currentRole = role;
-            renderList();
-            showNotification("Đã chuyển quyền hệ thống sang: " + (role === 'admin' ? "Quản trị viên" : "Nhân viên"));
+    <!-- ==================== JAVASCRIPT XỬ LÝ LOGIC CHUYÊN SÂU ==================== -->
+   // ------------------------------------------------------------------------
+        // BẮT ĐẦU KHỐI JAVASCRIPT ĐỒNG BỘ REALTIME DATABASE (FIREBASE)
+        // ------------------------------------------------------------------------
+
+        // Khai báo mảng toàn cục chứa danh sách bệnh nhân và bàn giao ca
+        let patients = [];
+        let handovers = [];
+        let currentRole = "staff"; // Mặc định là staff, có thể đổi sang admin
+
+        // Lắng nghe dữ liệu thời gian thực từ Firebase khi trang web vừa nạp xong
+        window.onload = function() {
+            initFirebaseRealtimeData();
+            initFilterDropdowns();
+        };
+
+        function initFirebaseRealtimeData() {
+            // Kiểm tra xem module Firebase đã được khởi tạo ở phần <head> chưa
+            if (!window.firebaseDB) {
+                setTimeout(initFirebaseRealtimeData, 300);
+                return;
+            }
+
+            const db = window.firebaseDB;
+            
+            // 1. Đồng bộ danh sách bệnh nhân
+            const patientsRef = window.fbRef(db, 'patients');
+            window.fbOnValue(patientsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    patients = [];
+                    Object.keys(data).forEach(key => {
+                        if (data[key]) {
+                            let p = data[key];
+                            p.id = key; // Giữ nguyên ID (1, 2, 3...)
+                            patients.push(p);
+                        }
+                    });
+                } else {
+                    patients = [];
+                }
+                renderList();
+                updateStats();
+            });
+
+            // 2. Đồng bộ danh sách sổ giao ca (handover)
+            const handoversRef = window.fbRef(db, 'handovers');
+            window.fbOnValue(handoversRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    handovers = [];
+                    Object.keys(data).forEach(key => {
+                        if (data[key]) {
+                            let h = data[key];
+                            h.id = key;
+                            handovers.push(h);
+                        }
+                    });
+                } else {
+                    handovers = [];
+                }
+                // Sắp xếp lịch sử giao ca giảm dần theo ngày
+                handovers.sort((a, b) => new Date(b.date) - new Date(a.date));
+            });
         }
 
-        // Khởi tạo các bộ lọc thả xuống
-        function initFilterDropdowns() {
-            const yearSelect = document.getElementById('filter-year');
-            const hospitalSelect = document.getElementById('filter-hospital');
-            
-            yearSelect.innerHTML = '<option value="">Năm</option>';
-            hospitalSelect.innerHTML = '<option value="">B.Viện</option>';
+        // --- HÀM TỰ ĐỘNG TĂNG KHÓA ID BỆNH NHÂN (1, 2, 3...) ---
+        async function getNextPatientId() {
+            const dbRefObj = window.fbRef(window.firebaseDB);
+            const snapshot = await window.fbGet(window.fbChild(dbRefObj, 'patients'));
+            if (snapshot.exists()) {
+                const allPatients = snapshot.val();
+                const keys = Object.keys(allPatients).map(Number).filter(k => !isNaN(k));
+                if (keys.length > 0) {
+                    return Math.max(...keys) + 1;
+                }
+            }
+            return 1;
+        }
 
-            // Lọc các năm sinh
-            const years = [...new Set(patients.map(p => p.birthYear).filter(Boolean))].sort();
-            years.forEach(y => {
-                let opt = document.createElement('option');
+        // --- CHUYỂN ĐỔI VAI TRÒ HỆ THỐNG ---
+        function switchRole(role) {
+            currentRole = role;
+            const deleteBtn = document.getElementById("btn-sheet-delete-p");
+            if (deleteBtn) {
+                if (role === "admin") {
+                    deleteBtn.classList.remove("hidden");
+                } else {
+                    deleteBtn.classList.add("hidden");
+                }
+            }
+            renderList();
+            renderHandoverLogs();
+            showNotification("Đã chuyển đổi vai trò hệ thống sang: " + (role === "admin" ? "Quản trị viên" : "Nhân viên"));
+        }
+
+        // --- KHỞI TẠO BỘ LỌC THẢ XUỐNG ---
+        function initFilterDropdowns() {
+            // Nạp năm tự động
+            const yearSelect = document.getElementById("filter-year");
+            const currentYear = new Date().getFullYear();
+            for (let y = currentYear; y >= 2020; y--) {
+                let opt = document.createElement("option");
                 opt.value = y;
                 opt.textContent = y;
                 yearSelect.appendChild(opt);
+            }
+            
+            // Nạp danh sách bệnh viện tĩnh mô phỏng (Có thể lấy động từ danh sách bệnh nhân)
+            // Sẽ tự động quét khi renderList() được gọi
+        }
+
+        // --- KẾT XUẤT DANH SÁCH BỆNH NHÂN RA BẢNG ---
+        function renderList() {
+            const searchVal = document.getElementById("search-box").value.toLowerCase();
+            const filterYear = document.getElementById("filter-year").value;
+            const filterHospital = document.getElementById("filter-hospital").value;
+            const filterStatus = document.getElementById("filter-status").value;
+
+            // Lọc danh sách bệnh nhân
+            let filtered = patients.filter(p => {
+                const matchSearch = (p.name && p.name.toLowerCase().includes(searchVal)) || 
+                                    (p.bhyt && p.bhyt.toLowerCase().includes(searchVal));
+                const matchYear = filterYear === "" || (p.year && p.year.toString() === filterYear);
+                
+                // Lọc theo bệnh viện ở đợt điều trị gần nhất
+                let matchHospital = true;
+                if (filterHospital !== "") {
+                    let lastSession = p.sessions && p.sessions.length > 0 ? p.sessions[p.sessions.length - 1] : null;
+                    matchHospital = lastSession && lastSession.hospital === filterHospital;
+                }
+
+                const matchStatus = filterStatus === "" || p.status === filterStatus;
+
+                return matchSearch && matchYear && matchHospital && matchStatus;
             });
 
-            // Lọc các bệnh viện từ sessions
-            const hospitals = [...new Set(sessions.map(s => s.hospital).filter(Boolean))].sort();
+            // Cập nhật bộ lọc bệnh viện động
+            updateHospitalDropdown(patients);
+
+            const tableBody = document.getElementById("patient-table-body");
+            tableBody.innerHTML = "";
+
+            if (filtered.length === 0) {
+                document.getElementById("empty-state").classList.remove("hidden");
+            } else {
+                document.getElementById("empty-state").classList.add("hidden");
+                
+                filtered.forEach(p => {
+                    let lastSession = p.sessions && p.sessions.length > 0 ? p.sessions[p.sessions.length - 1] : { hospital: '', chuanDoan: '' };
+                    
+                    let statusBadge = "";
+                    if (p.status === "treating") {
+                        statusBadge = `<span class="inline-block px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-100 text-amber-800 uppercase tracking-wider">Đang ĐT</span>`;
+                    } else if (p.status === "discharged") {
+                        statusBadge = `<span class="inline-block px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider">Xuất viện</span>`;
+                    } else {
+                        statusBadge = `<span class="inline-block px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-rose-100 text-rose-800 uppercase tracking-wider">Tử vong</span>`;
+                    }
+
+                    let actionBtns = `
+                        <button onclick="viewPatientDetail('${p.id}')" class="bg-blue-50 text-blue-600 p-1.5 rounded-lg text-[9px] font-bold"><i class="fa-solid fa-eye"></i> Xem</button>
+                    `;
+                    if (p.status === "treating") {
+                        actionBtns += `
+                            <button onclick="promptQuickDischarge('${p.id}')" class="bg-teal-50 text-teal-600 p-1.5 rounded-lg text-[9px] font-bold"><i class="fa-solid fa-stethoscope"></i> Kết thúc</button>
+                        `;
+                    }
+
+                    const row = document.createElement("tr");
+                    row.className = "hover:bg-slate-50 transition-all text-xs";
+                    row.innerHTML = `
+                        <td class="py-2.5 px-1.5 border border-slate-200 text-center font-bold sticky left-0 bg-white z-10">${p.id}</td>
+                        <td class="py-2.5 px-2 border border-slate-200 font-black text-indigo-900 sticky left-[40px] bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            <button onclick="viewPatientDetail('${p.id}')" class="hover:underline text-left">${p.name}</button>
+                        </td>
+                        <td class="py-2.5 px-1 border border-slate-200 text-center">${p.year}</td>
+                        <td class="py-2.5 px-1 border border-slate-200 text-center">${p.gender}</td>
+                        <td class="py-2.5 px-2 border border-slate-200 truncate max-w-[110px]">${lastSession.hospital || '---'}</td>
+                        <td class="py-2.5 px-2 border border-slate-200 truncate max-w-[120px]">${lastSession.chuanDoan || '---'}</td>
+                        <td class="py-2.5 px-1.5 border border-slate-200 text-center">${statusBadge}</td>
+                        <td class="py-2.5 px-1.5 border border-slate-200 text-center space-x-1 whitespace-nowrap">${actionBtns}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        // Cập nhật thẻ lọc dropdown bệnh viện động
+        function updateHospitalDropdown(allPatients) {
+            const hospitalSelect = document.getElementById("filter-hospital");
+            // Giữ nguyên lựa chọn hiện tại nếu có
+            const selectedVal = hospitalSelect.value;
+            
+            // Lọc ra các bệnh viện duy nhất từ các đợt điều trị của tất cả bệnh nhân
+            let hospitals = [];
+            allPatients.forEach(p => {
+                if (p.sessions && p.sessions.length > 0) {
+                    p.sessions.forEach(s => {
+                        if (s.hospital && !hospitals.includes(s.hospital)) {
+                            hospitals.push(s.hospital);
+                        }
+                    });
+                }
+            });
+            hospitals.sort();
+
+            // Reset và thêm lại option mặc định
+            hospitalSelect.innerHTML = '<option value="">B.Viện</option>';
             hospitals.forEach(h => {
-                let opt = document.createElement('option');
+                let opt = document.createElement("option");
                 opt.value = h;
                 opt.textContent = h;
+                if (h === selectedVal) opt.selected = true;
                 hospitalSelect.appendChild(opt);
             });
         }
 
-        // Lưu trữ local storage
-        function saveToLocalStorage() {
-            localStorage.setItem('qlbn_patients', JSON.stringify(patients));
-            localStorage.setItem('qlbn_sessions', JSON.stringify(sessions));
-            localStorage.setItem('qlbn_handovers', JSON.stringify(handovers));
+        // Cập nhật thẻ số liệu thống kê nhanh
+        function updateStats() {
+            document.getElementById("stat-total").querySelector("h3").textContent = patients.length;
+            document.getElementById("stat-treating").textContent = patients.filter(p => p.status === "treating").length;
+            document.getElementById("stat-discharged").textContent = patients.filter(p => p.status === "discharged").length;
+            document.getElementById("stat-deceased").textContent = patients.filter(p => p.status === "deceased").length;
         }
 
-        // Hiển thị danh sách chính
-        function renderList() {
-            // Đồng bộ dữ liệu mới nhất từ biến toàn cục Firebase (nếu có)
-            if (window.patients && window.patients.length > 0) patients = window.patients;
-            if (window.sessions && window.sessions.length > 0) sessions = window.sessions;
-
-            const tbody = document.getElementById('patient-table-body');
-            tbody.innerHTML = '';
-
-            const searchKeyword = document.getElementById('search-box').value.toLowerCase().trim();
-            const filterYear = document.getElementById('filter-year').value;
-            const filterHospital = document.getElementById('filter-hospital').value;
-            const filterStatus = document.getElementById('filter-status').value;
-
-            let totalCount = 0;
-            let treatingCount = 0;
-            let dischargedCount = 0;
-            let deceasedCount = 0;
-
-            let filteredPatients = patients.filter(p => {
-                // Thống kê trạng thái
-                let pSessions = sessions.filter(s => s.patientId === p.id);
-                let latestSession = pSessions.sort((a,b) => b.sessionNum - a.sessionNum)[0];
-
-                let status = "treating";
-                if (latestSession) {
-                    if (latestSession.xuatVien && latestSession.ketQua === "discharged") status = "discharged";
-                    else if (latestSession.xuatVien && latestSession.ketQua === "deceased") status = "deceased";
-                }
-
-                if (status === "treating") treatingCount++;
-                if (status === "discharged") dischargedCount++;
-                if (status === "deceased") deceasedCount++;
-                totalCount++;
-
-                // Lọc điều kiện
-                let matchKeyword = p.name.toLowerCase().includes(searchKeyword) || p.bhyt.toLowerCase().includes(searchKeyword);
-                let matchYear = filterYear === "" || p.birthYear === filterYear;
-                let matchHospital = filterHospital === "" || (latestSession && latestSession.hospital === filterHospital);
-                let matchStatus = filterStatus === "" || status === filterStatus;
-
-                return matchKeyword && matchYear && matchHospital && matchStatus;
-            });
-
-            // Cập nhật khối thống kê
-            document.getElementById('stat-total').querySelector('h3').textContent = totalCount;
-            document.getElementById('stat-treating').textContent = treatingCount;
-            document.getElementById('stat-discharged').textContent = dischargedCount;
-            document.getElementById('stat-deceased').textContent = deceasedCount;
-
-            const emptyState = document.getElementById('empty-state');
-            if (filteredPatients.length === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            filteredPatients.forEach((p, idx) => {
-                let pSessions = sessions.filter(s => s.patientId === p.id);
-                let latestSession = pSessions.sort((a,b) => b.sessionNum - a.sessionNum)[0];
-
-                let hospitalName = "---";
-                let chuanDoan = "---";
-                let statusBadge = "";
-                let statusFlag = "treating";
-
-                if (latestSession) {
-                    hospitalName = latestSession.hospital || "---";
-                    chuanDoan = latestSession.chuanDoan || "---";
-                    
-                    if (latestSession.xuatVien && latestSession.ketQua === "discharged") {
-                        statusBadge = `<span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold text-[9px] block text-center uppercase tracking-wider">Đã xuất viện</span>`;
-                        statusFlag = "discharged";
-                    } else if (latestSession.xuatVien && latestSession.ketQua === "deceased") {
-                        statusBadge = `<span class="px-2 py-1 bg-rose-100 text-rose-800 rounded-full font-bold text-[9px] block text-center uppercase tracking-wider">Từ trần</span>`;
-                        statusFlag = "deceased";
-                    } else {
-                        statusBadge = `<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full font-bold text-[9px] block text-center uppercase tracking-wider animate-pulse border border-amber-300">Đang điều trị</span>`;
-                        statusFlag = "treating";
-                    }
-                }
-
-                // Nút thao tác
-                let actionBtns = `<button onclick="openPatientDetailSheet('${p.id}')" class="bg-blue-50 text-blue-600 p-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-100"><i class="fa-solid fa-eye"></i> Xem</button>`;
-                if (currentRole === "admin") {
-                    actionBtns += ` <button onclick="deletePatientRootConfirm('${p.id}')" class="bg-rose-50 text-rose-600 p-1.5 rounded-lg text-[10px] font-bold hover:bg-rose-100"><i class="fa-solid fa-trash"></i> Xóa</button>`;
-                }
-
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-all text-[10px]";
-                tr.innerHTML = `
-                    <td class="py-2 px-1 border border-slate-200 text-center font-bold sticky left-0 bg-white z-10">${idx + 1}</td>
-                    <td class="py-2 px-2 border border-slate-200 font-bold sticky left-[40px] bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                        <span class="block text-slate-900">${p.name}</span>
-                        <span class="font-mono text-[9px] text-slate-500 font-normal tracking-tight">${p.bhyt}</span>
-                    </td>
-                    <td class="py-2 px-1 border border-slate-200 text-center text-slate-600">${p.birthYear}</td>
-                    <td class="py-2 px-1 border border-slate-200 text-center text-slate-600">${p.gender}</td>
-                    <td class="py-2 px-2 border border-slate-200 text-slate-700 font-semibold truncate max-w-[110px]">${hospitalName}</td>
-                    <td class="py-2 px-2 border border-slate-200 text-slate-600 truncate max-w-[120px]">${chuanDoan}</td>
-                    <td class="py-2 px-1.5 border border-slate-200 align-middle">${statusBadge}</td>
-                    <td class="py-2 px-1.5 border border-slate-200 text-center whitespace-nowrap">${actionBtns}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Bộ lọc nhanh theo các tab thống kê
-        function filterByStat(statusFlag) {
-            document.getElementById('filter-status').value = statusFlag;
+        function filterByStat(statusStr) {
+            document.getElementById("filter-status").value = statusStr;
             renderList();
         }
 
-        // Modal Controls
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-        }
-
-        function showNotification(msg) {
-            const toast = document.getElementById('notification-toast');
-            toast.textContent = msg;
-            toast.className = "fixed top-4 left-1/2 -translate-x-1/2 bg-indigo-900 text-white px-4 py-2 rounded-xl shadow-lg font-bold text-[10px] tracking-wide z-[70] transition-all duration-300 scale-100 opacity-100";
-            setTimeout(() => {
-                toast.className = "fixed top-4 left-1/2 -translate-x-1/2 bg-indigo-900 text-white px-4 py-2 rounded-xl shadow-lg font-bold text-[10px] tracking-wide z-[70] transition-all duration-300 scale-0 opacity-0 pointer-events-none";
-            }, 2500);
-        }
-
-        // Lưu bệnh nhân mới
-        function saveNewPatient(event) {
+        // --- LƯU BỆNH NHÂN MỚI LÊN FIREBASE ---
+        async function saveNewPatient(event) {
             event.preventDefault();
-            const name = document.getElementById('p-name').value.trim();
-            const birthYear = document.getElementById('p-year').value;
-            const gender = document.getElementById('p-gender').value;
-            const bhyt = document.getElementById('p-bhyt').value.trim() || "-";
+            const newId = await getNextPatientId();
             
-            const nhapTram = document.getElementById('s-nhaptram').value;
-            const chuyenVien = document.getElementById('s-chuyenvien').value;
-            const hospital = document.getElementById('s-hospital').value.trim();
-            const xuatVien = document.getElementById('s-xuatvien').value;
-            const chuanDoan = document.getElementById('s-chuanDoan').value.trim();
-            const notes = document.getElementById('s-notes').value.trim();
+            const pName = document.getElementById("p-name").value;
+            const pYear = document.getElementById("p-year").value;
+            const pGender = document.getElementById("p-gender").value;
+            const pBhyt = document.getElementById("p-bhyt").value;
 
-            const newIndex = patients.length + 1;
-            const newPatientId = "p" + newIndex;
-            const newSessionId = "s_" + Date.now();
+            const sHospital = document.getElementById("s-hospital").value;
+            const sChuanDoan = document.getElementById("s-chuanDoan").value;
+            const sNhaptram = document.getElementById("s-nhaptram").value;
+            const sChuyenvien = document.getElementById("s-chuyenvien").value;
+            const sXuatvien = document.getElementById("s-xuatvien").value;
+            const sNotes = document.getElementById("s-notes").value;
 
-            const newPatientData = { id: newPatientId, name, birthYear, gender, bhyt };
-            const newSessionData = {
-                id: newSessionId, patientId: newPatientId, sessionNum: 1,
-                nhapTram, chuyenVien, chuanDoan, hospital, xuatVien,
-                ketQua: xuatVien ? (document.getElementById('s-xuatvien').value ? "discharged" : "") : "",
-                notes
+            const newPatientObj = {
+                name: pName,
+                year: pYear,
+                gender: pGender,
+                bhyt: pBhyt,
+                status: "treating",
+                sessions: [{
+                    hospital: sHospital,
+                    chuanDoan: sChuanDoan,
+                    nhaptram: sNhaptram,
+                    chuyenvien: sChuyenvien,
+                    xuatvien: sXuatvien,
+                    notes: sNotes,
+                    status: "treating"
+                }]
             };
 
-            // Đồng bộ Firebase Realtime
-            if (window.fbDatabase) {
-                set(ref(window.fbDatabase, 'parents/' + newIndex), {
-                    name: name, birthYear: birthYear, gender: gender, bhyt: bhyt
-                });
-                set(ref(window.fbDatabase, 'sessions/' + newIndex + '_1'), {
-                    patientId: newPatientId, sessionNum: 1,
-                    nhapTram: nhapTram, chuyenVien: chuyenVien,
-                    chuanDoan: chuanDoan, hospital: hospital,
-                    xuatVien: xuatVien, ketQua: xuatVien ? "discharged" : "",
-                    notes: notes
-                });
-            }
+            const patientRef = window.fbRef(window.firebaseDB, 'patients/' + newId);
+            await window.fbSet(patientRef, newPatientObj);
 
-            patients.push(newPatientData);
-            sessions.push(newSessionData);
-            
-            saveToLocalStorage();
-            initFilterDropdowns();
-            renderList();
-            
-            document.getElementById('form-new-patient').reset();
             closeModal('modal-patient');
-            showNotification('Thêm hồ sơ bệnh nhân mới thành công!');
+            document.getElementById("form-new-patient").reset();
+            showNotification("Đã thêm mới hồ sơ bệnh nhân thành công.");
         }
 
-        // Xem chi tiết bệnh nhân
+        // --- MỞ MODAL XEM CHI TIẾT BỆNH NHÂN ---
         let selectedPatientId = null;
 
-        function openPatientDetailSheet(pId) {
+        function viewPatientDetail(pId) {
             selectedPatientId = pId;
             const p = patients.find(x => x.id === pId);
             if (!p) return;
 
-            document.getElementById('sheet-p-name').textContent = p.name;
-            document.getElementById('sheet-p-meta').textContent = `${p.gender} - Sinh năm: ${p.birthYear}`;
-            document.getElementById('sheet-p-bhyt').textContent = p.bhyt || "---";
-            document.getElementById('sheet-p-gender-birth').textContent = `${p.gender} / ${p.birthYear}`;
+            document.getElementById("sheet-p-name").textContent = p.name;
+            document.getElementById("sheet-p-meta").textContent = `${p.gender} - Sinh năm ${p.year}`;
+            document.getElementById("sheet-p-bhyt").textContent = p.bhyt || "---";
+            document.getElementById("sheet-p-gender-birth").textContent = `${p.gender} / ${p.year}`;
 
-            const pSessions = sessions.filter(s => s.patientId === pId);
-            const timeline = document.getElementById('sheet-sessions-timeline');
-            timeline.innerHTML = '';
+            // Hiển thị nút xóa nếu là admin
+            const deleteBtn = document.getElementById("btn-sheet-delete-p");
+            if (deleteBtn) {
+                if (currentRole === "admin") deleteBtn.classList.remove("hidden");
+                else deleteBtn.classList.add("hidden");
+            }
 
-            pSessions.sort((a,b) => a.sessionNum - b.sessionNum).forEach(s => {
-                let statusText = `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold uppercase text-[8px] animate-pulse border border-amber-200">Đang điều trị</span>`;
-                let statusFlag = "treating";
-                if (s.xuatVien && s.ketQua === "discharged") {
-                    statusText = `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold uppercase text-[8px]">Xuất viện</span>`;
-                    statusFlag = "discharged";
-                } else if (s.xuatVien && s.ketQua === "deceased") {
-                    statusText = `<span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-bold uppercase text-[8px]">Từ trần</span>`;
-                    statusFlag = "deceased";
-                }
-
-                let editSessBtn = `<button onclick="openEditSessionModal('${s.id}')" class="text-[9px] font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded border border-teal-100 hover:bg-teal-100"><i class="fa-solid fa-pen"></i> Sửa</button>`;
-
-                let div = document.createElement('div');
-                div.className = "pl-7 relative";
-                div.innerHTML = `
-                    <div class="absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white bg-blue-600 z-10 flex items-center justify-center text-white text-[8px] font-bold">${s.sessionNum}</div>
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[9px] font-black text-blue-800 uppercase tracking-wider block">Đợt ${s.sessionNum} • Bệnh viện: ${s.hospital}</span>
-                                <h4 class="text-xs font-bold text-slate-800 mt-0.5">${s.chuanDoan}</h4>
-                            </div>
-                            <div class="flex gap-1">
-                                ${statusText}
-                                ${editSessBtn}
-                            </div>
-                        </div>
-                        <div class="text-[9px] text-slate-500 font-semibold grid grid-cols-2 gap-1 pt-1 border-t border-slate-50">
-                            <span>Nhập trạm: ${s.nhapTram || '---'}</span>
-                            <span>Chuyển viện: ${s.chuyenVien || '---'}</span>
-                            <span class="col-span-2">Xuất viện / Mất: ${s.xuatVien || '---'}</span>
-                        </div>
-                        ${s.notes ? `<p class="text-[10px] text-slate-700 bg-slate-50 p-2 rounded-lg leading-relaxed border border-slate-100">📝 ${s.notes}</p>` : ''}
-                    </div>
-                `;
-                timeline.appendChild(div);
-            });
-
-            const deleteBtn = document.getElementById('btn-sheet-delete-p');
-            if (currentRole === "admin") deleteBtn.classList.remove('hidden');
-            else deleteBtn.classList.add('hidden');
-
+            renderSessionsTimeline(p);
             openModal('modal-detail-sheet');
         }
 
-        function triggerAddSessionBox() {
-            const box = document.getElementById('quick-add-session-box');
-            box.classList.toggle('hidden');
-            if (!box.classList.contains('hidden')) {
-                document.getElementById('form-quick-session').reset();
-            }
-        }
+        function renderSessionsTimeline(p) {
+            const container = document.getElementById("sheet-sessions-timeline");
+            container.innerHTML = "";
 
-        // Lưu đợt khám / điều trị mới
-        function saveQuickSession(e) {
-            e.preventDefault();
-            if (!selectedPatientId) return;
-
-            const hospital = document.getElementById('qs-hospital').value.trim();
-            const chuanDoan = document.getElementById('qs-chuanDoan').value.trim();
-            const nhapTram = document.getElementById('qs-nhaptram').value;
-            const chuyenVien = document.getElementById('qs-chuyenvien').value;
-            const xuatVien = document.getElementById('qs-xuatvien').value;
-            const outcome = document.getElementById('qs-outcome').value;
-            const notes = document.getElementById('qs-notes').value.trim();
-
-            const pSessions = sessions.filter(s => s.patientId === selectedPatientId);
-            const nextSessionNum = pSessions.length + 1;
-            const newSessionId = "s_" + Date.now();
-
-            const newSessionData = {
-                id: newSessionId,
-                patientId: selectedPatientId,
-                sessionNum: nextSessionNum,
-                nhapTram, chuyenVien, chuanDoan, hospital, xuatVien,
-                ketQua: xuatVien ? outcome : "",
-                notes
-            };
-
-            // Đồng bộ Firebase Realtime
-            const numericId = selectedPatientId.replace('p', '');
-            if (window.fbDatabase) {
-                set(ref(window.fbDatabase, 'sessions/' + numericId + '_' + nextSessionNum), {
-                    patientId: selectedPatientId,
-                    sessionNum: nextSessionNum,
-                    nhapTram, chuyenVien, chuanDoan, hospital, xuatVien,
-                    ketQua: xuatVien ? outcome : "",
-                    notes
-                });
-            }
-
-            sessions.push(newSessionData);
-            
-            saveToLocalStorage();
-            initFilterDropdowns();
-            renderList();
-            
-            triggerAddSessionBox();
-            openPatientDetailSheet(selectedPatientId);
-            showNotification("Đã thêm thành công đợt điều trị thứ " + nextSessionNum + " cho bệnh nhân.");
-        }
-
-        // Xóa bệnh nhân
-        function deletePatientRootConfirm(pId) {
-            if (currentRole !== "admin") return;
-            selectedPatientId = pId;
-            document.getElementById('confirm-title').textContent = "⚠️ Bạn có chắc chắn muốn xóa vĩnh viễn hồ sơ bệnh nhân này không?";
-            document.getElementById('confirm-yes-btn').onclick = function() {
-                // Lọc bỏ bệnh nhân và các lượt điều trị
-                patients = patients.filter(x => x.id !== pId);
-                sessions = sessions.filter(x => x.patientId !== pId);
-
-                // Đồng bộ Firebase Realtime (Gán null tương đương xóa trên rtdb)
-                const numericId = pId.replace('p', '');
-                if (window.fbDatabase) {
-                    set(ref(window.fbDatabase, 'parents/' + numericId), null);
-                    set(ref(window.fbDatabase, 'sessions/' + numericId + '_1'), null);
-                }
-
-                saveToLocalStorage();
-                renderList();
-                closeModal('confirm-modal');
-                showNotification("Đã xóa vĩnh viễn hồ sơ thành công.");
-            };
-            openModal('confirm-modal');
-        }
-
-        // Mở modal sửa thông tin hành chính của bệnh nhân gốc
-        function triggerEditPatient() {
-            const p = patients.find(x => x.id === selectedPatientId);
-            if (!p) return;
-
-            document.getElementById('ep-name').value = p.name;
-            document.getElementById('ep-year').value = p.birthYear;
-            document.getElementById('ep-gender').value = p.gender;
-            document.getElementById('ep-bhyt').value = p.bhyt || "";
-
-            openModal('modal-edit-patient-root');
-            closeModal('modal-detail-sheet');
-        }
-
-        function saveEditPatientRoot(e) {
-            e.preventDefault();
-            if (!selectedPatientId) return;
-
-            const p = patients.find(x => x.id === selectedPatientId);
-            if (!p) return;
-
-            p.name = document.getElementById('ep-name').value.trim();
-            p.birthYear = document.getElementById('ep-year').value;
-            p.gender = document.getElementById('ep-gender').value;
-            p.bhyt = document.getElementById('ep-bhyt').value.trim() || "-";
-
-            if (window.fbDatabase) {
-                const numericId = selectedPatientId.replace('p', '');
-                set(ref(window.fbDatabase, 'parents/' + numericId), {
-                    name: p.name, birthYear: p.birthYear, gender: p.gender, bhyt: p.bhyt
-                });
-            }
-
-            saveToLocalStorage();
-            initFilterDropdowns();
-            renderList();
-
-            closeModal('modal-edit-patient-root');
-            showNotification("Cập nhật thông tin hành chính bệnh nhân thành công!");
-            openPatientDetailSheet(selectedPatientId);
-        }
-
-        // Sửa thông tin đợt điều trị
-        let editingSessionId = null;
-
-        function openEditSessionModal(sId) {
-            const s = sessions.find(x => x.id === sId);
-            if (!s) return;
-
-            editingSessionId = sId;
-            document.getElementById('es-id').value = sId;
-            document.getElementById('es-hospital').value = s.hospital;
-            document.getElementById('es-chuanDoan').value = s.chuanDoan;
-            document.getElementById('es-nhaptram').value = s.nhapTram;
-            document.getElementById('es-chuyenvien').value = s.chuyenVien;
-            document.getElementById('es-xuatvien').value = s.xuatVien;
-            document.getElementById('es-outcome').value = s.ketQua || "discharged";
-            document.getElementById('es-notes').value = s.notes;
-
-            openModal('modal-edit-session-root');
-            closeModal('modal-detail-sheet');
-        }
-
-        function saveEditSessionRoot(e) {
-            e.preventDefault();
-            if (!editingSessionId) return;
-
-            const s = sessions.find(x => x.id === editingSessionId);
-            if (!s) return;
-
-            s.hospital = document.getElementById('es-hospital').value.trim();
-            s.chuanDoan = document.getElementById('es-chuanDoan').value.trim();
-            s.nhapTram = document.getElementById('es-nhaptram').value;
-            s.chuyenVien = document.getElementById('es-chuyenvien').value;
-            s.xuatVien = document.getElementById('es-xuatvien').value;
-            s.ketQua = document.getElementById('es-outcome').value;
-            s.notes = document.getElementById('es-notes').value.trim();
-
-            if (window.fbDatabase) {
-                const numericId = s.patientId.replace('p', '');
-                set(ref(window.fbDatabase, 'sessions/' + numericId + '_' + s.sessionNum), {
-                    patientId: s.patientId,
-                    sessionNum: s.sessionNum,
-                    nhapTram: s.nhapTram,
-                    chuyenVien: s.chuyenVien,
-                    chuanDoan: s.chuanDoan,
-                    hospital: s.hospital,
-                    xuatVien: s.xuatVien,
-                    ketQua: s.ketQua,
-                    notes: s.notes
-                });
-            }
-
-            saveToLocalStorage();
-            initFilterDropdowns();
-            renderList();
-
-            closeModal('modal-edit-session-root');
-            showNotification("Đã cập nhật chi tiết đợt điều trị thành công!");
-            openPatientDetailSheet(s.patientId);
-        }
-
-        // Giao ca trực năng
-        function openHandoverModal() {
-            document.getElementById('h-date').value = new Date().toISOString().slice(0,10);
-            renderHandoverLogs();
-            openModal('modal-handover');
-        }
-
-        function switchHandoverTab(tabId) {
-            const writeBtn = document.getElementById('tab-write-btn');
-            const historyBtn = document.getElementById('tab-history-btn');
-            const writeTab = document.getElementById('handover-tab-write');
-            const historyTab = document.getElementById('handover-tab-history');
-
-            if (tabId === 'write') {
-                writeBtn.className = "flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600 transition-all";
-                historyBtn.className = "flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500 transition-all";
-                writeTab.classList.remove('hidden');
-                historyTab.classList.add('hidden');
-            } else {
-                writeBtn.className = "flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500 transition-all";
-                historyBtn.className = "flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600 transition-all";
-                writeTab.classList.add('hidden');
-                historyTab.classList.remove('hidden');
-            }
-        }
-
-        function saveHandover(e) {
-            e.preventDefault();
-            const date = document.getElementById('h-date').value;
-            const staff = document.getElementById('h-staff').value.trim();
-            const shift = document.getElementById('h-shift').value;
-            const content = document.getElementById('h-content').value.trim();
-
-            const newLog = { id: "h_" + Date.now(), date, staff, shift, content };
-            handovers.push(newLog);
-            saveToLocalStorage();
-            renderHandoverLogs();
-
-            document.getElementById('form-handover').reset();
-            switchHandoverTab('history');
-            showNotification("Đã lưu nhật ký giao ban trực thành công.");
-        }
-
-        function renderHandoverLogs() {
-            const container = document.getElementById('handover-logs-container');
-            container.innerHTML = '';
-            
-            if (handovers.length === 0) {
-                container.innerHTML = `<p class="text-center text-slate-400 text-xs py-6 font-semibold">Chưa có nhật ký giao ban nào được lập.</p>`;
+            if (!p.sessions || p.sessions.length === 0) {
+                container.innerHTML = `<p class="text-[10px] text-slate-400 font-semibold pl-8">Chưa có lịch sử đợt khám chữa bệnh nào.</p>`;
                 return;
             }
 
-            // Sắp xếp mới nhất lên đầu
-            [...handovers].reverse().forEach(log => {
-                let deleteLogBtn = "";
-                if (currentRole === "admin") {
-                    deleteLogBtn = `<button onclick="deleteHandover('${log.id}')" class="text-[9px] text-rose-600 font-bold hover:underline block mt-1"><i class="fa-solid fa-trash-can"></i> Xóa biên bản</button>`;
+            p.sessions.forEach((session, sIndex) => {
+                let badge = "";
+                if (session.status === "treating") {
+                    badge = `<span class="inline-block px-1.5 py-0.5 rounded font-bold text-[9px] bg-amber-100 text-amber-800 uppercase tracking-wider">Đang ĐT tuyến trên</span>`;
+                } else if (session.status === "discharged") {
+                    badge = `<span class="inline-block px-1.5 py-0.5 rounded font-bold text-[9px] bg-emerald-100 text-emerald-800 uppercase tracking-wider">Đã xuất viện</span>`;
+                } else {
+                    badge = `<span class="inline-block px-1.5 py-0.5 rounded font-bold text-[9px] bg-rose-100 text-rose-800 uppercase tracking-wider">Từ trần tuyến trên</span>`;
                 }
 
-                let div = document.createElement('div');
-                div.className = "bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-1.5 relative";
+                let editSessionBtn = "";
+                if (currentRole === "admin") {
+                    editSessionBtn = `
+                        <button onclick="openEditSessionModal(${sIndex})" class="text-[9px] font-bold text-teal-600 hover:underline flex items-center gap-0.5 mt-1">
+                            <i class="fa-solid fa-pen-to-square"></i> Sửa mốc này
+                        </button>
+                    `;
+                }
+
+                const div = document.createElement("div");
+                div.className = "pl-7 relative before:absolute before:left-[13px] before:top-1.5 before:h-3 before:w-3 before:rounded-full before:border-2 before:border-blue-600 before:bg-white";
                 div.innerHTML = `
-                    <div class="flex justify-between items-start gap-2">
-                        <span class="text-[9px] font-bold text-slate-400 tracking-wider">📅 Ngày trực: ${log.date} • Người trực: ${log.staff}</span>
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-[11px] text-indigo-900">${session.hospital}</h4>
+                            ${badge}
+                        </div>
+                        <p class="text-[10px] text-slate-600"><strong class="text-slate-500">Chẩn đoán:</strong> ${session.chuanDoan}</p>
+                        <div class="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[9px] text-slate-400 font-semibold border-t pt-1 mt-1">
+                            <span> Nhập trạm: ${formatDate(session.nhaptram)}</span>
+                            <span> Chuyển đi: ${formatDate(session.chuyenvien)}</span>
+                            <span> Kết thúc: ${formatDate(session.xuatvien)}</span>
+                        </div>
+                        <p class="text-[9px] text-slate-500 italic ${session.notes ? '' : 'hidden'}"><strong class="text-slate-400">Ghi chú:</strong> ${session.notes}</p>
+                        ${editSessionBtn}
                     </div>
-                    <span class="inline-block bg-indigo-50 text-indigo-700 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">${log.shift}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function formatDate(dStr) {
+            if (!dStr) return "---";
+            const d = new Date(dStr);
+            if (isNaN(d)) return dStr;
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // --- XÓA TOÀN BỘ HỒ SƠ BỆNH NHÂN (ADMIN) ---
+        async function deletePatientAction() {
+            if (currentRole !== "admin" || !selectedPatientId) return;
+            showConfirm("Bạn có chắc chắn muốn xóa vĩnh viễn hồ sơ bệnh nhân này khỏi hệ thống?", async function() {
+                const pRef = window.fbRef(window.firebaseDB, 'patients/' + selectedPatientId);
+                await window.fbRemove(pRef);
+                closeModal('modal-detail-sheet');
+                showNotification("Đã xóa vĩnh viễn hồ sơ bệnh nhân thành công.");
+            });
+        }
+
+        // --- SỬA THÔNG TIN HÀNH CHÍNH GỐC BỆNH NHÂN (ADMIN) ---
+        function triggerEditPatient() {
+            if (currentRole !== "admin" || !selectedPatientId) return;
+            const p = patients.find(x => x.id === selectedPatientId);
+            if (!p) return;
+
+            document.getElementById("ep-name").value = p.name || '';
+            document.getElementById("ep-year").value = p.year || '';
+            document.getElementById("ep-gender").value = p.gender || 'Nam';
+            document.getElementById("ep-bhyt").value = p.bhyt || '';
+
+            openModal('modal-edit-patient-root');
+        }
+
+        async function saveEditPatientRoot(event) {
+            event.preventDefault();
+            if (!selectedPatientId) return;
+
+            const pRef = window.fbRef(window.firebaseDB, 'patients/' + selectedPatientId);
+            const updatedData = {
+                name: document.getElementById("ep-name").value,
+                year: document.getElementById("ep-year").value,
+                gender: document.getElementById("ep-gender").value,
+                bhyt: document.getElementById("ep-bhyt").value
+            };
+
+            // Lấy dữ liệu cũ để merge không mất mảng sessions
+            const pOld = patients.find(x => x.id === selectedPatientId);
+            if (pOld) {
+                updatedData.status = pOld.status;
+                updatedData.sessions = pOld.sessions || [];
+            }
+
+            await window.fbUpdate(pRef, updatedData);
+            closeModal('modal-edit-patient-root');
+            closeModal('modal-detail-sheet');
+            showNotification("Đã cập nhật đính chính hành chính bệnh nhân thành công.");
+        }
+
+        // --- THÊM ĐỢT ĐIỀU TRỊ MỚI CHO BỆNH NHÂN ---
+        function triggerAddSessionBox() {
+            const box = document.getElementById("quick-add-session-box");
+            box.classList.toggle("hidden");
+            if (!box.classList.contains("hidden")) {
+                document.getElementById("form-quick-session").reset();
+            }
+        }
+
+        async function saveQuickSession(event) {
+            event.preventDefault();
+            if (!selectedPatientId) return;
+
+            const p = patients.find(x => x.id === selectedPatientId);
+            if (!p) return;
+
+            const newOutcome = document.getElementById("qs-outcome").value;
+            const newSession = {
+                hospital: document.getElementById("qs-hospital").value,
+                chuanDoan: document.getElementById("qs-chuanDoan").value,
+                nhaptram: document.getElementById("qs-nhaptram").value,
+                chuyenvien: document.getElementById("qs-chuyenvien").value,
+                xuatvien: document.getElementById("qs-xuatvien").value,
+                notes: document.getElementById("qs-notes").value,
+                status: newOutcome
+            };
+
+            let updatedSessions = p.sessions ? [...p.sessions] : [];
+            // Đợt điều trị mới nhất đè lên status đợt cũ, đưa status toàn cục về trạng thái đợt đó
+            if (updatedSessions.length > 0) {
+                updatedSessions[updatedSessions.length - 1].status = newOutcome;
+            }
+            updatedSessions.push(newSession);
+
+            const pRef = window.fbRef(window.firebaseDB, 'patients/' + selectedPatientId);
+            await window.fbUpdate(pRef, {
+                sessions: updatedSessions,
+                status: newOutcome
+            });
+
+            triggerAddSessionBox();
+            viewPatientDetail(selectedPatientId);
+            showNotification("Đã đính kèm đợt điều trị bệnh lý tuyến trên thành công.");
+        }
+
+        // --- SỬA MỐC ĐỢT ĐIỀU TRỊ CŨ (ADMIN) ---
+        let editingSessionIndex = null;
+
+        function openEditSessionModal(sIndex) {
+            if (currentRole !== "admin" || !selectedPatientId) return;
+            const p = patients.find(x => x.id === selectedPatientId);
+            if (!p || !p.sessions || !p.sessions[sIndex]) return;
+
+            editingSessionIndex = sIndex;
+            const s = p.sessions[sIndex];
+
+            document.getElementById("es-id").value = sIndex;
+            document.getElementById("es-hospital").value = s.hospital || '';
+            document.getElementById("es-chuanDoan").value = s.chuanDoan || '';
+            document.getElementById("es-nhaptram").value = s.nhaptram || '';
+            document.getElementById("es-chuyenvien").value = s.chuyenvien || '';
+            document.getElementById("es-xuatvien").value = s.xuatvien || '';
+            document.getElementById("es-outcome").value = s.status || 'discharged';
+            document.getElementById("es-notes").value = s.notes || '';
+
+            openModal('modal-edit-session-root');
+        }
+
+        async function saveEditSessionRoot(event) {
+            event.preventDefault();
+            if (!selectedPatientId || editingSessionIndex === null) return;
+
+            const p = patients.find(x => x.id === selectedPatientId);
+            if (!p || !p.sessions) return;
+
+            let updatedSessions = [...p.sessions];
+            updatedSessions[editingSessionIndex] = {
+                hospital: document.getElementById("es-hospital").value,
+                chuanDoan: document.getElementById("es-chuanDoan").value,
+                nhaptram: document.getElementById("es-nhaptram").value,
+                chuyenvien: document.getElementById("es-chuyenvien").value,
+                xuatvien: document.getElementById("es-xuatvien").value,
+                notes: document.getElementById("es-notes").value,
+                status: document.getElementById("es-outcome").value
+            };
+
+            // Nếu sửa mốc cuối cùng, cập nhật luôn trạng thái bệnh nhân tổng cục
+            let newGlobalStatus = p.status;
+            if (editingSessionIndex === p.sessions.length - 1) {
+                newGlobalStatus = document.getElementById("es-outcome").value;
+            }
+
+            const pRef = window.fbRef(window.firebaseDB, 'patients/' + selectedPatientId);
+            await window.fbUpdate(pRef, {
+                sessions: updatedSessions,
+                status: newGlobalStatus
+            });
+
+            closeModal('modal-edit-session-root');
+            closeModal('modal-detail-sheet');
+            viewPatientDetail(selectedPatientId);
+            showNotification("Đã chỉnh sửa mốc thông tin đợt điều trị thành công.");
+        }
+
+        // --- KẾT THÚC ĐỢT ĐIỀU TRỊ NHANH (XUẤT VIỆN / TỬ VONG) ---
+        let dischargingPatientId = null;
+
+        function promptQuickDischarge(pId) {
+            dischargingPatientId = pId;
+            const p = patients.find(x => x.id === pId);
+            if (!p) return;
+
+            document.getElementById("dq-label-name").textContent = `Bệnh nhân: ${p.name}`;
+            document.getElementById("dq-label-info").textContent = `Năm sinh: ${p.year} - GT: ${p.gender}`;
+            
+            // Set ngày mặc định là ngày hôm nay
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById("dq-date").value = today;
+
+            openModal('modal-discharge-quick');
+        }
+
+        async function saveQuickDischarge() {
+            if (!dischargingPatientId) return;
+            const p = patients.find(x => x.id === dischargingPatientId);
+            if (!p || !p.sessions || p.sessions.length === 0) return;
+
+            const outcome = document.getElementById("dq-outcome").value;
+            const endDate = document.getElementById("dq-date").value;
+
+            // Cập nhật mốc cuối cùng
+            let updatedSessions = [...p.sessions];
+            let lastIdx = updatedSessions.length - 1;
+            updatedSessions[lastIdx].status = outcome;
+            updatedSessions[lastIdx].xuatvien = endDate;
+
+            const pRef = window.fbRef(window.firebaseDB, 'patients/' + dischargingPatientId);
+            await window.fbUpdate(pRef, {
+                sessions: updatedSessions,
+                status: outcome
+            });
+
+            closeModal('modal-discharge-quick');
+            showNotification("Trạng thái bệnh nhân đã chuyển sang: " + (outcome === 'discharged' ? 'Xuất viện' : 'Tử vong'));
+        }
+
+        // --- SỔ GIAO CA (HANDOVER) ---
+        function openHandoverModal() {
+            switchHandoverTab('write');
+            renderHandoverLogs();
+            
+            // Đặt ngày mặc định là hôm nay
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById("h-date").value = today;
+
+            openModal('modal-handover');
+        }
+
+        function switchHandoverTab(tabName) {
+            const writeBtn = document.getElementById("tab-write-btn");
+            const historyBtn = document.getElementById("tab-history-btn");
+            const writeTab = document.getElementById("handover-tab-write");
+            const historyTab = document.getElementById("handover-tab-history");
+
+            if (tabName === 'write') {
+                writeTab.classList.remove("hidden");
+                historyTab.classList.add("hidden");
+                writeBtn.className = "flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600 transition-all font-bold text-xs";
+                historyBtn.className = "flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500 transition-all font-bold text-xs";
+            } else {
+                writeTab.classList.add("hidden");
+                historyTab.classList.remove("hidden");
+                writeBtn.className = "flex-grow text-center py-2.5 text-slate-500 hover:text-amber-500 transition-all font-bold text-xs";
+                historyBtn.className = "flex-grow text-center py-2.5 border-b-2 border-amber-500 text-amber-600 transition-all font-bold text-xs";
+            }
+        }
+
+        // Tự động lấy danh sách bệnh nhân đang điều trị để điền nhanh vào form bàn giao
+        function autoGenerateActiveHandover() {
+            const activePatients = patients.filter(p => p.status === "treating");
+            let summary = `📌 BÁO CÁO CA TRỰC GIAO BAN\n`;
+            summary += `Tổng số bệnh nhân đang nằm ĐT tuyến trên: ${activePatients.length} ca.\n\n`;
+            
+            if (activePatients.length > 0) {
+                summary += `Danh sách chi tiết:\n`;
+                activePatients.forEach((p, i) => {
+                    let lastS = p.sessions[p.sessions.length - 1];
+                    summary += `${i + 1}. ${p.name} (${p.year}) - Viện: ${lastS.hospital} - C.Đoán: ${lastS.chuanDoan}\n`;
+                });
+            } else {
+                summary += `Không có bệnh nhân nào đang điều trị tại tuyến trên.\n`;
+            }
+
+            document.getElementById("h-content").value = summary;
+            showNotification("Đã trích xuất và điền tự động dữ liệu bệnh nhân thực tế vào nội dung ca trực.");
+        }
+
+        async function saveHandover(event) {
+            event.preventDefault();
+            const hDate = document.getElementById("h-date").value;
+            const hStaff = document.getElementById("h-staff").value;
+            const hShift = document.getElementById("h-shift").value;
+            const hContent = document.getElementById("h-content").value;
+
+            // Tìm khóa id tiếp theo cho handover
+            const dbRefObj = window.fbRef(window.firebaseDB);
+            const snapshot = await window.fbGet(window.fbChild(dbRefObj, 'handovers'));
+            let newId = 1;
+            if (snapshot.exists()) {
+                const allH = snapshot.val();
+                const keys = Object.keys(allH).map(Number).filter(k => !isNaN(k));
+                if (keys.length > 0) newId = Math.max(...keys) + 1;
+            }
+
+            const newHandoverObj = {
+                date: hDate,
+                staffName: hStaff,
+                shift: hShift,
+                content: hContent
+            };
+
+            const handoverRef = window.fbRef(window.firebaseDB, 'handovers/' + newId);
+            await window.fbSet(handoverRef, newHandoverObj);
+
+            document.getElementById("form-handover").reset();
+            // Đặt lại ngày mặc định
+            document.getElementById("h-date").value = new Date().toISOString().split('T')[0];
+            switchHandoverTab('history');
+            showNotification("Đã ghi sổ bàn giao ca trực hệ thống thành công.");
+        }
+
+        function renderHandoverLogs() {
+            const container = document.getElementById("handover-logs-container");
+            container.innerHTML = "";
+
+            if (handovers.length === 0) {
+                container.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold py-4 text-center">Chưa có lịch sử biên bản giao ban trực.</p>`;
+                return;
+            }
+
+            handovers.forEach(log => {
+                const div = document.createElement("div");
+                div.className = "bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2 relative";
+
+                let deleteLogBtn = "";
+                if (currentRole === "admin") {
+                    deleteLogBtn = `
+                        <button onclick="deleteHandover('${log.id}')" class="absolute right-3.5 top-3 text-[9px] text-rose-600 font-extrabold bg-rose-50 px-2 py-1 rounded-xl hover:bg-rose-100 flex items-center gap-0.5">
+                            <i class="fa-solid fa-trash-can"></i> Xoá
+                        </button>
+                    `;
+                }
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-1.5 pr-16">
+                        <span class="text-[9px] text-slate-400 font-bold">📅 Ngày trực: ${formatDate(log.date)}</span>
+                        <span class="text-indigo-800 font-bold text-[10px]"><i class="fa-solid fa-signature"></i> ${log.staffName}</span>
+                    </div>
+                    <span class="inline-block text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">${log.shift}</span>
                     <p class="text-[11px] text-slate-700 leading-relaxed whitespace-pre-line mt-1">${log.content}</p>
                     ${deleteLogBtn}
                 `;
@@ -1071,43 +1230,40 @@
 
         function deleteHandover(logId) {
             if (currentRole !== "admin") return;
-            document.getElementById('confirm-title').textContent = "Bạn có chắc chắn muốn xóa vĩnh viễn biên bản trực ca này?";
-            document.getElementById('confirm-yes-btn').onclick = function() {
-                handovers = handovers.filter(h => h.id !== logId);
-                saveToLocalStorage();
+            showConfirm("Bạn có chắc chắn muốn xóa vĩnh viễn biên bản trực ca này?", async function() {
+                const hRef = window.fbRef(window.firebaseDB, 'handovers/' + logId);
+                await window.fbRemove(hRef);
                 renderHandoverLogs();
-                closeModal('confirm-modal');
                 showNotification("Đã xóa nhật ký giao ban trực thành công.");
-            };
-            openModal('confirm-modal');
+            });
         }
 
-        // Lần đầu tải trang
+        // --- CÁC HÀM XỬ LÝ UI MODAL & THÔNG BÁO DỰ PHÒNG ---
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove("hidden");
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add("hidden");
+        }
+        function showNotification(msg) {
+            // Có thể dùng thông báo toast UI của riêng bạn nếu có sẵn. Ở đây in log kiểm tra.
+            console.log("Notification:", msg);
+            alert(msg); // Bỏ alert hoặc thay bằng custom toast UI tùy ý bạn
+        }
+        function showConfirm(msg, callback) {
+            if (confirm(msg)) {
+                callback();
+            }
+        }
+        
+        // ------------------------------------------------------------------------
+        // KẾT THÚC KHỐI JAVASCRIPT ĐỒNG BỘ REALTIME DATABASE (FIREBASE)
+        // ------------------------------------------------------------------------
+                // --- KHỞI TẠO LẦN ĐẦU ---
         window.onload = function() {
             initFilterDropdowns();
             renderList();
         };
-
-        // Gán các hàm ra global window để dùng trong các thẻ HTML
-        window.openPatientDetailSheet = openPatientDetailSheet;
-        window.deleteSession = function() {};
-        window.filterByStat = filterByStat;
-        window.showNotification = showNotification;
-        window.closeModal = closeModal;
-        window.triggerAddSessionBox = triggerAddSessionBox;
-        window.saveQuickSession = saveQuickSession;
-        window.openModal = openModal;
-        window.openHandoverModal = openHandoverModal;
-        window.switchHandoverTab = switchHandoverTab;
-        window.saveHandover = saveHandover;
-        window.deleteHandover = deleteHandover;
-        window.switchRole = switchRole;
-        window.openEditSessionModal = openEditSessionModal;
-        window.saveEditSessionRoot = saveEditSessionRoot;
-        window.triggerEditPatient = triggerEditPatient;
-        window.saveEditPatientRoot = saveEditPatientRoot;
-        window.deletePatientRootConfirm = deletePatientRootConfirm;
-        window.saveNewPatient = saveNewPatient;
     </script>
 </body>
 </html>
