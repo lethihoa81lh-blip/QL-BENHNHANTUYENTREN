@@ -11,14 +11,14 @@
     <style>
         <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
             authDomain: "ql-benhnhantuyentren.firebaseapp.com",
             databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "ql-benhnhantuyentren",
-            storageBucket: "ql-benhnhantuyentren.firestorage.app",
+            storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
             messagingSenderId: "127051253047",
             appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
             measurementId: "G-0JPKGYLJK0"
@@ -27,21 +27,22 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Gán database vào biến toàn cục window để các hàm lưu trữ bên dưới file HTML gọi dễ dàng
+        // Gán database vào biến toàn cục window để các hàm lưu trữ bên dưới gọi
         window.fbDatabase = database;
         
-        // Lắng nghe dữ liệu thời gian thực từ nhánh parents (nhánh 1, 2, 3... 65 trên Firebase)
+        // Lắng nghe dữ liệu thời gian thực từ nhánh parents trên Firebase (nhánh 1, 2, 3...)
         const parentsRef = ref(database, 'parents');
         onValue(parentsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 let loadedPatients = [];
-                // Duyệt các key số 1, 2, 3... từ Firebase lưu trên nhánh parents
+                
+                // Lọc bỏ các khoảng trống (null/undefined) trong object key số của Firebase
                 Object.keys(data).forEach(key => {
                     let item = data[key];
-                    if (item) {
+                    if (item && (item.name || item.hoTen)) {
                         loadedPatients.push({
-                            id: "p" + key, // Tự động thêm tiền tố "p" để khớp với logic giao diện (p1, p2...)
+                            id: "p" + key, // Chuyển đổi định danh sang p1, p2, p3... khớp với giao diện
                             name: item.name || item.hoTen || "",
                             birthYear: item.birthYear || item.namSinh || "",
                             gender: item.gender || item.gioiTinh || "Nam",
@@ -50,7 +51,7 @@
                     }
                 });
                 
-                // Cập nhật mảng bệnh nhân toàn cục và vẽ lại giao diện ngay lập tức
+                // Cập nhật mảng patients toàn cục và vẽ lại giao diện ngay lập tức
                 window.patients = loadedPatients;
                 if (typeof renderList === 'function') {
                     renderList();
@@ -1454,11 +1455,34 @@
             });
         }
 
-        // --- KHỞI TRẠT LẦN ĐẦU ---
+       // --- KHỞI TẠO LẦN ĐẦU CHỜ DỮ LIỆU TỪ FIREBASE ---
         window.onload = function() {
             initFilterDropdowns();
-            renderList();
+            // Không vội gọi renderList() ngay lập tức để nhường quyền cho Firebase tải dữ liệu về.
+            // Hàm onValue ở phần <head> sau khi lấy được dữ liệu từ Firebase sẽ tự động gọi renderList() cho bạn.
+            console.log("Đang chờ đồng bộ dữ liệu từ Firebase Realtime Database...");
+            
+            // Dự phòng: Nếu sau 3 giây mà Firebase bị lỗi mạng không phản hồi, app sẽ tự động nạp danh sách cũ dưới máy để tránh giao diện bị trắng trơn
+            setTimeout(() => {
+                if (!window.patients || window.patients.length === 0) {
+                    if (localStorage.getItem('qlbn_patients')) {
+                        patients = JSON.parse(localStorage.getItem('qlbn_patients'));
+                        sessions = JSON.parse(localStorage.getItem('qlbn_sessions'));
+                        handovers = JSON.parse(localStorage.getItem('qlbn_handovers'));
+                    } else {
+                        patients = getSamplePatients(); 
+                        sessions = getSampleSessions();
+                        handovers = [];
+                        saveToLocalStorage();
+                    }
+                    renderList();
+                }
+            }, 3000);
         };
-    </script>
+        </script>
+
 </body>
-</html>
+
+</html> 
+
+
