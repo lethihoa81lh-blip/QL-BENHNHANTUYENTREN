@@ -9,6 +9,55 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
+        <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+            authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+            databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ql-benhnhantuyentren",
+            storageBucket: "ql-benhnhantuyentren.firestorage.app",
+            messagingSenderId: "127051253047",
+            appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+            measurementId: "G-0JPKGYLJK0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Gán database vào biến toàn cục window để các hàm lưu trữ bên dưới file HTML gọi dễ dàng
+        window.fbDatabase = database;
+        
+        // Lắng nghe dữ liệu thời gian thực từ nhánh parents (nhánh 1, 2, 3... 65 trên Firebase)
+        const parentsRef = ref(database, 'parents');
+        onValue(parentsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                let loadedPatients = [];
+                // Duyệt các key số 1, 2, 3... từ Firebase lưu trên nhánh parents
+                Object.keys(data).forEach(key => {
+                    let item = data[key];
+                    if (item) {
+                        loadedPatients.push({
+                            id: "p" + key, // Tự động thêm tiền tố "p" để khớp với logic giao diện (p1, p2...)
+                            name: item.name || item.hoTen || "",
+                            birthYear: item.birthYear || item.namSinh || "",
+                            gender: item.gender || item.gioiTinh || "Nam",
+                            bhyt: item.bhyt || "-"
+                        });
+                    }
+                });
+                
+                // Cập nhật mảng bệnh nhân toàn cục và vẽ lại giao diện ngay lập tức
+                window.patients = loadedPatients;
+                if (typeof renderList === 'function') {
+                    renderList();
+                }
+            }
+        });
+    </script>
         /* Đèn hiệu nhấp nháy cho bệnh nhân đang nằm điều trị tuyến trên */
         @keyframes pulse-orange {
             0%, 100% { opacity: 1; transform: scale(1); }
@@ -521,39 +570,13 @@
             </div>
         </div>
     </div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
     <!-- ==================== JAVASCRIPT XỬ LÝ LOGIC CHUYÊN SÂU ==================== -->
     <script>
-        <script>
-
-// ===== FIREBASE =====
-
-const firebaseConfig = {
-  apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
-  authDomain: "ql-benhnhantuyentren.firebaseapp.com",
-  databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ql-benhnhantuyentren",
-  storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
-  messagingSenderId: "127051253047",
-  appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
-  measurementId: "G-0JPKGYLJK0"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db = firebase.database();
-
-console.log("Firebase đã kết nối");
-
-
-// ===== BIẾN HỆ THỐNG =====
-
-let currentRole = "staff"; 
-const ADMIN_PASSWORD = "admin";
-
-let activePatientId = null;
-let quickDischargeSessionId = null;
+        let currentRole = "staff"; 
+        const ADMIN_PASSWORD = "admin";
+        let activePatientId = null; // ID bệnh nhân đang mở xem chi tiết
+        let quickDischargeSessionId = null;
 
         // --- HỆ THỐNG THÔNG BÁO VÀ CONFIRM CUSTOM ---
         function showNotification(message, isError = false) {
@@ -1201,9 +1224,40 @@ let quickDischargeSessionId = null;
             const chuanDoan = document.getElementById('s-chuanDoan').value.trim();
             const notes = document.getElementById('s-notes').value.trim();
 
-            const newPatientId = "p_" + Date.now();
+            // Lấy số thứ tự tiếp theo dựa trên độ dài mảng hiện tại trên giao diện (vd: 65 bệnh nhân thì bệnh nhân mới sẽ là 66)
+            const newIndex = window.patients ? (window.patients.length + 1) : 1;
+            
+            const newPatientId = "p" + newIndex; // Định dạng ID khớp với logic load về ("p1", "p2"...)
             const newSessionId = "s_" + Date.now();
 
+            // 1. Đẩy dữ liệu lên Firebase Realtime Database (nhánh parents)
+            if (window.fbDatabase) {
+                // Import hàm từ module Firebase (nếu script của bạn là type="module")
+                import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js").then(({ ref, set }) => {
+                    // Đẩy thông tin hành chính của bệnh nhân vào nút parents/66
+                    set(ref(window.fbDatabase, 'parents/' + newIndex), {
+                        name: name,
+                        birthYear: birthYear,
+                        gender: gender,
+                        bhyt: bhyt
+                    });
+
+                    // Đẩy đợt điều trị (sessions) vào nút sessions tương ứng, ví dụ: 'sessions/66_1'
+                    set(ref(window.fbDatabase, 'sessions/' + newIndex + '_1'), {
+                        patientId: newPatientId,
+                        sessionNum: 1,
+                        nhapTram: nhapTram,
+                        chuyenVien: chuyenVien,
+                        chuanDoan: chuanDoan,
+                        hospital: hospital,
+                        xuatVien: xuatVien,
+                        ketQua: xuatVien ? "discharged" : "", 
+                        notes: notes
+                    });
+                });
+            }
+
+            // 2. Cập nhật mảng dưới bộ nhớ tạm của thiết bị để giao diện vẽ lại ngay lập tức
             patients.push({
                 id: newPatientId,
                 name: name,
@@ -1225,7 +1279,7 @@ let quickDischargeSessionId = null;
                 notes: notes
             });
 
-            saveToLocalStorage();
+            saveToLocalStorage(); // Lưu vào localStorage trên máy hiện tại như bình thường
             initFilterDropdowns();
             renderList();
             
@@ -1400,44 +1454,11 @@ let quickDischargeSessionId = null;
             });
         }
 
-       // ===== ĐỌC BỆNH NHÂN TỪ FIREBASE =====
-
-function loadPatientsFromFirebase(){
-
-    console.log("Đang gọi Firebase patients");
-
-    db.ref("patients").on("value", snapshot => {
-
-        const data = snapshot.val();
-
-        if(data){
-
-            patients = Object.keys(data).map(id => {
-
-                return {
-                    id: id,
-                    ...data[id]
-                };
-
-            });
-
-            console.log(
-                "Firebase bệnh nhân:",
-                patients.length
-            );
-
+        // --- KHỞI TRẠT LẦN ĐẦU ---
+        window.onload = function() {
+            initFilterDropdowns();
             renderList();
-
-        } else {
-
-            console.log("Firebase không có dữ liệu patients");
-
-        }
-
-    });
-
-}
-loadPatientsFromFirebase();
-</script>
+        };
+    </script>
 </body>
 </html>
