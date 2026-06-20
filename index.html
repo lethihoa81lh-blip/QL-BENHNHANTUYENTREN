@@ -26,23 +26,18 @@
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-
-        // Gán database vào biến toàn cục window để các hàm lưu trữ bên dưới gọi
         window.fbDatabase = database;
         
-        // Lắng nghe dữ liệu thời gian thực từ nhánh parents trên Firebase (nhánh 1, 2, 3...)
         const parentsRef = ref(database, 'parents');
         onValue(parentsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 let loadedPatients = [];
-                
-                // Lọc bỏ các khoảng trống (null/undefined) trong object key số của Firebase
                 Object.keys(data).forEach(key => {
                     let item = data[key];
                     if (item && (item.name || item.hoTen)) {
                         loadedPatients.push({
-                            id: "p" + key, // Chuyển đổi định danh sang p1, p2, p3... khớp với giao diện
+                            id: "p" + key, // Chuyển đổi khóa 1, 2, 3... thành p1, p2, p3...
                             name: item.name || item.hoTen || "",
                             birthYear: item.birthYear || item.namSinh || "",
                             gender: item.gender || item.gioiTinh || "Nam",
@@ -51,7 +46,6 @@
                     }
                 });
                 
-                // Cập nhật mảng patients toàn cục và vẽ lại giao diện ngay lập tức
                 window.patients = loadedPatients;
                 if (typeof renderList === 'function') {
                     renderList();
