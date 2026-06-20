@@ -1458,11 +1458,13 @@ loadPatientsFromFirebase();
             });
         }
 
-        // --- KHỞI TRẠT LẦN ĐẦU ---
-        window.onload = function() {
-            initFilterDropdowns();
-            renderList();
-        };
+        // --- KHỞI TRẠNG LẦN ĐẦU ---
+window.onload = function() {
+
+    initFilterDropdowns();
+
+    // Firebase sẽ tự gọi render sau khi lấy dữ liệu
+};
     </script>
 </body>
 </html>
