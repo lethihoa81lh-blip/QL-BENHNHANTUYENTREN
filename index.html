@@ -521,13 +521,39 @@
             </div>
         </div>
     </div>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <!-- ==================== JAVASCRIPT XỬ LÝ LOGIC CHUYÊN SÂU ==================== -->
     <script>
-        let currentRole = "staff"; 
-        const ADMIN_PASSWORD = "admin";
-        let activePatientId = null; // ID bệnh nhân đang mở xem chi tiết
-        let quickDischargeSessionId = null;
+        <script>
+
+// ===== FIREBASE =====
+
+const firebaseConfig = {
+  apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
+  authDomain: "ql-benhnhantuyentren.firebaseapp.com",
+  databaseURL: "https://ql-benhnhantuyentren-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ql-benhnhantuyentren",
+  storageBucket: "ql-benhnhantuyentren.firebasestorage.app",
+  messagingSenderId: "127051253047",
+  appId: "1:127051253047:web:12899a0b0f28d0addd86b2",
+  measurementId: "G-0JPKGYLJK0"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+console.log("Firebase đã kết nối");
+
+
+// ===== BIẾN HỆ THỐNG =====
+
+let currentRole = "staff"; 
+const ADMIN_PASSWORD = "admin";
+
+let activePatientId = null;
+let quickDischargeSessionId = null;
 
         // --- HỆ THỐNG THÔNG BÁO VÀ CONFIRM CUSTOM ---
         function showNotification(message, isError = false) {
@@ -593,7 +619,43 @@
             { id: "p4", name: "Trương Lệ Vân", birthYear: "1954", gender: "Nữ", bhyt: "BT2797930460725" },
             { id: "p5", name: "Phạm Văn Đức", birthYear: "1948", gender: "Nam", bhyt: "BT2797930411223" }
         ];
+// ===== ĐỌC BỆNH NHÂN TỪ FIREBASE =====
 
+function loadPatientsFromFirebase(){
+
+    db.ref("patients").on("value", snapshot => {
+
+        const data = snapshot.val();
+
+        if(data){
+
+            patients = Object.keys(data).map(id => {
+
+                return {
+                    id: id,
+                    ...data[id]
+                };
+
+            });
+
+
+            console.log(
+                "Firebase bệnh nhân:",
+                patients.length
+            );
+
+
+            renderList();
+
+        } else {
+
+            console.log("Firebase không có dữ liệu patients");
+
+        }
+
+    });
+
+}
         let sessions = JSON.parse(localStorage.getItem('qlbn_sessions')) || [
             { id: "s1", patientId: "p1", sessionNum: 1, nhapTram: "2026-06-01", chuyenVien: "2026-06-01", chuanDoan: "Viêm Phế Quản/ Động kinh", hospital: "Nhân Ái", xuatVien: "", ketQua: "", notes: "Đã chuyển từ trạm xá lên bệnh viện Nhân Ái bằng xe chuyên dụng trung tâm." },
             { id: "s2", patientId: "p2", sessionNum: 1, nhapTram: "", chuyenVien: "2026-01-05", chuanDoan: "U thực quản", hospital: "Chợ Rẫy", xuatVien: "2026-01-07", ketQua: "discharged", notes: "Người nhà chăm nuôi chính, đã chuyển viện an toàn." },
@@ -1375,10 +1437,13 @@
         }
 
         // --- KHỞI TRẠT LẦN ĐẦU ---
-        window.onload = function() {
-            initFilterDropdowns();
-            renderList();
-        };
+       window.onload = function(){
+
+    initFilterDropdowns();
+
+    loadPatientsFromFirebase();
+
+}
     </script>
 </body>
 </html>
