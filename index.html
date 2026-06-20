@@ -639,7 +639,53 @@ window.firebaseRemove = remove;
             { id: "s4", patientId: "p4", sessionNum: 1, nhapTram: "2026-01-01", chuyenVien: "2026-01-01", chuanDoan: "Tăng huyết áp/Sốt CRNN", hospital: "BÌNH LONG", xuatVien: "2026-05-09", ketQua: "discharged", notes: "Bệnh nhân điều trị bình thường và đã xuất viện an toàn về trung tâm bảo trợ." },
             { id: "s5", patientId: "p5", sessionNum: 1, nhapTram: "2026-02-10", chuyenVien: "2026-02-12", chuanDoan: "Suy kiệt tuổi già / Tai biến", hospital: "Chợ Rẫy", xuatVien: "2026-02-15", ketQua: "deceased", notes: "Bệnh nhân chuyển nặng nhanh, tử vong tại bệnh viện Chợ Rẫy ngày 15/02/2026. Đã bàn giao thi hài về gia đình lo hậu sự." }
         ];
+// ===== ĐỌC BỆNH NHÂN TỪ FIREBASE =====
 
+function loadPatientsFromFirebase(){
+
+    const patientsRef = window.firebaseRef(window.db, "patients");
+
+
+    window.firebaseOnValue(patientsRef, (snapshot)=>{
+
+        const data = snapshot.val();
+
+
+        console.log("Firebase raw data:", data);
+
+
+        if(data){
+
+            patients = Object.keys(data).map(id=>({
+                id:id,
+                ...data[id]
+            }));
+
+        } else {
+
+            patients = [];
+
+        }
+
+
+        console.log("Firebase patients:", patients);
+
+
+        // gọi lại hàm hiển thị
+        if(typeof renderPatients === "function"){
+            renderPatients();
+        }
+
+        if(typeof renderPatientList === "function"){
+            renderPatientList();
+        }
+
+    });
+
+}
+
+
+loadPatientsFromFirebase();
         let handovers = JSON.parse(localStorage.getItem('qlbn_handovers')) || [
             { id: "h1", date: "2026-06-02", shift: "Ca Sáng (06:00 - 14:00)", staffName: "Nguyễn Thị Hoa", content: "Đã chuyển viện an toàn bệnh nhân Trần Chính lên bệnh viện Nhân Ái vào sáng nay do có cơn co giật đột xuất liên tục. Đã bàn giao đầy đủ hồ sơ bệnh án kèm thẻ BHYT cho điều dưỡng tuyến trên trực tiếp đón nhận." }
         ];
