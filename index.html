@@ -11,7 +11,7 @@
     <style>
         <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyACL3APi2ZmSK-ZhkSsygSIZvnu8_dvzSc",
@@ -28,16 +28,18 @@
         const database = getDatabase(app);
         window.fbDatabase = database;
         
+        // Lắng nghe dữ liệu thời gian thực từ nhánh parents (các khóa 1, 2, 3...)
         const parentsRef = ref(database, 'parents');
         onValue(parentsRef, (snapshot) => {
             const data = snapshot.val();
+            console.log("Dữ liệu Firebase tải về:", data);
             if (data) {
                 let loadedPatients = [];
                 Object.keys(data).forEach(key => {
                     let item = data[key];
                     if (item && (item.name || item.hoTen)) {
                         loadedPatients.push({
-                            id: "p" + key, // Chuyển đổi khóa 1, 2, 3... thành p1, p2, p3...
+                            id: "p" + key, // Ánh xạ khóa 1,2,3... sang p1, p2, p3... khớp với giao diện
                             name: item.name || item.hoTen || "",
                             birthYear: item.birthYear || item.namSinh || "",
                             gender: item.gender || item.gioiTinh || "Nam",
@@ -46,11 +48,18 @@
                     }
                 });
                 
+                // Gán dữ liệu mạng vào biến toàn cục
                 window.patients = loadedPatients;
+                
+                // Vẽ lại danh sách ngay khi mạng trả dữ liệu về
                 if (typeof renderList === 'function') {
                     renderList();
                 }
+            } else {
+                console.log("Nhánh parents trống hoặc không thể kết nối Firebase.");
             }
+        }, (error) => {
+            console.error("Lỗi kết nối Firebase:", error);
         });
     </script>
         /* Đèn hiệu nhấp nháy cho bệnh nhân đang nằm điều trị tuyến trên */
