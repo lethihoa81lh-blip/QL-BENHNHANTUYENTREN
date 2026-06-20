@@ -623,6 +623,8 @@ let quickDischargeSessionId = null;
 
 function loadPatientsFromFirebase(){
 
+    console.log("Đang gọi Firebase patients");
+
     db.ref("patients").on("value", snapshot => {
 
         const data = snapshot.val();
