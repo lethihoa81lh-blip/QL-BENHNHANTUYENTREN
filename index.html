@@ -60,18 +60,35 @@
         window._update = update;
         window._push = push;
 
+        // Theo dõi trạng thái load của từng nguồn dữ liệu
+        window._loaded = { patients: false, sessions: false, handovers: false };
+
+        function checkAllLoaded() {
+            const { patients, sessions, handovers } = window._loaded;
+            if (patients && sessions && handovers) {
+                // Tất cả dữ liệu đã sẵn sàng — render lần đầu
+                if (!window._fbReady) {
+                    window._fbReady = true;
+                    window.initFilterDropdowns();
+                    window.renderList();
+                    window.showNotification && window.showNotification("✅ Đã đồng bộ dữ liệu!");
+                }
+            }
+        }
+
         // Lắng nghe patients
         onValue(ref(db, 'patients'), (snapshot) => {
             const data = snapshot.val();
             if (!data) {
-                // Lần đầu: seed dữ liệu mẫu lên Firebase
                 const seedObj = {};
                 SEED_PATIENTS.forEach(p => { seedObj[p.id] = p; });
                 set(ref(db, 'patients'), seedObj);
                 return;
             }
             window._patients = objToArray(data);
+            window._loaded.patients = true;
             if (window._fbReady) { window.initFilterDropdowns(); window.renderList(); }
+            else checkAllLoaded();
         });
 
         // Lắng nghe sessions
@@ -84,7 +101,12 @@
                 return;
             }
             window._sessions = objToArray(data);
-            if (window._fbReady) { window.initFilterDropdowns(); window.renderList(); if (window.activePatientId) window.renderPatientDetailTimeline(window.activePatientId); }
+            window._loaded.sessions = true;
+            if (window._fbReady) {
+                window.initFilterDropdowns();
+                window.renderList();
+                if (window.activePatientId) window.renderPatientDetailTimeline(window.activePatientId);
+            } else checkAllLoaded();
         });
 
         // Lắng nghe handovers
@@ -97,11 +119,10 @@
                 return;
             }
             window._handovers = objToArray(data);
+            window._loaded.handovers = true;
             if (window._fbReady) { window.renderHandoverLogs && window.renderHandoverLogs(); }
+            else checkAllLoaded();
         });
-
-        // Đánh dấu Firebase đã sẵn sàng sau 1.5 giây (đủ để nhận data đầu)
-        setTimeout(() => { window._fbReady = true; }, 1500);
     </script>
 
     <style>
@@ -686,6 +707,7 @@
 
         // Không còn dùng localStorage — dữ liệu đồng bộ qua Firebase realtime
         function saveToLocalStorage() { /* no-op: Firebase tự đồng bộ */ }
+        window.showNotification = showNotification;
 
         // Helper tìm đợt điều trị mới nhất của một bệnh nhân
         function getLatestSession(patientId) {
@@ -1317,14 +1339,16 @@
 
         // --- KHỞI TẠO LẦN ĐẦU ---
         window.onload = function() {
-            // Hiển thị thông báo đang tải
             showNotification("☁️ Đang kết nối Firebase...");
-            // Chờ Firebase load xong rồi khởi tạo giao diện
+            // Nếu sau 5 giây vẫn chưa load đủ thì render với dữ liệu có được
             setTimeout(() => {
-                initFilterDropdowns();
-                renderList();
-                showNotification("✅ Đã kết nối và đồng bộ dữ liệu!");
-            }, 1800);
+                if (!window._fbReady) {
+                    window._fbReady = true;
+                    window.initFilterDropdowns();
+                    window.renderList();
+                    showNotification("⚠️ Kết nối chậm, hiển thị dữ liệu một phần.", true);
+                }
+            }, 5000);
         };
     </script>
 </body>
