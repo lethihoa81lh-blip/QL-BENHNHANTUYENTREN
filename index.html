@@ -911,7 +911,7 @@
                         <td class="py-2.5 px-2 font-black text-blue-950 border border-slate-300 whitespace-nowrap sticky left-[40px] ${stickyBg} z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">${patient.name}</td>
                         <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.birthYear}</td>
                         <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.gender}</td>
-                        <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300 bg-inherit">${currentSession.hospital}</td>
+                        <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300 bg-inherit">${currentSession.hospital || '-'}</td>
                         <td class="py-2.5 px-2 border border-slate-300 text-slate-700 bg-inherit">${currentSession.chuanDoan || '-'}</td>
                         <td class="py-2.5 px-1.5 text-center border border-slate-300 bg-inherit">${badgeHtml}</td>
                         <td class="py-2.5 px-1.5 border border-slate-300 bg-inherit">
@@ -1073,7 +1073,7 @@
         // --- SỬA HỒ SƠ GỐC BỆNH NHÂN ---
         function triggerEditPatient() {
             if (!activePatientId) return;
-            const patient = patients.find(p => p.id === activePatientId);
+            const patient = getPatients().find(p => p.id === activePatientId);
             if (!patient) return;
 
             document.getElementById('ep-name').value = patient.name;
@@ -1103,7 +1103,7 @@
 
         // --- SỬA ĐỢT ĐIỀU TRỊ CỦA BỆNH NHÂN ---
         function triggerEditSession(sessionId) {
-            const s = sessions.find(x => x.id === sessionId);
+            const s = getSessions().find(x => x.id === sessionId);
             if (!s) return;
 
             document.getElementById('es-id').value = s.id;
