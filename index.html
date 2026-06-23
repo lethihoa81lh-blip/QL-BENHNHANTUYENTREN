@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QLBN Tuyến Trên </title>
+    <title>QLBN Tuyến Trên - Bản Di Động Tối Giản</title>
     <!-- Sử dụng Tailwind CSS CDN để thiết kế giao diện di động cực đẹp và gọn gàng -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -237,42 +237,18 @@
         <div class="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm relative">
             <table class="w-full border-collapse border border-slate-300 text-[11px]">
                 <thead>
-    <tr class="bg-indigo-900 text-white text-[10px] font-bold uppercase tracking-wider">
-
-        <th class="py-2 px-1 border border-slate-300 text-center w-[35px] sticky left-0 bg-indigo-900 z-20">
-            STT
-        </th>
-
-        <th class="py-2 px-1.5 border border-slate-300 text-center min-w-[110px] sticky left-[35px] bg-indigo-900 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">
-            Họ và Tên
-        </th>
-
-        <th class="py-2 px-1 border border-slate-300 text-center w-[55px]">
-            Năm sinh
-        </th>
-
-        <th class="py-2 px-1 border border-slate-300 text-center w-[45px]">
-            Giới tính
-        </th>
-
-        <th class="py-2 px-1 border border-slate-300 text-center min-w-[100px]">
-            Bệnh viện điều trị
-        </th>
-
-        <th class="py-2 px-1 border border-slate-300 text-center min-w-[110px]">
-            Chẩn đoán
-        </th>
-
-        <th class="py-2 px-1 border border-slate-300 text-center w-[85px]">
-            Trạng thái
-        </th>
-
-        <th class="py-2 px-1 border border-slate-300 text-center w-[120px]">
-            Thao tác
-        </th>
-
-    </tr>
-</thead>
+                    <tr class="bg-indigo-900 text-white text-[10px] font-bold uppercase tracking-wider">
+                        <!-- Cố định cột STT và Họ Tên trên thanh tiêu đề -->
+                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[40px] sticky left-0 bg-indigo-900 z-20">STT</th>
+                        <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[130px] sticky left-[40px] bg-indigo-900 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">Họ và Tên</th>
+                        <th class="py-2.5 px-1 border border-slate-300 text-center w-[45px]">Năm sinh</th>
+                        <th class="py-2.5 px-1 border border-slate-300 text-center w-[40px]">Giới tính</th>
+                        <th class="py-2.5 px-1 border border-slate-300 text-center w-[115px]">Bệnh viện điều trị</th>
+                        <th class="py-2.5 px-1 border border-slate-300 text-center w-[135px]">Chẩn đoán</th>
+                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[95px]">Trạng thái</th>
+                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[150px]">Thao tác</th>
+                    </tr>
+                </thead>
                 <tbody id="patient-table-body" class="divide-y divide-slate-200">
                     <!-- Javascript tự động điền các dòng tr và td kẻ ô vào đây -->
                 </tbody>
@@ -935,8 +911,13 @@
                         <td class="py-2.5 px-2 font-black text-blue-950 border border-slate-300 whitespace-nowrap sticky left-[40px] ${stickyBg} z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">${patient.name}</td>
                         <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.birthYear}</td>
                         <td class="py-2.5 px-1 text-center border border-slate-300 bg-inherit">${patient.gender}</td>
-                        <td class="py-2.5 px-2 font-bold text-teal-700 border border-slate-300 bg-inherit">${currentSession.hospital || '-'}</td>
-                        <td class="py-2.5 px-2 border border-slate-300 text-slate-700 bg-inherit">${currentSession.chuanDoan || '-'}</td>
+                        <td class="py-2.5 px-1 w-[115px] text-center align-middle font-bold text-teal-700 border border-slate-300 bg-inherit">
+    ${currentSession.hospital || '-'}
+</td>
+
+<td class="py-2.5 px-1 w-[135px] text-center align-middle border border-slate-300 text-slate-700 bg-inherit">
+    ${currentSession.chuanDoan || '-'}
+</td>
                         <td class="py-2.5 px-1.5 text-center border border-slate-300 bg-inherit">${badgeHtml}</td>
                         <td class="py-2.5 px-1.5 border border-slate-300 bg-inherit">
                             <div class="flex items-center justify-center gap-1">
