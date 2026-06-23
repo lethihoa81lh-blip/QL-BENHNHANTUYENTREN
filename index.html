@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QLBN Tuyến Trên - Bản Di Động Tối Giản</title>
+    <title>QLBN Tuyến Trên </title>
     <!-- Sử dụng Tailwind CSS CDN để thiết kế giao diện di động cực đẹp và gọn gàng -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -161,7 +161,7 @@
                 <i class="fa-solid fa-hospital-user text-teal-300 text-base"></i>
                 QL CHUYỂN TUYẾN
             </h1>
-            <p class="text-[9px] opacity-80 mt-0.5">Trung tâm Bảo trợ Xã hội</p>
+            <p class="text-[9px] opacity-80 mt-0.5">Trung tâm Bảo trợ Xã hội Tân Hiệp</p>
         </div>
         
         <!-- Chọn quyền hạn gọn gàng -->
@@ -237,18 +237,50 @@
         <div class="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm relative">
             <table class="w-full border-collapse border border-slate-300 text-[11px]">
                 <thead>
-                    <tr class="bg-indigo-900 text-white text-[10px] font-bold uppercase tracking-wider">
-                        <!-- Cố định cột STT và Họ Tên trên thanh tiêu đề -->
-                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[40px] sticky left-0 bg-indigo-900 z-20">STT</th>
-                        <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[130px] sticky left-[40px] bg-indigo-900 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">Họ và Tên</th>
-                        <th class="py-2.5 px-1 border border-slate-300 text-center w-[45px]">NS</th>
-                        <th class="py-2.5 px-1 border border-slate-300 text-center w-[40px]">GT</th>
-                        <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[110px]">Bệnh viện điều trị</th>
-                        <th class="py-2.5 px-2 border border-slate-300 text-left min-w-[120px]">Chẩn đoán</th>
-                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[95px]">Trạng thái</th>
-                        <th class="py-2.5 px-1.5 border border-slate-300 text-center w-[150px]">Thao tác</th>
-                    </tr>
-                </thead>
+    <tr class="bg-indigo-900 text-white text-[10px] font-bold uppercase tracking-wider">
+
+        <!-- STT -->
+        <th class="py-2 px-1 border border-slate-300 text-center w-[35px] sticky left-0 bg-indigo-900 z-20">
+            STT
+        </th>
+
+        <!-- Họ tên -->
+        <th class="py-2 px-1.5 border border-slate-300 text-center min-w-[110px] sticky left-[35px] bg-indigo-900 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">
+            Họ và Tên
+        </th>
+
+        <!-- Năm sinh -->
+        <th class="py-2 px-1 border border-slate-300 text-center w-[55px]">
+            Năm sinh
+        </th>
+
+        <!-- Giới tính -->
+        <th class="py-2 px-1 border border-slate-300 text-center w-[45px]">
+            Giới tính
+        </th>
+
+        <!-- Bệnh viện -->
+        <th class="py-2 px-1 border border-slate-300 text-center min-w-[100px]">
+            Bệnh viện điều trị
+        </th>
+
+        <!-- Chẩn đoán -->
+        <th class="py-2 px-1 border border-slate-300 text-center min-w-[110px]">
+            Chẩn đoán
+        </th>
+
+        <!-- Trạng thái -->
+        <th class="py-2 px-1 border border-slate-300 text-center w-[85px]">
+            Trạng thái
+        </th>
+
+        <!-- Thao tác -->
+        <th class="py-2 px-1 border border-slate-300 text-center w-[120px]">
+            Thao tác
+        </th>
+
+    </tr>
+</thead>
                 <tbody id="patient-table-body" class="divide-y divide-slate-200">
                     <!-- Javascript tự động điền các dòng tr và td kẻ ô vào đây -->
                 </tbody>
