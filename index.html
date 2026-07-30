@@ -778,9 +778,20 @@
             const years = new Set();
             const hospitals = new Set();
             getSessions().forEach(s => {
-                if (s.chuyenVien) years.add(s.chuyenVien.substring(0, 4));
-                if (s.hospital) hospitals.add(s.hospital.trim());
-            });
+    // Năm chuyển viện
+    if (s.chuyenVien) {
+        years.add(s.chuyenVien.substring(0, 4));
+    }
+
+    // Năm xuất viện hoặc tử vong
+    if (s.xuatVien) {
+        years.add(s.xuatVien.substring(0, 4));
+    }
+
+    if (s.hospital) {
+        hospitals.add(s.hospital.trim());
+    }
+});
             yearSelect.innerHTML = '<option value="">Năm</option>';
             Array.from(years).sort((a,b) => b-a).forEach(y => {
                 yearSelect.innerHTML += `<option value="${y}">Năm ${y}</option>`;
@@ -816,61 +827,131 @@
 
 // Lọc bệnh nhân theo năm được chọn
 // Nếu không chọn năm thì thống kê tất cả
-const patientsForStats = yearFilter
-    ? patients.filter(p => {
-        const sessions = getSessions().filter(s =>
-            s.patientId === p.id &&
-            s.chuyenVien &&
-            s.chuyenVien.substring(0, 4) === yearFilter
-        );
-        return sessions.length > 0;
-    })
-    : patients;
+// ==================== THỐNG KÊ THEO NĂM ====================
 
-let countTotal = patientsForStats.length;
+let countTotal = 0;
 let countTreating = 0;
 let countDischarged = 0;
 let countDeceased = 0;
 let countNoSession = 0;
 
-patientsForStats.forEach(p => {
+// ==========================================================
+// TRƯỜNG HỢP 1: KHÔNG CHỌN NĂM
+// Giữ nguyên cách thống kê toàn bộ dữ liệu hiện tại
+// ==========================================================
 
-    // Nếu đang chọn năm thì lấy đợt chuyển viện trong đúng năm đó
-    // Nếu không chọn năm thì lấy đợt chuyển viện mới nhất
-    let latest;
+if (!yearFilter) {
 
-    if (yearFilter) {
-        const yearSessions = getSessions()
-            .filter(s =>
-                s.patientId === p.id &&
+    countTotal = patients.length;
+
+    patients.forEach(p => {
+
+        const latest = getLatestSession(p.id);
+
+        if (latest) {
+
+            const isDischarged = latest.xuatVien !== "";
+            const isDeceased =
+                isDischarged &&
+                latest.ketQua === 'deceased';
+
+            if (!isDischarged) {
+                countTreating++;
+            } else if (isDeceased) {
+                countDeceased++;
+            } else {
+                countDischarged++;
+            }
+
+        } else {
+
+            countNoSession++;
+
+        }
+
+    });
+
+// ==========================================================
+// TRƯỜNG HỢP 2: CÓ CHỌN NĂM
+// ==========================================================
+
+} else {
+
+    patients.forEach(p => {
+
+        // Lấy tất cả các đợt điều trị của bệnh nhân
+        const patientSessions = getSessions().filter(
+            s => s.patientId === p.id
+        );
+
+        // ==================================================
+        // A. TỔNG BỆNH NHÂN
+        // Tính theo NĂM CHUYỂN VIỆN
+        // ==================================================
+
+        const sessionsChuyenVienTrongNam =
+            patientSessions.filter(s =>
                 s.chuyenVien &&
                 s.chuyenVien.substring(0, 4) === yearFilter
-            )
-            .sort((a, b) =>
-                (b.chuyenVien || "").localeCompare(a.chuyenVien || "")
             );
 
-        latest = yearSessions[0] || null;
-    } else {
-        latest = getLatestSession(p.id);
-    }
+        if (sessionsChuyenVienTrongNam.length > 0) {
 
-    if (latest) {
-        const isDischarged = latest.xuatVien !== "";
-        const isDeceased = isDischarged && latest.ketQua === 'deceased';
+            countTotal++;
 
-        if (!isDischarged) {
-            countTreating++;
-        } else if (isDeceased) {
-            countDeceased++;
-        } else {
+            // Lấy đợt chuyển viện cuối cùng trong năm đó
+            const latestTrongNam =
+                [...sessionsChuyenVienTrongNam]
+                .sort((a, b) =>
+                    (b.chuyenVien || "").localeCompare(
+                        a.chuyenVien || ""
+                    )
+                )[0];
+
+            // Nếu chưa có ngày kết thúc
+            // thì đang điều trị
+            if (!latestTrongNam.xuatVien) {
+                countTreating++;
+            }
+
+        }
+
+        // ==================================================
+        // B. ĐÃ XUẤT VIỆN
+        // Tính theo NĂM CỦA NGÀY XUẤT VIỆN
+        // ==================================================
+
+        const coXuatVienTrongNam =
+            patientSessions.some(s =>
+                s.xuatVien &&
+                s.ketQua !== 'deceased' &&
+                s.xuatVien.substring(0, 4) === yearFilter
+            );
+
+        if (coXuatVienTrongNam) {
             countDischarged++;
         }
-    } else {
-        countNoSession++;
-    }
-});
 
+        // ==================================================
+        // C. TỬ VONG
+        // Tính theo NĂM CỦA NGÀY TỬ VONG
+        // Ngày tử vong đang được lưu trong xuatVien
+        // ==================================================
+
+        const coTuVongTrongNam =
+            patientSessions.some(s =>
+                s.xuatVien &&
+                s.ketQua === 'deceased' &&
+                s.xuatVien.substring(0, 4) === yearFilter
+            );
+
+        if (coTuVongTrongNam) {
+            countDeceased++;
+        }
+
+    });
+
+}
             const statTotal = document.getElementById('stat-total');
             const statTreating = document.getElementById('stat-treating');
             const statDischarged = document.getElementById('stat-discharged');
