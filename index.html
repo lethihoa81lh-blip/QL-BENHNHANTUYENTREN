@@ -812,19 +812,64 @@
 
             const patients = getPatients();
 
-            let countTotal = patients.length;
-            let countTreating = 0, countDischarged = 0, countDeceased = 0, countNoSession = 0;
+            // ==================== THỐNG KÊ THEO NĂM ĐANG CHỌN ====================
 
-            patients.forEach(p => {
-                const latest = getLatestSession(p.id);
-                if (latest) {
-                    const isDischarged = latest.xuatVien !== "";
-                    const isDeceased = isDischarged && latest.ketQua === 'deceased';
-                    if (!isDischarged) countTreating++;
-                    else if (isDeceased) countDeceased++;
-                    else countDischarged++;
-                } else { countNoSession++; }
-            });
+// Lọc bệnh nhân theo năm được chọn
+// Nếu không chọn năm thì thống kê tất cả
+const patientsForStats = yearFilter
+    ? patients.filter(p => {
+        const sessions = getSessions().filter(s =>
+            s.patientId === p.id &&
+            s.chuyenVien &&
+            s.chuyenVien.substring(0, 4) === yearFilter
+        );
+        return sessions.length > 0;
+    })
+    : patients;
+
+let countTotal = patientsForStats.length;
+let countTreating = 0;
+let countDischarged = 0;
+let countDeceased = 0;
+let countNoSession = 0;
+
+patientsForStats.forEach(p => {
+
+    // Nếu đang chọn năm thì lấy đợt chuyển viện trong đúng năm đó
+    // Nếu không chọn năm thì lấy đợt chuyển viện mới nhất
+    let latest;
+
+    if (yearFilter) {
+        const yearSessions = getSessions()
+            .filter(s =>
+                s.patientId === p.id &&
+                s.chuyenVien &&
+                s.chuyenVien.substring(0, 4) === yearFilter
+            )
+            .sort((a, b) =>
+                (b.chuyenVien || "").localeCompare(a.chuyenVien || "")
+            );
+
+        latest = yearSessions[0] || null;
+    } else {
+        latest = getLatestSession(p.id);
+    }
+
+    if (latest) {
+        const isDischarged = latest.xuatVien !== "";
+        const isDeceased = isDischarged && latest.ketQua === 'deceased';
+
+        if (!isDischarged) {
+            countTreating++;
+        } else if (isDeceased) {
+            countDeceased++;
+        } else {
+            countDischarged++;
+        }
+    } else {
+        countNoSession++;
+    }
+});
 
             const statTotal = document.getElementById('stat-total');
             const statTreating = document.getElementById('stat-treating');
