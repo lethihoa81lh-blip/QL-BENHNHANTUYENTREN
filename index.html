@@ -940,85 +940,51 @@ if (!yearFilter) {
 
     });
 
-// ==========================================================
-// TRƯỜNG HỢP 2: CÓ CHỌN NĂM
-// ==========================================================
-
 } else {
 
     patients.forEach(p => {
 
-        // Lấy tất cả các đợt điều trị của bệnh nhân
         const patientSessions = getSessions().filter(
             s => s.patientId === p.id
         );
 
-        // ==================================================
-        // A. TỔNG BỆNH NHÂN
-        // Tính theo NĂM CHUYỂN VIỆN
-        // ==================================================
-
-        const sessionsChuyenVienTrongNam =
-            patientSessions.filter(s =>
+        // Lấy tất cả các đợt chuyển viện trong năm
+        const sessionsTrongNam = patientSessions
+            .filter(s =>
                 s.chuyenVien &&
                 s.chuyenVien.substring(0, 4) === yearFilter
             );
 
-        // Cộng dồn số lượt chuyển viện trong năm (mỗi đợt tính 1 lượt, kể cả khi 1 BN có nhiều đợt)
-        countLuotChuyen += sessionsChuyenVienTrongNam.length;
+        // Thống kê lượt chuyển viện (đếm theo số đợt)
+        countLuotChuyen += sessionsTrongNam.length;
 
-        if (sessionsChuyenVienTrongNam.length > 0) {
-
-            countTotal++;
-
-            // Lấy đợt chuyển viện cuối cùng trong năm đó
-            const latestTrongNam =
-                [...sessionsChuyenVienTrongNam]
-                .sort((a, b) =>
-                    (b.chuyenVien || "").localeCompare(
-                        a.chuyenVien || ""
-                    )
-                )[0];
-
-            // Nếu chưa có ngày kết thúc
-            // thì đang điều trị
-            if (!latestTrongNam.xuatVien) {
-                countTreating++;
-            }
-
+        // Không có đợt chuyển viện trong năm thì bỏ qua
+        if (sessionsTrongNam.length === 0) {
+            return;
         }
 
-        // ==================================================
-        // B. ĐÃ XUẤT VIỆN
-        // Tính theo NĂM CỦA NGÀY XUẤT VIỆN
-        // ==================================================
+        // Mỗi bệnh nhân chỉ tính 1 lần
+        countTotal++;
 
-        const coXuatVienTrongNam =
-            patientSessions.some(s =>
-                s.xuatVien &&
-                s.ketQua !== 'deceased' &&
-                s.xuatVien.substring(0, 4) === yearFilter
-            );
+        // Lấy đợt điều trị cuối cùng trong năm
+        const latestSession = [...sessionsTrongNam]
+            .sort((a, b) =>
+                (b.chuyenVien || "").localeCompare(a.chuyenVien || "")
+            )[0];
 
-        if (coXuatVienTrongNam) {
-            countDischarged++;
-        }
+        // Phân loại theo trạng thái của đợt cuối
+        if (!latestSession.xuatVien) {
 
-        // ==================================================
-        // C. TỬ VONG
-        // Tính theo NĂM CỦA NGÀY TỬ VONG
-        // Ngày tử vong đang được lưu trong xuatVien
-        // ==================================================
+            countTreating++;
 
-        const coTuVongTrongNam =
-            patientSessions.some(s =>
-                s.xuatVien &&
-                s.ketQua === 'deceased' &&
-                s.xuatVien.substring(0, 4) === yearFilter
-            );
+        } else if (latestSession.ketQua === "deceased") {
 
-        if (coTuVongTrongNam) {
             countDeceased++;
+
+        } else {
+
+            countDischarged++;
+
         }
 
     });
