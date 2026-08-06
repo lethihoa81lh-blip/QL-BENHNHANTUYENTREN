@@ -173,31 +173,39 @@
         </div>
     </header>
 
-    <!-- ==================== KHỐI THỐNG KÊ NHANH (MỎNG NHẸ DẠNG TAB LỌC 2X2) ==================== -->
-    <section class="p-3 grid grid-cols-2 gap-2">
-        <div onclick="filterByStat('')" class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
-            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tổng bệnh nhân</span>
+    <!-- ==================== KHỐI THỐNG KÊ NHANH (GỌN 1 HÀNG 5 CỘT) ==================== -->
+    <section class="px-3 pt-3 pb-1 grid grid-cols-5 gap-1.5">
+        <div onclick="filterByStat('')" class="bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95 min-w-0">
+            <span class="text-[7.5px] font-bold text-slate-500 uppercase tracking-wide text-center leading-tight">Tổng BN</span>
             <div id="stat-total" class="text-center mt-0.5">
-                <h3 class="text-base font-black text-slate-900 inline-block">0</h3>
+                <h3 class="text-sm font-black text-slate-900 inline-block">0</h3>
             </div>
         </div>
-        <div onclick="filterByStat('treating')" class="bg-amber-50 p-2 rounded-xl shadow-sm border border-amber-200 border-l-4 border-l-amber-500 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition-all active:scale-95">
-            <span class="text-[9px] font-bold text-amber-800 uppercase tracking-wide flex items-center gap-1">
-                <span class="h-1.5 w-1.5 rounded-full bg-amber-500 pulse-orange"></span>Đang nằm ĐT
+        <div class="bg-indigo-50 p-1.5 rounded-xl shadow-sm border border-indigo-200 border-l-4 border-l-indigo-600 flex flex-col items-center justify-center min-w-0" title="Tổng số lượt/đợt chuyển viện (tính theo số đợt điều trị, không phải số bệnh nhân)">
+            <span class="text-[7.5px] font-bold text-indigo-800 uppercase tracking-wide text-center leading-tight flex items-center gap-0.5">
+                <i class="fa-solid fa-truck-medical text-[8px]"></i>Lượt chuyển
             </span>
-            <h3 id="stat-treating" class="text-base font-black text-amber-700 mt-0.5">0</h3>
+            <h3 id="stat-luot-chuyen" class="text-sm font-black text-indigo-700 mt-0.5">0</h3>
         </div>
-        <div onclick="filterByStat('discharged')" class="bg-emerald-50 p-2 rounded-xl shadow-sm border border-emerald-200 border-l-4 border-l-emerald-500 flex flex-col items-center justify-center cursor-pointer hover:bg-emerald-100 transition-all active:scale-95">
-            <span class="text-[9px] font-bold text-emerald-800 uppercase tracking-wide">Đã xuất viện</span>
-            <h3 id="stat-discharged" class="text-base font-black text-emerald-700 mt-0.5">0</h3>
-        </div>
-        <div onclick="filterByStat('deceased')" class="bg-rose-50 p-2 rounded-xl shadow-sm border border-rose-200 border-l-4 border-l-rose-500 flex flex-col items-center justify-center cursor-pointer hover:bg-rose-100 transition-all active:scale-95">
-            <span class="text-[9px] font-bold text-rose-800 uppercase tracking-wide flex items-center gap-1">
-                <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>Tử vong
+        <div onclick="filterByStat('treating')" class="bg-amber-50 p-1.5 rounded-xl shadow-sm border border-amber-200 border-l-4 border-l-amber-500 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition-all active:scale-95 min-w-0">
+            <span class="text-[7.5px] font-bold text-amber-800 uppercase tracking-wide text-center leading-tight flex items-center gap-0.5">
+                <span class="h-1.5 w-1.5 rounded-full bg-amber-500 pulse-orange shrink-0"></span>Đang ĐT
             </span>
-            <h3 id="stat-deceased" class="text-base font-black text-rose-700 mt-0.5">0</h3>
+            <h3 id="stat-treating" class="text-sm font-black text-amber-700 mt-0.5">0</h3>
+        </div>
+        <div onclick="filterByStat('discharged')" class="bg-emerald-50 p-1.5 rounded-xl shadow-sm border border-emerald-200 border-l-4 border-l-emerald-500 flex flex-col items-center justify-center cursor-pointer hover:bg-emerald-100 transition-all active:scale-95 min-w-0">
+            <span class="text-[7.5px] font-bold text-emerald-800 uppercase tracking-wide text-center leading-tight">Đã xuất viện</span>
+            <h3 id="stat-discharged" class="text-sm font-black text-emerald-700 mt-0.5">0</h3>
+        </div>
+        <div onclick="filterByStat('deceased')" class="bg-rose-50 p-1.5 rounded-xl shadow-sm border border-rose-200 border-l-4 border-l-rose-500 flex flex-col items-center justify-center cursor-pointer hover:bg-rose-100 transition-all active:scale-95 min-w-0">
+            <span class="text-[7.5px] font-bold text-rose-800 uppercase tracking-wide text-center leading-tight flex items-center gap-0.5">
+                <span class="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0"></span>Tử vong
+            </span>
+            <h3 id="stat-deceased" class="text-sm font-black text-rose-700 mt-0.5">0</h3>
         </div>
     </section>
+    <!-- Chú thích nhỏ cho ô "Lượt chuyển" để tránh nhầm với Tổng bệnh nhân -->
+    <p class="px-3 -mt-0.5 mb-1 text-[8.5px] text-slate-400 italic">* "Lượt chuyển" = tổng số đợt/lần chuyển viện (1 bệnh nhân có thể có nhiều lượt), khác với "Tổng BN" là số người.</p>
 
     <!-- ==================== THANH CÔNG CỤ TÌM KIẾM & BỘ LỌC (GOM THÀNH 1 DÒNG TỐI ƯU MOBILE) ==================== -->
     <section class="px-3 mb-2 flex items-center gap-1.5">
@@ -834,6 +842,7 @@ let countTreating = 0;
 let countDischarged = 0;
 let countDeceased = 0;
 let countNoSession = 0;
+let countLuotChuyen = 0; // Tổng số lượt/đợt chuyển viện (đếm theo session, không phải theo bệnh nhân)
 
 // ==========================================================
 // TRƯỜNG HỢP 1: KHÔNG CHỌN NĂM
@@ -843,6 +852,9 @@ let countNoSession = 0;
 if (!yearFilter) {
 
     countTotal = patients.length;
+
+    // Lượt chuyển viện = tổng số đợt (session) có ngày chuyển viện, không gộp theo bệnh nhân
+    countLuotChuyen = getSessions().filter(s => s.chuyenVien && s.chuyenVien !== "").length;
 
     patients.forEach(p => {
 
@@ -894,6 +906,9 @@ if (!yearFilter) {
                 s.chuyenVien &&
                 s.chuyenVien.substring(0, 4) === yearFilter
             );
+
+        // Cộng dồn số lượt chuyển viện trong năm (mỗi đợt tính 1 lượt, kể cả khi 1 BN có nhiều đợt)
+        countLuotChuyen += sessionsChuyenVienTrongNam.length;
 
         if (sessionsChuyenVienTrongNam.length > 0) {
 
@@ -953,9 +968,12 @@ if (!yearFilter) {
 
 }
             const statTotal = document.getElementById('stat-total');
+            const statLuotChuyen = document.getElementById('stat-luot-chuyen');
             const statTreating = document.getElementById('stat-treating');
             const statDischarged = document.getElementById('stat-discharged');
             const statDeceased = document.getElementById('stat-deceased');
+
+            if (statLuotChuyen) statLuotChuyen.textContent = countLuotChuyen;
 
             if (statTotal) {
                 if (countNoSession > 0) {
