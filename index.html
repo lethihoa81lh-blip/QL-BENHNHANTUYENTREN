@@ -793,8 +793,9 @@
             }
             msg += `\n\n---\nDỮ LIỆU CẦN DỌN DẸP:\n`;
             if (moCoi.length > 0) {
-                msg += `⚠️ Có ${moCoi.length} đợt điều trị "MỒ CÔI" — thuộc bệnh nhân ĐÃ BỊ XÓA nhưng dữ liệu đợt điều trị vẫn còn sót lại trong Firebase (rất có thể do xóa trực tiếp trong Firebase Console, hoặc dữ liệu test cũ). Đây là lý do số liệu tổng trước đó (275) không khớp với số hiện trên hệ thống (166).\nID các đợt mồ côi:\n` + moCoi.slice(0, 20).map(s => `- ${s.id} (patientId: ${s.patientId}, ngày: ${s.chuyenVien})`).join('\n');
+                msg += `⚠️ Có ${moCoi.length} đợt điều trị "MỒ CÔI" — thuộc bệnh nhân ĐÃ BỊ XÓA nhưng dữ liệu đợt điều trị vẫn còn sót lại trong Firebase (rất có thể do xóa trực tiếp trong Firebase Console, hoặc dữ liệu test cũ).\nID các đợt mồ côi:\n` + moCoi.slice(0, 20).map(s => `- ${s.id} (patientId: ${s.patientId}, ngày: ${s.chuyenVien})`).join('\n');
                 if (moCoi.length > 20) msg += `\n... và ${moCoi.length - 20} đợt khác.`;
+                msg += `\n\n👉 Số liệu thống kê trên hệ thống ĐÃ TỰ ĐỘNG loại trừ các đợt mồ côi này rồi, nên bạn không bắt buộc phải xóa ngay. Nếu muốn dọn sạch, sau khi đóng hộp thoại này bấm nút "Dọn dẹp ngay" (chỉ Admin).`;
             } else {
                 msg += `✅ Không phát hiện đợt điều trị mồ côi nào.`;
             }
@@ -802,6 +803,12 @@
                 msg += `\n\nℹ️ Ngoài ra có ${withoutChuyenVien} đợt chưa nhập ngày chuyển viện.`;
             }
             alert(msg);
+
+            if (moCoi.length > 0 && currentRole === 'admin') {
+                if (confirm(`Bạn có muốn DỌN DẸP NGAY ${moCoi.length} đợt điều trị mồ côi này không?\n(Xóa vĩnh viễn, không thể hoàn tác)`)) {
+                    cleanupOrphanSessions();
+                }
+            }
         }
 
         // --- PHÂN QUYỀN VAI TRÒ HỆ THỐNG ---
@@ -1374,7 +1381,29 @@ if (!yearFilter) {
             });
         }
 
-        // --- XÓA TOÀN BỘ HỒ SƠ GỐC BỆNH NHÂN (CHỈ ADMIN) ---
+        // --- DỌN DẸP CÁC ĐỢT ĐIỀU TRỊ "MỒ CÔI" (CHỈ ADMIN) ---
+        // Xóa vĩnh viễn các session có patientId không còn tồn tại trong node 'patients'.
+        // Đây là thao tác KHÔNG THỂ HOÀN TÁC nên bắt buộc phải xác nhận rõ số lượng trước.
+        function cleanupOrphanSessions() {
+            if (currentRole !== "admin") {
+                showNotification("Lỗi: Bạn cần có quyền Admin để thực hiện hành động này!", true);
+                return;
+            }
+            const validPatientIdsSet = new Set(getPatients().map(p => p.id));
+            const moCoi = getSessions().filter(s => !validPatientIdsSet.has(s.patientId));
+
+            if (moCoi.length === 0) {
+                showNotification("✅ Không có đợt điều trị mồ côi nào cần dọn dẹp.");
+                return;
+            }
+
+            showConfirm(`CẢNH BÁO: Sẽ xóa VĨNH VIỄN ${moCoi.length} đợt điều trị mồ côi (thuộc bệnh nhân đã bị xóa) khỏi Firebase. Hành động này KHÔNG THỂ HOÀN TÁC. Xác nhận tiếp tục?`, function() {
+                moCoi.forEach(s => fbRemove(`sessions/${s.id}`));
+                showNotification(`Đã dọn dẹp thành công ${moCoi.length} đợt điều trị mồ côi.`);
+            });
+        }
+
+
         function deletePatientAction() {
             if (currentRole !== "admin") {
                 showNotification("Lỗi: Bạn cần có quyền Admin để thực hiện hành động này!", true);
