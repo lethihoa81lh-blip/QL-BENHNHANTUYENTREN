@@ -757,19 +757,23 @@
         }
 
         // --- CHẨN ĐOÁN CHI TIẾT "LƯỢT CHUYỂN" THEO TỪNG NĂM ---
-        // Giúp phát hiện các session có ngày chuyển viện sai định dạng
-        // (không phải dạng YYYY-MM-DD) khiến chúng bị đếm vào tổng chung
-        // nhưng lại "biến mất" khi lọc theo năm cụ thể.
+        // Giúp phát hiện: (1) session có ngày chuyển viện sai định dạng,
+        // (2) session "mồ côi" — patientId trỏ tới bệnh nhân đã bị xóa
+        // nhưng dữ liệu đợt điều trị vẫn còn sót lại trong Firebase.
         function showLuotChuyenBreakdown() {
             const allSessions = getSessions();
+            const validPatientIdsSet = new Set(getPatients().map(p => p.id));
+
             const withChuyenVien = allSessions.filter(s => s.chuyenVien && s.chuyenVien.trim() !== "");
             const withoutChuyenVien = allSessions.length - withChuyenVien.length;
 
+            const hopLe = withChuyenVien.filter(s => validPatientIdsSet.has(s.patientId));
+            const moCoi = withChuyenVien.filter(s => !validPatientIdsSet.has(s.patientId));
+
             const byYear = {};
             let saiDinhDang = 0;
-            withChuyenVien.forEach(s => {
+            hopLe.forEach(s => {
                 const raw = s.chuyenVien.trim();
-                // Đúng định dạng chuẩn YYYY-MM-DD (ví dụ: 2026-06-05)
                 if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
                     const y = raw.substring(0, 4);
                     byYear[y] = (byYear[y] || 0) + 1;
@@ -781,13 +785,21 @@
             let lines = Object.keys(byYear).sort().map(y => `• Năm ${y}: ${byYear[y]} lượt`).join('\n');
             if (!lines) lines = "(không có lượt nào đúng định dạng)";
 
-            let msg = `📊 CHI TIẾT LƯỢT CHUYỂN VIỆN THEO NĂM\n`;
-            msg += `Tổng số đợt (session) trong hệ thống: ${allSessions.length}\n`;
-            msg += `— Có ngày chuyển viện: ${withChuyenVien.length}\n`;
-            msg += `— Không có ngày chuyển viện (chưa nhập / để trống): ${withoutChuyenVien}\n\n`;
-            msg += `PHÂN THEO NĂM (đúng định dạng YYYY-MM-DD):\n${lines}\n`;
+            let msg = `📊 CHI TIẾT LƯỢT CHUYỂN VIỆN (SỐ ĐÚNG - khớp với hệ thống)\n`;
+            msg += `Tổng số đợt hợp lệ (bệnh nhân còn tồn tại): ${hopLe.length}\n\n`;
+            msg += `PHÂN THEO NĂM:\n${lines}\n`;
             if (saiDinhDang > 0) {
-                msg += `\n⚠️ Phát hiện ${saiDinhDang} đợt có ngày chuyển viện SAI ĐỊNH DẠNG (không phải YYYY-MM-DD) — đây rất có thể là nguyên nhân khiến Tổng khác với tổng các năm cộng lại. Vui lòng kiểm tra và sửa lại các bản ghi này.`;
+                msg += `\n⚠️ ${saiDinhDang} đợt hợp lệ nhưng SAI ĐỊNH DẠNG ngày (không phải YYYY-MM-DD).`;
+            }
+            msg += `\n\n---\nDỮ LIỆU CẦN DỌN DẸP:\n`;
+            if (moCoi.length > 0) {
+                msg += `⚠️ Có ${moCoi.length} đợt điều trị "MỒ CÔI" — thuộc bệnh nhân ĐÃ BỊ XÓA nhưng dữ liệu đợt điều trị vẫn còn sót lại trong Firebase (rất có thể do xóa trực tiếp trong Firebase Console, hoặc dữ liệu test cũ). Đây là lý do số liệu tổng trước đó (275) không khớp với số hiện trên hệ thống (166).\nID các đợt mồ côi:\n` + moCoi.slice(0, 20).map(s => `- ${s.id} (patientId: ${s.patientId}, ngày: ${s.chuyenVien})`).join('\n');
+                if (moCoi.length > 20) msg += `\n... và ${moCoi.length - 20} đợt khác.`;
+            } else {
+                msg += `✅ Không phát hiện đợt điều trị mồ côi nào.`;
+            }
+            if (withoutChuyenVien > 0) {
+                msg += `\n\nℹ️ Ngoài ra có ${withoutChuyenVien} đợt chưa nhập ngày chuyển viện.`;
             }
             alert(msg);
         }
@@ -889,8 +901,10 @@ if (!yearFilter) {
 
     countTotal = patients.length;
 
-    // Lượt chuyển viện = tổng số đợt (session) có ngày chuyển viện, không gộp theo bệnh nhân
-    countLuotChuyen = getSessions().filter(s => s.chuyenVien && s.chuyenVien !== "").length;
+    // Lượt chuyển viện = tổng số đợt (session) có ngày chuyển viện, CHỈ TÍNH của bệnh nhân đang tồn tại.
+    // (Loại bỏ các session "mồ côi" — patientId trỏ tới bệnh nhân đã bị xóa nhưng dữ liệu đợt điều trị còn sót lại)
+    const validPatientIdsSet = new Set(patients.map(p => p.id));
+    countLuotChuyen = getSessions().filter(s => s.chuyenVien && s.chuyenVien !== "" && validPatientIdsSet.has(s.patientId)).length;
 
     patients.forEach(p => {
 
