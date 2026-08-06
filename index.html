@@ -181,7 +181,7 @@
                 <h3 class="text-sm font-black text-slate-900 inline-block">0</h3>
             </div>
         </div>
-        <div class="bg-indigo-50 p-1.5 rounded-xl shadow-sm border border-indigo-200 border-l-4 border-l-indigo-600 flex flex-col items-center justify-center min-w-0" title="Tổng số lượt/đợt chuyển viện (tính theo số đợt điều trị, không phải số bệnh nhân)">
+        <div onclick="showLuotChuyenBreakdown()" class="bg-indigo-50 p-1.5 rounded-xl shadow-sm border border-indigo-200 border-l-4 border-l-indigo-600 flex flex-col items-center justify-center min-w-0 cursor-pointer hover:bg-indigo-100 transition-all active:scale-95" title="Bấm để xem chi tiết lượt chuyển viện phân theo từng năm (giúp phát hiện dữ liệu sai định dạng)">
             <span class="text-[7.5px] font-bold text-indigo-800 uppercase tracking-wide text-center leading-tight flex items-center gap-0.5">
                 <i class="fa-solid fa-truck-medical text-[8px]"></i>Lượt chuyển
             </span>
@@ -754,6 +754,42 @@
                 filterInput.value = status;
                 renderList();
             }
+        }
+
+        // --- CHẨN ĐOÁN CHI TIẾT "LƯỢT CHUYỂN" THEO TỪNG NĂM ---
+        // Giúp phát hiện các session có ngày chuyển viện sai định dạng
+        // (không phải dạng YYYY-MM-DD) khiến chúng bị đếm vào tổng chung
+        // nhưng lại "biến mất" khi lọc theo năm cụ thể.
+        function showLuotChuyenBreakdown() {
+            const allSessions = getSessions();
+            const withChuyenVien = allSessions.filter(s => s.chuyenVien && s.chuyenVien.trim() !== "");
+            const withoutChuyenVien = allSessions.length - withChuyenVien.length;
+
+            const byYear = {};
+            let saiDinhDang = 0;
+            withChuyenVien.forEach(s => {
+                const raw = s.chuyenVien.trim();
+                // Đúng định dạng chuẩn YYYY-MM-DD (ví dụ: 2026-06-05)
+                if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+                    const y = raw.substring(0, 4);
+                    byYear[y] = (byYear[y] || 0) + 1;
+                } else {
+                    saiDinhDang++;
+                }
+            });
+
+            let lines = Object.keys(byYear).sort().map(y => `• Năm ${y}: ${byYear[y]} lượt`).join('\n');
+            if (!lines) lines = "(không có lượt nào đúng định dạng)";
+
+            let msg = `📊 CHI TIẾT LƯỢT CHUYỂN VIỆN THEO NĂM\n`;
+            msg += `Tổng số đợt (session) trong hệ thống: ${allSessions.length}\n`;
+            msg += `— Có ngày chuyển viện: ${withChuyenVien.length}\n`;
+            msg += `— Không có ngày chuyển viện (chưa nhập / để trống): ${withoutChuyenVien}\n\n`;
+            msg += `PHÂN THEO NĂM (đúng định dạng YYYY-MM-DD):\n${lines}\n`;
+            if (saiDinhDang > 0) {
+                msg += `\n⚠️ Phát hiện ${saiDinhDang} đợt có ngày chuyển viện SAI ĐỊNH DẠNG (không phải YYYY-MM-DD) — đây rất có thể là nguyên nhân khiến Tổng khác với tổng các năm cộng lại. Vui lòng kiểm tra và sửa lại các bản ghi này.`;
+            }
+            alert(msg);
         }
 
         // --- PHÂN QUYỀN VAI TRÒ HỆ THỐNG ---
