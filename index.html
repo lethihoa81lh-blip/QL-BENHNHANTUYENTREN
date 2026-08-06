@@ -989,20 +989,45 @@ if (!yearFilter) {
             let visibleCount = 0;
             let displayIndex = 1;
 
-            const patientsWithLatest = patients.map(p => ({
-                patient: p,
-                latestSession: getLatestSession(p.id)
-            })).sort((a, b) => {
+            const patientsWithLatest = patients.map(p => {
+                // Mặc định: lấy đợt gần nhất tổng thể (giữ nguyên hành vi khi KHÔNG lọc năm)
+                let displaySession = getLatestSession(p.id);
+                let matchedByYear = true;
+
+                if (yearFilter) {
+                    // Khi CÓ lọc theo năm: phải chọn đúng đợt liên quan đến năm đó,
+                    // để danh sách khớp với cách tính ở ô thống kê phía trên (vốn tính
+                    // Tử vong/Xuất viện theo ngày ra viện, và Tổng/Đang ĐT theo ngày chuyển viện).
+                    // Ưu tiên hiển thị: Tử vong trong năm > Xuất viện trong năm > Chuyển viện trong năm.
+                    const patientSessions = getSessions().filter(s => s.patientId === p.id);
+
+                    const deathThisYear = patientSessions
+                        .filter(s => s.xuatVien && s.ketQua === 'deceased' && s.xuatVien.substring(0, 4) === yearFilter)
+                        .sort((a, b) => (b.xuatVien || "").localeCompare(a.xuatVien || ""))[0];
+
+                    const dischargeThisYear = patientSessions
+                        .filter(s => s.xuatVien && s.ketQua !== 'deceased' && s.xuatVien.substring(0, 4) === yearFilter)
+                        .sort((a, b) => (b.xuatVien || "").localeCompare(a.xuatVien || ""))[0];
+
+                    const transferThisYear = patientSessions
+                        .filter(s => s.chuyenVien && s.chuyenVien.substring(0, 4) === yearFilter)
+                        .sort((a, b) => (b.chuyenVien || "").localeCompare(a.chuyenVien || ""))[0];
+
+                    displaySession = deathThisYear || dischargeThisYear || transferThisYear || null;
+                    matchedByYear = !!displaySession;
+                }
+
+                return { patient: p, latestSession: displaySession, matchedByYear };
+            }).sort((a, b) => {
                 const dateA = (a.latestSession && a.latestSession.chuyenVien) ? a.latestSession.chuyenVien : "";
                 const dateB = (b.latestSession && b.latestSession.chuyenVien) ? b.latestSession.chuyenVien : "";
                 return dateB.localeCompare(dateA);
             });
 
-            patientsWithLatest.forEach(({ patient, latestSession }) => {
+            patientsWithLatest.forEach(({ patient, latestSession, matchedByYear }) => {
                 const currentSession = latestSession || { id: "", hospital: "-", chuyenVien: "", chuanDoan: "-", xuatVien: "", ketQua: "", notes: "" };
                 const matchSearch = patient.name.toLowerCase().includes(searchVal) || currentSession.hospital.toLowerCase().includes(searchVal);
-                const sYear = currentSession.chuyenVien ? currentSession.chuyenVien.substring(0, 4) : "";
-                const matchYear = !yearFilter || (sYear === yearFilter);
+                const matchYear = matchedByYear;
                 const matchHospital = !hospitalFilter || (currentSession.hospital.trim() === hospitalFilter.trim());
                 const isDischarged = currentSession.xuatVien !== "";
                 const isDeceased = isDischarged && currentSession.ketQua === 'deceased';
