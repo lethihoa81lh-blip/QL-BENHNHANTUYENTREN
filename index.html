@@ -174,30 +174,13 @@
     </header>
 
     <!-- ==================== KHỐI THỐNG KÊ NHANH (MỎNG NHẸ DẠNG TAB LỌC 2X2) ==================== -->
-    <section class="p-3 grid grid-cols-2 lg:grid-cols-5 gap-2">
+    <section class="p-3 grid grid-cols-2 gap-2">
         <div onclick="filterByStat('')" class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tổng bệnh nhân</span>
             <div id="stat-total" class="text-center mt-0.5">
                 <h3 class="text-base font-black text-slate-900 inline-block">0</h3>
             </div>
         </div>
-        <div onclick="filterByStat('')" class="bg-violet-50 p-2 rounded-xl shadow-sm border border-violet-200 border-l-4 border-l-violet-500 flex flex-col items-center justify-center cursor-pointer hover:bg-violet-100 transition-all active:scale-95">
-
-    <span class="text-[9px] font-bold text-violet-800 uppercase tracking-wide">
-        Tổng lượt chuyển
-    </span>
-
-    <h3 id="stat-transfer"
-        class="text-base font-black text-violet-700 mt-0.5">
-        0
-    </h3>
-
-    <span id="stat-transfer-sub"
-      class="text-[9px] text-violet-500">
-    Toàn bộ
-</span>
-
-</div>
         <div onclick="filterByStat('treating')" class="bg-amber-50 p-2 rounded-xl shadow-sm border border-amber-200 border-l-4 border-l-amber-500 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition-all active:scale-95">
             <span class="text-[9px] font-bold text-amber-800 uppercase tracking-wide flex items-center gap-1">
                 <span class="h-1.5 w-1.5 rounded-full bg-amber-500 pulse-orange"></span>Đang nằm ĐT
@@ -851,7 +834,6 @@ let countTreating = 0;
 let countDischarged = 0;
 let countDeceased = 0;
 let countNoSession = 0;
-            let countTransfers = 0;
 
 // ==========================================================
 // TRƯỜNG HỢP 1: KHÔNG CHỌN NĂM
@@ -861,7 +843,6 @@ let countNoSession = 0;
 if (!yearFilter) {
 
     countTotal = patients.length;
-    countTransfers = sessions.length;
 
     patients.forEach(p => {
 
@@ -913,7 +894,7 @@ if (!yearFilter) {
                 s.chuyenVien &&
                 s.chuyenVien.substring(0, 4) === yearFilter
             );
-countTransfers += sessionsChuyenVienTrongNam.length;
+
         if (sessionsChuyenVienTrongNam.length > 0) {
 
             countTotal++;
@@ -972,11 +953,9 @@ countTransfers += sessionsChuyenVienTrongNam.length;
 
 }
             const statTotal = document.getElementById('stat-total');
-const statTransfer = document.getElementById('stat-transfer');
-    document.getElementById('stat-transfer-sub');
-const statTreating = document.getElementById('stat-treating');
-const statDischarged = document.getElementById('stat-discharged');
-const statDeceased = document.getElementById('stat-deceased');
+            const statTreating = document.getElementById('stat-treating');
+            const statDischarged = document.getElementById('stat-discharged');
+            const statDeceased = document.getElementById('stat-deceased');
 
             if (statTotal) {
                 if (countNoSession > 0) {
@@ -985,23 +964,9 @@ const statDeceased = document.getElementById('stat-deceased');
                     statTotal.innerHTML = `<h3 class="text-base font-black text-slate-900">${countTotal}</h3>`;
                 }
             }
-            if (statTransfer) statTransfer.textContent = countTransfers;
-            if (statTransferSub) {
-
-    if (yearFilter) {
-
-        statTransferSub.textContent = `Năm ${yearFilter}`;
-
-    } else {
-
-        statTransferSub.textContent = "Toàn bộ";
-
-    }
-
-}
-if (statTreating) statTreating.textContent = countTreating;
-if (statDischarged) statDischarged.textContent = countDischarged;
-if (statDeceased) statDeceased.textContent = countDeceased;
+            if (statTreating) statTreating.textContent = countTreating;
+            if (statDischarged) statDischarged.textContent = countDischarged;
+            if (statDeceased) statDeceased.textContent = countDeceased;
 
             let visibleCount = 0;
             let displayIndex = 1;
