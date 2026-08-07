@@ -948,56 +948,58 @@ if (!yearFilter) {
 
     patients.forEach(p => {
 
-        // Lấy tất cả các đợt điều trị của bệnh nhân
-        const patientSessions = getSessions().filter(
-            s => s.patientId === p.id
-        );
+        // Đợt điều trị GẦN NHẤT (cuối cùng) của bệnh nhân
+        const latest = getLatestSession(p.id);
 
-        // Cộng dồn số lượt chuyển viện trong năm (mỗi đợt tính 1 lượt, kể cả khi 1 BN có nhiều đợt)
-        const sessionsChuyenVienTrongNam =
-            patientSessions.filter(s =>
-                s.chuyenVien &&
-                s.chuyenVien.substring(0, 4) === yearFilter
-            );
+        // Lượt chuyển viện: đếm TẤT CẢ các đợt (không chỉ đợt cuối) có ngày chuyển viện
+        // rơi vào năm đang lọc — giữ nguyên, không phụ thuộc vào quy luật bên dưới.
+        const patientSessions = getSessions().filter(s => s.patientId === p.id);
+        const sessionsChuyenVienTrongNam = patientSessions.filter(s =>
+            s.chuyenVien && s.chuyenVien.substring(0, 4) === yearFilter
+        );
         countLuotChuyen += sessionsChuyenVienTrongNam.length;
 
+        if (!latest) return; // Bệnh nhân chưa có đợt điều trị nào -> không tính vào các mục dưới
+
         // ==================================================
-        // XÁC ĐỊNH TRẠNG THÁI DUY NHẤT của bệnh nhân trong năm đang lọc.
+        // QUY LUẬT: mỗi chỉ số dùng ĐÚNG mốc ngày của chính nó, luôn
+        // xét trên ĐỢT CUỐI CÙNG (mới nhất) của bệnh nhân — để khớp
+        // với báo cáo thực tế mỗi bệnh nhân chỉ tính 1 lần theo tình
+        // trạng hiện tại. Cụ thể:
         //
-        // LƯU Ý QUAN TRỌNG: 1 bệnh nhân có thể có NHIỀU đợt điều trị
-        // trong CÙNG 1 năm (ví dụ: đợt 1 đã xuất viện, đợt 2 lại đang
-        // điều trị). Nếu xét từng đợt độc lập, bệnh nhân này sẽ bị đếm
-        // vào NHIỀU nhóm cùng lúc → Tổng < tổng 3 nhóm cộng lại (lỗi
-        // "Tổng 98 nhưng cộng Xuất viện+Đang ĐT+Tử vong ra 105").
+        //  • TỔNG CA CHUYỂN VIỆN trong năm  → theo NĂM CỦA NGÀY CHUYỂN
+        //    VIỆN của đợt cuối cùng.
+        //  • ĐÃ XUẤT VIỆN / TỬ VONG trong năm → theo NĂM CỦA NGÀY RA
+        //    VIỆN (xuất viện/tử vong) của đợt cuối cùng.
         //
-        // Cách sửa: lấy các đợt có "chạm" đến năm đang lọc (ngày chuyển
-        // viện HOẶC ngày xuất viện rơi vào năm đó), sau đó chọn đúng 1
-        // đợt GẦN NHẤT theo sessionNum (giống hệt cách getLatestSession
-        // xác định "đợt hiện tại" khi không lọc năm) để suy ra trạng
-        // thái. Nhờ vậy mỗi bệnh nhân chỉ rơi vào ĐÚNG 1 nhóm, và danh
-        // sách bên dưới cũng dùng chung logic này nên luôn khớp nhau.
+        // Đây là 2 quy tắc ĐỘC LẬP nhau: một bệnh nhân chuyển viện năm
+        // 2025 nhưng tử vong năm 2026 sẽ được tính vào "Tổng chuyển
+        // viện 2025" và "Tử vong 2026" — đúng thực tế của từng chỉ số,
+        // dù vậy "Tổng" của 1 năm có thể KHÔNG bằng khớp tổng 3 nhóm
+        // Đang ĐT + Xuất viện + Tử vong của CÙNG năm đó (vì đó là 2
+        // câu hỏi thống kê khác nhau, đây là điều không thể tránh khỏi
+        // khi 1 đợt điều trị có 2 mốc ngày rơi vào 2 năm khác nhau).
         // ==================================================
 
-        const relevantSessions = patientSessions.filter(s =>
-            (s.chuyenVien && s.chuyenVien.substring(0, 4) === yearFilter) ||
-            (s.xuatVien && s.xuatVien.substring(0, 4) === yearFilter)
-        );
-
-        if (relevantSessions.length > 0) {
-
+        const namChuyenDotCuoi = latest.chuyenVien ? latest.chuyenVien.substring(0, 4) : "";
+        if (namChuyenDotCuoi === yearFilter) {
             countTotal++;
-
-            const latestRelevant = [...relevantSessions]
-                .sort((a, b) => b.sessionNum - a.sessionNum)[0];
-
-            if (!latestRelevant.xuatVien) {
+            // "Đang điều trị" chỉ có duy nhất mốc ngày chuyển viện (chưa có ngày ra viện)
+            // nên được tính theo năm chuyển viện, và là 1 phần của "Tổng" ở trên.
+            if (!latest.xuatVien) {
                 countTreating++;
-            } else if (latestRelevant.ketQua === 'deceased') {
-                countDeceased++;
-            } else {
-                countDischarged++;
             }
+        }
 
+        if (latest.xuatVien) {
+            const namRaVienDotCuoi = latest.xuatVien.substring(0, 4);
+            if (namRaVienDotCuoi === yearFilter) {
+                if (latest.ketQua === 'deceased') {
+                    countDeceased++;
+                } else {
+                    countDischarged++;
+                }
+            }
         }
 
     });
@@ -1025,45 +1027,39 @@ if (!yearFilter) {
             let visibleCount = 0;
             let displayIndex = 1;
 
-            const patientsWithLatest = patients.map(p => {
-                // Mặc định: lấy đợt gần nhất tổng thể (giữ nguyên hành vi khi KHÔNG lọc năm)
-                let displaySession = getLatestSession(p.id);
-                let matchedByYear = true;
-
-                if (yearFilter) {
-                    // Khi CÓ lọc theo năm: chọn ĐÚNG đợt điều trị gần nhất (theo sessionNum)
-                    // trong số các đợt có "chạm" đến năm đang lọc (ngày chuyển viện HOẶC ngày
-                    // xuất viện rơi vào năm đó). Đây là cùng 1 cách xác định "trạng thái hiện
-                    // tại" mà ô thống kê phía trên đang dùng, nên danh sách sẽ luôn khớp 100%
-                    // với số liệu thống kê, kể cả khi 1 bệnh nhân có nhiều đợt trong cùng năm.
-                    const patientSessions = getSessions().filter(s => s.patientId === p.id);
-
-                    const relevantSessions = patientSessions.filter(s =>
-                        (s.chuyenVien && s.chuyenVien.substring(0, 4) === yearFilter) ||
-                        (s.xuatVien && s.xuatVien.substring(0, 4) === yearFilter)
-                    );
-
-                    displaySession = relevantSessions.length > 0
-                        ? [...relevantSessions].sort((a, b) => b.sessionNum - a.sessionNum)[0]
-                        : null;
-                    matchedByYear = !!displaySession;
-                }
-
-                return { patient: p, latestSession: displaySession, matchedByYear };
-            }).sort((a, b) => {
+            const patientsWithLatest = patients.map(p => ({
+                patient: p,
+                latestSession: getLatestSession(p.id)
+            })).sort((a, b) => {
                 const dateA = (a.latestSession && a.latestSession.chuyenVien) ? a.latestSession.chuyenVien : "";
                 const dateB = (b.latestSession && b.latestSession.chuyenVien) ? b.latestSession.chuyenVien : "";
                 return dateB.localeCompare(dateA);
             });
 
-            patientsWithLatest.forEach(({ patient, latestSession, matchedByYear }) => {
+            patientsWithLatest.forEach(({ patient, latestSession }) => {
                 const currentSession = latestSession || { id: "", hospital: "-", chuyenVien: "", chuanDoan: "-", xuatVien: "", ketQua: "", notes: "" };
                 const matchSearch = patient.name.toLowerCase().includes(searchVal) || currentSession.hospital.toLowerCase().includes(searchVal);
-                const matchYear = matchedByYear;
                 const matchHospital = !hospitalFilter || (currentSession.hospital.trim() === hospitalFilter.trim());
                 const isDischarged = currentSession.xuatVien !== "";
                 const isDeceased = isDischarged && currentSession.ketQua === 'deceased';
                 const isNormalDischarged = isDischarged && currentSession.ketQua !== 'deceased';
+
+                // NĂM LỌC: áp dụng đúng mốc ngày tương ứng với TỪNG loại trạng thái,
+                // thống nhất với quy luật tính ở ô thống kê phía trên:
+                //  - Lọc "Đã xuất viện" / "Tử vong" -> so khớp theo NĂM NGÀY RA VIỆN của đợt cuối.
+                //  - Lọc "Đang ĐT" (hoặc không chọn trạng thái) -> so khớp theo NĂM NGÀY CHUYỂN VIỆN của đợt cuối.
+                let matchYear = true;
+                if (yearFilter) {
+                    const namChuyen = currentSession.chuyenVien ? currentSession.chuyenVien.substring(0, 4) : "";
+                    const namRaVien = currentSession.xuatVien ? currentSession.xuatVien.substring(0, 4) : "";
+                    if (statusFilter === 'deceased' || statusFilter === 'discharged') {
+                        matchYear = (namRaVien === yearFilter);
+                    } else {
+                        // Không chọn trạng thái, hoặc đang lọc "Đang ĐT": khớp theo năm chuyển viện
+                        // (đúng bằng quy luật tính "Tổng" ở ô thống kê phía trên)
+                        matchYear = (namChuyen === yearFilter);
+                    }
+                }
 
                 let matchStatus = true;
                 if (statusFilter) {
