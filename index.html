@@ -570,11 +570,12 @@
                     </div>
                     <div class="flex flex-col gap-0.5">
                         <label class="text-[10px] font-bold text-slate-500">Ca giao trực ban *</label>
-                        <select id="h-shift" required class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-amber-500 bg-white">
-                            <option value="Ca Sáng (06:00 - 14:00)">Ca Sáng (06:00 - 14:00)</option>
-                            <option value="Ca Chiều (14:00 - 22:00)">Ca Chiều (14:00 - 22:00)</option>
-                            <option value="Ca Đêm (22:00 - 06:00 sáng mai)">Ca Đêm (22:00 - 06:00 sáng mai)</option>
-                        </select>
+                        <input type="text" id="h-shift" required list="shift-presets" placeholder="VD: Ca Sáng (06:00 - 14:00) hoặc tự nhập giờ bất kỳ" class="border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-amber-500 bg-white">
+                        <datalist id="shift-presets">
+                            <option value="Ca Sáng (06:00 - 14:00)">
+                            <option value="Ca Chiều (14:00 - 22:00)">
+                            <option value="Ca Đêm (22:00 - 06:00 sáng mai)">
+                        </datalist>
                     </div>
                     <div class="flex flex-col gap-0.5">
                         <label class="text-[10px] font-bold text-slate-500">Nội dung chi tiết tình hình bàn giao *</label>
